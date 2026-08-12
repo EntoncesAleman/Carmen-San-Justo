@@ -1,0 +1,33 @@
+{
+  "name": "el-ultimo-procedimiento",
+  "description": "El Último Procedimiento — juego de investigación y persecución en CABA/AMBA.",
+  "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/phaserjs/template-vite-ts.git"
+  },
+  "author": "Phaser Studio <support@phaser.io> (https://phaser.io/)",
+  "license": "MIT",
+  "licenseUrl": "http://www.opensource.org/licenses/mit-license.php",
+  "bugs": {
+    "url": "https://github.com/phaserjs/template-vite-ts/issues"
+  },
+  "homepage": "https://github.com/phaserjs/template-vite-ts#readme",
+  "scripts": {
+    "dev": "vite --config vite/config.dev.mjs",
+    "build": "vite build --config vite/config.prod.mjs",
+    "preview": "vite preview --config vite/config.prod.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test src/tests/*.test.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "tsx": "^4.23.12",
+    "typescript": "~5.7.2",
+    "vite": "^6.3.1"
+  },
+  "dependencies": {
+    "phaser": "4.0.0",
+    "terser": "^5.39.0"
+  }
+}
