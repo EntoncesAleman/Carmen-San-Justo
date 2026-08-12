@@ -1,11 +1,12 @@
 import * as Phaser from 'phaser';
-import { COLORS_CSS, SCENE_KEYS, TIME_COSTS } from '../core/Constants';
+import { COLORS_CSS, FONTS, SCENE_KEYS, TIME_COSTS } from '../core/Constants';
 import { ZONES } from '../data/zones';
 import { EventBus, Events } from '../core/EventBus';
 import { gameState } from '../core/GameState';
 import { CaseManager } from '../systems/CaseManager';
 import { createButton } from '../ui/Button';
 import { audioManager } from '../audio/AudioManager';
+import { addTerminalDivider } from '../ui/TerminalDivider';
 
 export class CityMapScene extends Phaser.Scene {
     constructor() {
@@ -20,15 +21,16 @@ export class CityMapScene extends Phaser.Scene {
 
         this.add
             .text(this.scale.width / 2, 55, 'EL CINTURÓN', {
-                fontFamily: 'Georgia, serif',
+                fontFamily: FONTS.MONO,
                 fontSize: '24px',
                 color: COLORS_CSS.ACCENT,
             })
             .setOrigin(0.5);
+        addTerminalDivider(this, 74, 460);
 
         this.add
-            .text(this.scale.width / 2, 82, 'Elegí a dónde viajar', {
-                fontFamily: 'Georgia, serif',
+            .text(this.scale.width / 2, 88, '> ELEGÍ A DÓNDE VIAJAR_', {
+                fontFamily: FONTS.MONO,
                 fontSize: '13px',
                 color: COLORS_CSS.TEXT,
             })
@@ -50,21 +52,25 @@ export class CityMapScene extends Phaser.Scene {
                 width: 205,
                 height: 62,
                 fontSize: '13px',
+                fontFamily: FONTS.MONO,
             });
         });
 
         createButton(this, this.scale.width - 130, this.scale.height - 34, 'Pizarrón', () => this.scene.start(SCENE_KEYS.SUSPECT_BOARD), {
             width: 200,
             height: 44,
+            fontFamily: FONTS.MONO,
         });
         createButton(this, 130, this.scale.height - 34, 'Expediente', () => this.scene.start(SCENE_KEYS.CASE_FILE), {
             width: 200,
             height: 44,
+            fontFamily: FONTS.MONO,
         });
         createButton(this, this.scale.width / 2, this.scale.height - 34, 'Sistema de Inteligencia Criminal', () => this.scene.start(SCENE_KEYS.CRIME_COMPUTER), {
             width: 340,
             height: 44,
             fontSize: '13px',
+            fontFamily: FONTS.MONO,
         });
     }
 

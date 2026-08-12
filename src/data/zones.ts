@@ -21,6 +21,7 @@ export const ZONES: Zone[] = [
     { id: 'el_delta', nombre: 'El Delta', inspiracionConceptual: 'Tigre', descripcion: 'Ríos, islas y lanchas. Gente que "no vive en ningún lado en particular".' },
     { id: 'barranca_norte', nombre: 'La Barranca Norte', inspiracionConceptual: 'San Isidro', descripcion: 'Casonas, clubes de remo y apellidos que ocupan dos líneas.' },
     { id: 'lomas_bajas', nombre: 'Las Lomas Bajas', inspiracionConceptual: 'Lomas de Zamora', descripcion: 'Barrio residencial, canchas de básquet y quintas de fin de semana.' },
+    { id: 'feria_usados', nombre: 'La Feria del Usado', inspiracionConceptual: 'Liniers', descripcion: 'Concesionarias de autos usados a lo largo de la avenida, banderines de gasolinera al viento y una terminal de colectivos que no para nunca.' },
 ];
 
 export function getZone(id: string): Zone | undefined {

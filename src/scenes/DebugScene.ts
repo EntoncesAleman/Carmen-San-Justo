@@ -6,6 +6,7 @@ import { ClueManager } from '../systems/ClueManager';
 import { EndingResolver } from '../systems/EndingResolver';
 import { EventBus, Events } from '../core/EventBus';
 import { createButton } from '../ui/Button';
+import { CASES } from '../data/cases';
 
 // Modo debug. Se mantiene siempre disponible durante el desarrollo (tecla
 // backtick, ver HUDScene). Nunca se elimina, solo se extiende.
@@ -90,6 +91,13 @@ export class DebugScene extends Phaser.Scene {
         });
         btn('Reiniciar caso', () => {
             if (def) CaseManager.startCase(def.id);
+        });
+        CASES.forEach((caso, i) => {
+            btn(`Saltar a Caso ${i + 1}: ${caso.titulo}`, () => {
+                CaseManager.startCase(caso.id);
+                this.scene.stop(SCENE_KEYS.DEBUG);
+                this.scene.start(SCENE_KEYS.REPORT);
+            });
         });
 
         this.stateText = this.add.text(this.scale.width / 2 - 400, 470, '', {

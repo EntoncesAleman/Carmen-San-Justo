@@ -82,7 +82,8 @@ definición de "terminado" de `AGENTS.md`.
       zonas y varios NPCs reutilizados (Pipo, Sagasti, Yamila, Egidio,
       Naza) más 2 NPCs nuevos (Chiche Molina, el sospechoso; el Pescador
       Aguirre, el falso sospechoso)
-- [ ] Caso 3 (a definir)
+- [x] Caso 3: "El Robo del Trofeo del Club" (`caso3_trofeo.ts` +
+      `caso3_dialogues.ts`, FASE 14) — ver detalle abajo, FASE 14
 - [x] Infraestructura confirmada para agregar casos sin tocar código core
       — agregar el Caso 2 solo requirió 2 archivos de datos nuevos +
       sumarlo a `cases/index.ts`. En el proceso se corrigieron dos deudas
@@ -188,11 +189,16 @@ el mundo/contenido ya existente ni copiar nada de ninguna franquicia.
       extensión de `DataIntegrity.test.ts` con validación de `ruta` y de
       que el identikit completo de cada caso registrado identifique
       únicamente al sospechoso real). Total: 101 tests.
-- [ ] Pasada de UI tipo panel/terminal para el resto de las escenas
+- [x] Pasada de UI tipo panel/terminal para el resto de las escenas
       (`CityMapScene`, `LocationScene`, `SuspectBoardScene`,
-      `CaseFileScene`, `EndingScene` siguen con el estilo "Georgia serif"
-      anterior; solo `ReportScene`/`CrimeComputerScene` tienen la estética
-      terminal nueva).
+      `CaseFileScene`, `EndingScene`): tipografía monospace (`FONTS.MONO`)
+      en todo el texto y los botones (nuevo `fontFamily` opcional en
+      `createButton`), más una línea divisoria fina bajo cada título
+      (`ui/TerminalDivider.ts`) consistente con el estilo ya usado en
+      `ReportScene`. Se mantuvo el fondo oscuro con acentos ámbar (no el
+      verde puro de `CrimeComputerScene`, reservado para esa pantalla en
+      particular) para diferenciar "terminal de la comisaría" de "UI de
+      juego en general".
 - [x] Audio: ambiente por tipo de zona (`data/ambient.ts`, drone "urbano"
       vs. "agua" para zonas costeras/ribereñas, capa separada bajo la
       música vía `AudioManager.playAmbient`) y 3 estados de música nuevos:
@@ -203,16 +209,36 @@ el mundo/contenido ya existente ni copiar nada de ninguna franquicia.
       `gameState.deadlineWarningEmitted` en cada `create()`) y `captura`
       (EndingScene, solo en finales exitosos vía
       `CaseManager.isEndingExitoso`).
-- [ ] Caso 3+ diseñado ya sobre la estructura nueva (ruta + identikit)
-      desde el arranque, no migrado después.
+- [x] Caso 3 diseñado ya sobre la estructura nueva (ruta + identikit) desde
+      el arranque, no migrado después: "El Robo del Trofeo del Club"
+      (`caso3_trofeo.ts`), el caso de ejemplo original del prompt (zona
+      inspirada en Liniers, pista del colectivo 21). Zona nueva
+      (`feria_usados`), 3 NPCs nuevos, ruta de 3 paradas reutilizando 7
+      NPCs existentes con diálogo propio del caso. Ahora el ciclo
+      automático de casos tiene 3 entradas en vez de 2 — no se repite en
+      la tercera partida.
+- [ ] Caso 4+ (a definir; con 3 casos el ciclo ya no se repite en la
+      tercera partida, pero más variedad sigue sumando).
 
-**Nota de diseño encontrada y corregida en el proceso**: la primera versión
-del identikit de `senuelo_kiosquero` no compartía `comida` con el sospechoso
-real, lo que volvía la deducción trivial (una sola pista alcanzaba). Se
-ajustó para que comparta `comida: 'Medialunas'` con el caco real, obligando
-a una segunda pista de atributo distinta para acorralarlo — verificado con
-el test genérico agregado en `CrimeComputerSystem.test.ts` que corre sobre
-todos los casos registrados, no solo el caso 1.
+**Notas de diseño encontradas y corregidas en el proceso** (las tres
+siguientes vinieron del mismo chequeo: que ninguna pista, sola, resuelva el
+identikit):
+- La primera versión del identikit de `senuelo_kiosquero` no compartía
+  `comida` con el sospechoso real del Caso 1, lo que volvía la deducción
+  trivial (una sola pista alcanzaba). Se ajustó para que comparta
+  `comida: 'Medialunas'` con el caco real, obligando a una segunda pista
+  de atributo distinta para acorralarlo.
+- Al diseñar el Caso 3 se encontró la MISMA falla, sin detectar, en los
+  dos casos anteriores: `profesion: 'Ingeniero trucho'` (Caso 1) y
+  `vehiculo: 'Fiat Duna'` (Caso 2) eran valores únicos en toda la base de
+  sospechosos — una sola pista bastaba para emitir la orden de captura.
+  Corregido agregando 2 señuelos nuevos (`senuelo_utilero_rival`,
+  `senuelo_ingeniero_trucho_2`) que comparten esos valores.
+- Todo esto quedó fijado con un test genérico nuevo en
+  `CrimeComputerSystem.test.ts` que corre sobre TODAS las pistas de
+  atributo de TODOS los casos registrados, no solo verificado a mano una
+  vez — cualquier caso futuro que reintroduzca la falla la va a explotar
+  en el momento de agregarlo.
 
 ## Deuda de contenido conocida (no bloqueante)
 
@@ -235,12 +261,14 @@ todos los casos registrados, no solo el caso 1.
 
 ## Próximos pasos sugeridos (en orden)
 
-1. Generar el resto del arte con `tools/generate_art.py` (12 NPCs, 16
-   fondos, banda criminal, íconos de HUD) — sin costo, solo tiempo.
+1. Generar arte nuevo con `tools/generate_art.py`: retratos de los NPCs del
+   Caso 3 (Toto, Bocha, Turco Almada), fondo de "La Feria del Usado", y el
+   resto de los placeholders pendientes (12 NPCs, 16 fondos, banda
+   criminal, íconos de HUD) — sin costo, solo tiempo.
 2. Jugar manualmente los 3 finales (`escandalo`, `final_absurdo`,
    `final_secreto`) de cada caso que hoy solo tienen cobertura de test
    unitario + debug mode, o extender `tools/e2e_smoke_test.py`.
-3. Diseñar el Caso 3.
+3. Diseñar el Caso 4.
 4. FASE 12 continuo: seguir auditando a medida que se agrega contenido.
 
 ---

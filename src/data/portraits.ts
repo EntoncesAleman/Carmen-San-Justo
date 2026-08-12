@@ -14,12 +14,16 @@ export const NPC_PORTRAITS: Record<string, string> = {
     el_ingeniero_contreras: 'npc_el_ingeniero_contreras_portrait',
     camionero_catering: 'npc_camionero_catering_portrait',
     chiche_molina: 'npc_chiche_molina_portrait',
+    toto_ferradas: 'npc_toto_ferradas_portrait',
+    bocha_ferreyra: 'npc_bocha_ferreyra_portrait',
+    turco_almada: 'npc_turco_almada_portrait',
 };
 
 export const LOCATION_BACKGROUNDS: Record<string, string> = {
     kiosco_simon: 'location_kiosco_simon_background',
     muelle_anguila: 'location_muelle_anguila_background',
     comisaria_0: 'location_comisaria_0_background',
+    concesionaria_el_rebusque: 'location_concesionaria_rebusque_background',
 };
 
 export function getPortraitKey(npcId: string): string | undefined {

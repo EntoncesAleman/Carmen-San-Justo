@@ -106,6 +106,11 @@ def run():
         page.screenshot(path="/tmp/smoke_03_clue_response.png")
         click(512, 500)  # Continuar
         page.wait_for_timeout(400)
+        click(874, 728)  # Volver al mapa (LocationScene) -- antes faltaba
+        # este paso: sin él, (130,734) cae sobre "Explorar" de LocationScene
+        # en vez de "Expediente" de CityMapScene (falso positivo silencioso,
+        # sin error de consola, detectado recién al revisar la captura).
+        page.wait_for_timeout(400)
 
         click(130, 734)  # Expediente
         page.wait_for_timeout(300)

@@ -28,6 +28,7 @@ export const LOCATIONS: Location[] = [
     { id: 'muelle_anguila', zoneId: 'el_delta', nombre: 'Muelle de Botes "La Anguila"', descripcion: 'Alquiler de lanchas sin preguntas. Punto de acceso a las islas.', npcIds: [] },
     { id: 'club_remo_barranca', zoneId: 'barranca_norte', nombre: 'Club de Remo Barranca Norte', descripcion: 'Apellidos largos, botes carísimos, silencio de club privado.', npcIds: [] },
     { id: 'plaza_lomas_bajas', zoneId: 'lomas_bajas', nombre: 'Plaza de Las Lomas Bajas', descripcion: 'Un jubilado anota patentes de auto en un cuaderno desde 1987.', npcIds: ['egidio_paz'] },
+    { id: 'concesionaria_el_rebusque', zoneId: 'feria_usados', nombre: 'Concesionaria "El Rebusque"', descripcion: 'Autos usados con el precio tapado por el sol. El dueño mira todo lo que pasa por la vereda de enfrente.', npcIds: ['toto_ferradas'] },
 ];
 
 export function getLocationByZone(zoneId: string): Location | undefined {

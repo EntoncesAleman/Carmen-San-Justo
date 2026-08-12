@@ -77,6 +77,48 @@ export const SUSPECTS: SuspectProfile[] = [
             comida: 'Empanadas',
         },
     },
+    {
+        id: 'bocha_ferreyra',
+        nombreClave: '"El Bocha" Ferreyra',
+        atributos: {
+            cabello: 'Rubio',
+            ojos: 'Marrones',
+            vehiculo: 'Combi Volkswagen',
+            profesion: 'Utilero',
+            hobby: 'Truco',
+            comida: 'Bondiola',
+        },
+    },
+    // Señuelos agregados junto con el Caso 3, pensados para tapar dos
+    // atributos que hasta acá eran únicos en toda la base — y que por lo
+    // tanto resolvían el identikit de un solo golpe con una sola pista:
+    // `profesion: 'Ingeniero trucho'` (solo el caco del Caso 1) y
+    // `vehiculo: 'Fiat Duna'` (solo el caco del Caso 2). Ver
+    // CrimeComputerSystem.test.ts → "ningún atributo revelado es único".
+    {
+        id: 'senuelo_utilero_rival',
+        nombreClave: '"Cabezón" Bermúdez',
+        atributos: {
+            cabello: 'Pelado',
+            ojos: 'Azules',
+            vehiculo: 'Combi Volkswagen',
+            profesion: 'Utilero',
+            hobby: 'Pesca',
+            comida: 'Milanesas',
+        },
+    },
+    {
+        id: 'senuelo_ingeniero_trucho_2',
+        nombreClave: '"El Junior" Robledo',
+        atributos: {
+            cabello: 'Negro',
+            ojos: 'Azules',
+            vehiculo: 'Fiat Duna',
+            profesion: 'Ingeniero trucho',
+            hobby: 'Pesca',
+            comida: 'Milanesas',
+        },
+    },
 ];
 
 export function getSuspect(id: string): SuspectProfile | undefined {

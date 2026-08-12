@@ -54,4 +54,28 @@ describe('CrimeComputerSystem', () => {
             assert.ok(CrimeComputerSystem.canEmitirOrden(caso));
         });
     });
+
+    // Chequeo genérico más estricto: NINGUNA pista de atributo, tomada
+    // SOLA, debe alcanzar para acorralar a un único sospechoso — eso sería
+    // resolver el identikit "de un solo golpe" con la primera pista que el
+    // jugador encuentre, sin combinar nada (justo lo que pide evitar la
+    // sección 51 del diseño, "no simplificar"). Encontrado y corregido dos
+    // veces ya en la base real (`profesion: 'Ingeniero trucho'` del Caso 1
+    // y `vehiculo: 'Fiat Duna'` del Caso 2 eran, cada una, únicas en toda
+    // la base de sospechosos hasta que se agregaron señuelos que las
+    // comparten — ver `data/suspects.ts`).
+    CASES.forEach((caso) => {
+        const cluesConAtributo = caso.clues.filter((c) => c.revealsAttribute && !c.esFalsa);
+        cluesConAtributo.forEach((clue) => {
+            it(`${caso.id}: la pista "${clue.id}" (${clue.revealsAttribute!.key}) sola NO alcanza para emitir la orden`, () => {
+                gameState.reset();
+                gameState.addClue(clue.id);
+                const matches = CrimeComputerSystem.getMatchingSuspects(caso);
+                assert.ok(
+                    matches.length > 1,
+                    `la pista "${clue.id}" sola ya identifica un único sospechoso (${matches[0]?.id}) — el atributo "${clue.revealsAttribute!.key}: ${clue.revealsAttribute!.value}" es único en toda la base, hace falta un señuelo que lo comparta`,
+                );
+            });
+        });
+    });
 });

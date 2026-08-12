@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { COLORS_CSS, SCENE_KEYS, TIME_COSTS } from '../core/Constants';
+import { COLORS_CSS, FONTS, SCENE_KEYS, TIME_COSTS } from '../core/Constants';
 import { gameState } from '../core/GameState';
 import { getLocationByZone } from '../data/locations';
 import { getZone } from '../data/zones';
@@ -10,6 +10,7 @@ import { EventSystem } from '../systems/EventSystem';
 import { audioManager } from '../audio/AudioManager';
 import { getBackgroundKey } from '../data/portraits';
 import { getAmbientForZone } from '../data/ambient';
+import { addTerminalDivider } from '../ui/TerminalDivider';
 
 export class LocationScene extends Phaser.Scene {
     constructor() {
@@ -31,15 +32,16 @@ export class LocationScene extends Phaser.Scene {
 
         this.add
             .text(this.scale.width / 2, 60, location?.nombre ?? zone?.nombre ?? 'Lugar desconocido', {
-                fontFamily: 'Georgia, serif',
+                fontFamily: FONTS.MONO,
                 fontSize: '26px',
                 color: COLORS_CSS.ACCENT,
             })
             .setOrigin(0.5);
+        addTerminalDivider(this, 82, 500);
 
         this.add
             .text(this.scale.width / 2, 110, location?.descripcion ?? '', {
-                fontFamily: 'Georgia, serif',
+                fontFamily: FONTS.MONO,
                 fontSize: '14px',
                 color: COLORS_CSS.TEXT,
                 align: 'center',
@@ -70,7 +72,7 @@ export class LocationScene extends Phaser.Scene {
         if (visibleNpcIds.length === 0) {
             this.add
                 .text(this.scale.width / 2, 220, 'No hay nadie por acá ahora mismo.', {
-                    fontFamily: 'Georgia, serif',
+                    fontFamily: FONTS.MONO,
                     fontSize: '15px',
                     color: COLORS_CSS.TEXT,
                 })
@@ -101,12 +103,12 @@ export class LocationScene extends Phaser.Scene {
                     }
                     this.talkTo(npcId, !!isSuspect, !!isFalsoSospechoso);
                 },
-                { width: 560, height: 54, fontSize: '14px' },
+                { width: 560, height: 54, fontSize: '14px', fontFamily: FONTS.MONO },
             );
         });
 
-        createButton(this, 150, this.scale.height - 40, 'Explorar', () => this.explore());
-        createButton(this, this.scale.width - 150, this.scale.height - 40, 'Volver al mapa', () => this.scene.start(SCENE_KEYS.CITY_MAP));
+        createButton(this, 150, this.scale.height - 40, 'Explorar', () => this.explore(), { fontFamily: FONTS.MONO });
+        createButton(this, this.scale.width - 150, this.scale.height - 40, 'Volver al mapa', () => this.scene.start(SCENE_KEYS.CITY_MAP), { fontFamily: FONTS.MONO });
     }
 
     // Placeholder funcional de pasos al entrar a una locación (ver
@@ -168,7 +170,7 @@ export class LocationScene extends Phaser.Scene {
             .setInteractive();
         const text = this.add
             .text(this.scale.width / 2, this.scale.height / 2, `${message}\n\n(click para continuar)`, {
-                fontFamily: 'Georgia, serif',
+                fontFamily: FONTS.MONO,
                 fontSize: '16px',
                 color: '#f2ede3',
                 align: 'center',

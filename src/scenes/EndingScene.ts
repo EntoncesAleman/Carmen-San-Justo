@@ -1,10 +1,11 @@
 import * as Phaser from 'phaser';
-import { COLORS_CSS, SCENE_KEYS } from '../core/Constants';
+import { COLORS_CSS, FONTS, SCENE_KEYS } from '../core/Constants';
 import { gameState } from '../core/GameState';
 import { CaseManager } from '../systems/CaseManager';
 import { createButton } from '../ui/Button';
 import { audioManager } from '../audio/AudioManager';
 import { getRankForCasosResueltos } from '../data/ranks';
+import { addTerminalDivider } from '../ui/TerminalDivider';
 
 export class EndingScene extends Phaser.Scene {
     constructor() {
@@ -31,15 +32,16 @@ export class EndingScene extends Phaser.Scene {
 
         this.add
             .text(this.scale.width / 2, 190, ending?.titulo ?? 'Fin del caso', {
-                fontFamily: 'Georgia, serif',
+                fontFamily: FONTS.MONO,
                 fontSize: '30px',
                 color: COLORS_CSS.ACCENT,
             })
             .setOrigin(0.5);
+        addTerminalDivider(this, 226, 700);
 
         this.add
             .text(this.scale.width / 2, 290, ending?.descripcion ?? 'El caso terminó de alguna manera.', {
-                fontFamily: 'Georgia, serif',
+                fontFamily: FONTS.MONO,
                 fontSize: '16px',
                 color: COLORS_CSS.TEXT,
                 align: 'center',
@@ -49,8 +51,8 @@ export class EndingScene extends Phaser.Scene {
             .setOrigin(0.5);
 
         this.add
-            .text(this.scale.width / 2, 400, `Casos resueltos: ${gameState.casosResueltos}   |   Rango: ${rank.titulo}`, {
-                fontFamily: 'Georgia, serif',
+            .text(this.scale.width / 2, 400, `CASOS RESUELTOS: ${gameState.casosResueltos}   |   RANGO: ${rank.titulo.toUpperCase()}`, {
+                fontFamily: FONTS.MONO,
                 fontSize: '15px',
                 color: COLORS_CSS.SUCCESS,
             })
@@ -59,8 +61,8 @@ export class EndingScene extends Phaser.Scene {
         createButton(this, this.scale.width / 2, 480, 'Siguiente caso', () => {
             CaseManager.startNextCaseInSequence();
             this.scene.start(SCENE_KEYS.REPORT);
-        });
+        }, { fontFamily: FONTS.MONO });
 
-        createButton(this, this.scale.width / 2, 550, 'Volver al menú', () => this.scene.start(SCENE_KEYS.MAIN_MENU));
+        createButton(this, this.scale.width / 2, 550, 'Volver al menú', () => this.scene.start(SCENE_KEYS.MAIN_MENU), { fontFamily: FONTS.MONO });
     }
 }

@@ -6,6 +6,7 @@ export interface ButtonOptions {
     width?: number;
     height?: number;
     fontSize?: string;
+    fontFamily?: string;
 }
 
 // Botón reutilizable en toda la UI del juego. Nada de estilos sueltos
@@ -24,7 +25,7 @@ export function createButton(
     const bg = scene.add.rectangle(0, 0, width, height, COLORS.PANEL).setStrokeStyle(2, COLORS.ACCENT);
     const text = scene.add
         .text(0, 0, label, {
-            fontFamily: 'Georgia, serif',
+            fontFamily: options.fontFamily ?? 'Georgia, serif',
             fontSize: options.fontSize ?? '18px',
             color: '#f2ede3',
             wordWrap: { width: width - 20 },

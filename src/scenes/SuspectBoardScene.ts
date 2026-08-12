@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { COLORS_CSS, SCENE_KEYS } from '../core/Constants';
+import { COLORS_CSS, FONTS, SCENE_KEYS } from '../core/Constants';
 import { gameState } from '../core/GameState';
 import { CaseManager } from '../systems/CaseManager';
 import { ClueManager } from '../systems/ClueManager';
@@ -25,37 +25,37 @@ export class SuspectBoardScene extends Phaser.Scene {
         // de compositing entre dos cámaras de Phaser. Todo el contenido de
         // esta escena arranca en y>=52 a propósito.
         this.add
-            .text(this.scale.width / 2, 52, 'PIZARRÓN — RUTA DEL CACO', { fontFamily: 'Georgia, serif', fontSize: '20px', color: COLORS_CSS.ACCENT })
+            .text(this.scale.width / 2, 52, 'PIZARRÓN — RUTA DEL CACO', { fontFamily: FONTS.MONO, fontSize: '20px', color: COLORS_CSS.ACCENT })
             .setOrigin(0.5);
 
         if (!def) {
-            this.add.text(this.scale.width / 2, 150, 'No hay un caso activo.', { fontFamily: 'Georgia, serif', fontSize: '16px', color: COLORS_CSS.TEXT }).setOrigin(0.5);
-            createButton(this, this.scale.width / 2, 230, 'Volver', () => this.scene.start(SCENE_KEYS.CITY_MAP));
+            this.add.text(this.scale.width / 2, 150, 'No hay un caso activo.', { fontFamily: FONTS.MONO, fontSize: '16px', color: COLORS_CSS.TEXT }).setOrigin(0.5);
+            createButton(this, this.scale.width / 2, 230, 'Volver', () => this.scene.start(SCENE_KEYS.CITY_MAP), { fontFamily: FONTS.MONO });
             return;
         }
 
         const progreso = def.ruta
             .map((zoneId, i) => (i <= gameState.rutaProgresoIndex ? getZone(zoneId)?.nombre ?? zoneId : '???'))
             .join('  →  ');
-        this.add.text(60, 80, `Ruta reconstruida: ${progreso}`, {
-            fontFamily: 'Georgia, serif',
+        this.add.text(60, 80, `RUTA RECONSTRUIDA: ${progreso}`, {
+            fontFamily: FONTS.MONO,
             fontSize: '13px',
             color: COLORS_CSS.SUCCESS,
             wordWrap: { width: 900 },
         });
 
         const collected = ClueManager.getCollectedClues(def.clues);
-        this.add.text(60, 114, 'Pistas que tenés hasta ahora:', { fontFamily: 'Georgia, serif', fontSize: '14px', color: COLORS_CSS.TEXT });
+        this.add.text(60, 114, 'PISTAS QUE TENÉS HASTA AHORA:', { fontFamily: FONTS.MONO, fontSize: '14px', color: COLORS_CSS.TEXT });
         if (collected.length === 0) {
             this.add.text(80, 138, 'Ninguna todavía. Volvé a investigar antes de arriesgar una hipótesis.', {
-                fontFamily: 'Georgia, serif',
+                fontFamily: FONTS.MONO,
                 fontSize: '12px',
                 color: '#c0392b',
             });
         } else {
             collected.forEach((clue, i) => {
-                this.add.text(80, 138 + i * 20, `• ${clue.descripcion}`, {
-                    fontFamily: 'Georgia, serif',
+                this.add.text(80, 138 + i * 20, `> ${clue.descripcion}`, {
+                    fontFamily: FONTS.MONO,
                     fontSize: '11px',
                     color: clue.esFalsa ? '#c0392b' : COLORS_CSS.TEXT,
                     wordWrap: { width: 860 },
@@ -68,8 +68,8 @@ export class SuspectBoardScene extends Phaser.Scene {
         this.add.text(
             60,
             boardTop,
-            esParadaFinal ? 'Ya llegaste al final de la ruta conocida. Confrontá al sospechoso en el mapa.' : '¿Cuál es la PRÓXIMA parada del caco? (elegí una zona)',
-            { fontFamily: 'Georgia, serif', fontSize: '14px', color: COLORS_CSS.ACCENT, wordWrap: { width: 900 } },
+            esParadaFinal ? 'Ya llegaste al final de la ruta conocida. Confrontá al sospechoso en el mapa.' : '¿CUÁL ES LA PRÓXIMA PARADA DEL CACO? (elegí una zona)',
+            { fontFamily: FONTS.MONO, fontSize: '14px', color: COLORS_CSS.ACCENT, wordWrap: { width: 900 } },
         );
 
         if (!esParadaFinal) {
@@ -84,13 +84,14 @@ export class SuspectBoardScene extends Phaser.Scene {
                 const row = Math.floor(i / cols);
                 const x = startX + col * stepX;
                 const y = startY + row * stepY;
-                createButton(this, x, y, zone.nombre, () => this.submit(zone.id), { width: 160, height: 42, fontSize: '11px' });
+                createButton(this, x, y, zone.nombre, () => this.submit(zone.id), { width: 160, height: 42, fontSize: '11px', fontFamily: FONTS.MONO });
             });
         }
 
         createButton(this, this.scale.width / 2, this.scale.height - 32, 'Volver sin presentar', () => this.scene.start(SCENE_KEYS.CITY_MAP), {
             width: 260,
             height: 38,
+            fontFamily: FONTS.MONO,
         });
     }
 
@@ -118,7 +119,7 @@ export class SuspectBoardScene extends Phaser.Scene {
 
         const text = this.add
             .text(this.scale.width / 2, this.scale.height / 2, `${message}\n\n(click para continuar)`, {
-                fontFamily: 'Georgia, serif',
+                fontFamily: FONTS.MONO,
                 fontSize: '15px',
                 color: '#f2ede3',
                 align: 'center',

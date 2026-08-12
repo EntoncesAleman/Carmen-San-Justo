@@ -45,6 +45,14 @@ CHARACTERS = [
     ("npc_chiche_molina_portrait", 51,
      "obsessive gang accountant terrified for the first time in his life, worn suit, pocket calculator, "
      "crooked tie", 99),
+    ("npc_toto_ferradas_portrait", 49,
+     "used car dealership owner, checkered shirt, pen behind his ear, indignant proud expression, "
+     "soccer club fan", 110),
+    ("npc_bocha_ferreyra_portrait", 34,
+     "cocky small-time soccer club equipment manager, worn tracksuit, backwards cap, nervous smug grin, "
+     "always chewing something", 121),
+    ("npc_turco_almada_portrait", 44,
+     "street vendor with a folding table of counterfeit watches and sunglasses, confused innocent expression", 132),
 ]
 
 BACKGROUNDS = [
@@ -57,6 +65,9 @@ BACKGROUNDS = [
     ("location_comisaria_0_background",
      "run down neighborhood police station facade at night, peeling paint, a single lit window, "
      "an old patrol car parked outside", 333),
+    ("location_concesionaria_rebusque_background",
+     "row of used car dealerships along a wide avenue at night, plastic pennant flags strung overhead, "
+     "windshields with hand painted prices, a bus stop on the corner", 444),
 ]
 
 

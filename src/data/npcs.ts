@@ -165,6 +165,28 @@ export const NPCS: NPC[] = [
         zoneId: 'el_delta', infoQueConoce: 'Nada del caso; conoce cada recoveco del río.', infoQueOculta: 'Nada.',
         puedeMentir: false,
     },
+    // NPCs del Caso 3 ("El Robo del Trofeo del Club").
+    {
+        id: 'toto_ferradas', nombre: 'Toto Ferradas', apodo: 'Toto', edadAproximada: 49,
+        personalidad: 'Vendedor de autos usados, hincha fanático del club, indignado por el robo.', apariencia: 'Camisa a cuadros, birome siempre en la oreja.',
+        vozConceptual: 'Habla del robo como si fuera un partido perdido en el último minuto.', relacionProtagonista: 'Ninguna previa; es testigo del Caso 3.',
+        zoneId: 'feria_usados', infoQueConoce: 'Vio subir al ladrón a un colectivo de la línea 21 con un bulto sospechoso.', infoQueOculta: 'Nada; lo cuenta todo con gusto, varias veces.',
+        puedeMentir: false,
+    },
+    {
+        id: 'bocha_ferreyra', nombre: '"Bocha" Ferreyra', apodo: 'El Bocha', edadAproximada: 34,
+        personalidad: 'Utilero del club, jugador de truco compulsivo, se cree más vivo de lo que es.', apariencia: 'Buzo del club gastado, gorra al revés, siempre masticando algo.',
+        vozConceptual: 'Fanfarrón, se contradice cada dos frases.', relacionProtagonista: 'Ninguna previa; es el sospechoso/víctima del Caso 3.',
+        zoneId: 'casco_antiguo', infoQueConoce: 'Por qué se llevó la copa y a quién se la iba a vender.', infoQueOculta: 'Que le debe plata de truco a gente de Los Administradores.',
+        puedeMentir: true,
+    },
+    {
+        id: 'turco_almada', nombre: 'Almada', apodo: 'El Turco Almada', edadAproximada: 44,
+        personalidad: 'Vendedor ambulante de la feria, ajeno por completo al caso.', apariencia: 'Mesa plegable, relojes y anteojos de sol falsificados.',
+        vozConceptual: 'Todo se lo vende a todos, incluida su inocencia.', relacionProtagonista: 'Ninguna; está en el lugar equivocado en el momento equivocado, de nuevo.',
+        zoneId: 'la_feria', infoQueConoce: 'Nada del caso; conoce todos los precios de la feria de memoria.', infoQueOculta: 'Nada.',
+        puedeMentir: false,
+    },
 ];
 
 export function getNpc(id: string): NPC | undefined {

@@ -2,6 +2,97 @@
 
 Formato: fecha, qué se hizo, por qué. Más reciente arriba.
 
+## 2026-08-12 (continuación — FASE 14, arte del Caso 3)
+
+- Generados con Pollinations.ai (mismo pipeline y estilo que el primer
+  lote — `tools/generate_art.py`) los 3 retratos y el fondo que le
+  faltaban al Caso 3: Toto Ferradas, "Bocha" Ferreyra, Turco Almada, y el
+  fondo de "Concesionaria El Rebusque". Registrados en
+  `data/portraits.ts` y precargados automáticamente por `Preloader.ts`
+  (dato, no código — ningún archivo de escena cambió). Verificado en
+  navegador que el retrato de Toto y el fondo de la concesionaria se ven
+  con el mismo estilo cel-shaded ya establecido.
+- Sigue pendiente el resto del backlog de arte previo a esta sesión (12
+  NPCs y 16 fondos de los Casos 1 y 2, banda criminal, íconos de HUD) —
+  no formaba parte de lo pedido para el Caso 3, ver ROADMAP.
+- `npm run typecheck`, `npm test` (144/144) y `npm run build` limpios.
+
+## 2026-08-12 (continuación — FASE 14, pasada de UI terminal)
+
+- Aplicada la estética "terminal" (ya usada en `ReportScene` y
+  `CrimeComputerScene`) al resto de las escenas de juego:
+  `CityMapScene`, `LocationScene`, `SuspectBoardScene`, `CaseFileScene` y
+  `EndingScene`, que hasta ahora seguían con el estilo "Georgia serif"
+  original. Cambio de bajo riesgo a propósito: solo tipografía
+  (`FONTS.MONO` en vez de `'Georgia, serif'`) y una línea divisoria fina
+  bajo cada título (`ui/TerminalDivider.ts`, nuevo), sin tocar ninguna
+  coordenada, lógica ni el layout ya probado — incluido el workaround
+  documentado del bug de compositing HUD/y<40 en `SuspectBoardScene`, que
+  se dejó intacto.
+- `createButton` (`ui/Button.ts`) gana un `fontFamily` opcional (default
+  `'Georgia, serif'`, sin cambios para `MainMenu`/`DialogueScene`, que no
+  forman parte de esta pasada) para poder pedir botones monospace en las
+  escenas rediseñadas sin duplicar el componente.
+- **Bug encontrado en el propio smoke test, no en el juego**: al revisar
+  la captura de `CaseFileScene` para verificar el cambio, se notó que
+  mostraba el overlay de "Explorar" de `LocationScene` en vez del
+  expediente — el test clickeaba las coordenadas de "Expediente" (de
+  `CityMapScene`) sin haber vuelto antes al mapa, y esas mismas
+  coordenadas caen dentro del botón "Explorar" de la escena en la que
+  realmente estaba parado. Sin error de consola, sin fallo del assert:
+  un falso positivo silencioso que solo se vio revisando la imagen.
+  Corregido agregando el paso de "Volver al mapa" que faltaba.
+- Verificado en navegador (Playwright, capturas de las 5 escenas
+  rediseñadas + regresión completa de ambos scripts de smoke test):
+  sin errores de consola, sin solapamientos. `npm run typecheck`,
+  `npm test` (144/144) y `npm run build` limpios.
+
+## 2026-08-12 (continuación — FASE 14, Caso 3 y corrección de deducciones triviales)
+
+- Implementado el Caso 3, "El Robo del Trofeo del Club" — el caso de
+  ejemplo pedido originalmente (arranca en una zona inspirada en Liniers,
+  con una pista sobre subirse a un colectivo de la línea 21, deduciendo
+  la ruta hacia el resto de "El Cinturón"). Se construyó como un caso
+  original más, no como una recreación literal: nueva zona "La Feria del
+  Usado" (`feria_usados`), nueva locación, 3 NPCs nuevos (Toto Ferradas,
+  testigo; "Bocha" Ferreyra, el caco, utilero de un club de barrio; Turco
+  Almada, falso sospechoso), y una ruta de 3 paradas
+  (feria_usados → palo_alto → casco_antiguo) que reutiliza varios NPCs ya
+  existentes (Salerno, Salaberry, Petrocelli, Walter Chiodi, Naza, Egidio,
+  Manteca) con diálogo enteramente nuevo propio de este caso. Motivo:
+  con 2 casos, el ciclo automático de casos se repetía en la tercera
+  partida — pedido explícito del usuario ("más cacos que atrapar").
+- **Bug de diseño encontrado y corregido, dos veces, de forma retroactiva**:
+  auditando los atributos del identikit de Bocha para que ningún atributo
+  fuera "resolvible con una sola pista", se encontró que esa misma falla
+  ya existía sin detectar en los casos anteriores: `profesion: 'Ingeniero
+  trucho'` (Caso 1) y `vehiculo: 'Fiat Duna'` (Caso 2) eran, cada una,
+  valores únicos en toda la base de sospechosos — cualquiera de esas dos
+  pistas, sola, ya alcanzaba para emitir la orden de captura sin combinar
+  nada. Corregido agregando 2 señuelos nuevos a `data/suspects.ts`
+  (`senuelo_utilero_rival`, que también tapa el vehículo/profesión de
+  Bocha, y `senuelo_ingeniero_trucho_2`, que tapa retroactivamente las de
+  Contreras y Molina).
+- Nuevo test genérico en `CrimeComputerSystem.test.ts`: para cada pista
+  real que revela un atributo, en cualquier caso registrado, esa pista
+  *sola* no debe alcanzar para acorralar a un único sospechoso. Sin este
+  test, la falla de diseño de los Casos 1 y 2 hubiera seguido sin
+  detectarse. Total: 25 tests solo en `CrimeComputerSystem.test.ts`,
+  144 tests en todo el proyecto.
+- Nuevo botón permanente en `DebugScene`: "Saltar a Caso N" por cada caso
+  registrado (antes solo se podía reiniciar el caso actual) — necesario
+  para poder probar el Caso 3 en el navegador sin jugar los dos
+  anteriores primero, y útil en general para testear cualquier caso
+  nuevo que se agregue de acá en adelante.
+- Verificado de punta a punta en navegador (Playwright, saltando al Caso 3
+  vía el nuevo botón de debug): reporte → briefing → colectivo 21 → 2
+  saltos de ruta reconstruidos correctamente ("La Feria del Usado → Palo
+  Alto → El Casco Antiguo") → identikit resuelto con 2 pistas (ojos +
+  vehículo) → orden de captura → "⚠ Confrontar a El Bocha" → arresto →
+  final "Procedimiento perfecto". Regresión completa de
+  `tools/e2e_smoke_test.py` (Casos 1 y 2) sigue pasando sin cambios.
+  `npm run typecheck`, `npm test` (169/169) y `npm run build` limpios.
+
 ## 2026-08-12 (continuación — FASE 14, audio: ambiente + estados dinámicos)
 
 - `AudioManager` gana una segunda capa de audio (`ambientGain`, separada de
