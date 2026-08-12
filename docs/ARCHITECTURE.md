@@ -49,8 +49,20 @@ revés.
 briefing del jefe (`DialogueScene`) → `CityMap` ⇄ `LocationScene` ⇄
 `DialogueScene` | `SuspectBoardScene` (pizarrón, ruta del caco) |
 `CrimeComputerScene` (identikit + orden de captura) | `CaseFileScene` →
-`EndingScene` → `ReportScene` del siguiente caso (automático, cíclico sobre
-`CASES`). `DebugScene` es un overlay disponible desde cualquier punto.
+`EndingScene` → `ReportScene` del siguiente caso (automático: los primeros
+`CASES.length` casos son fijos, de ahí en más cada uno se arma con
+`CaseGenerator`, ver GAME_DESIGN.md → "Generador de casos" — nunca vuelve a
+repetir el caso 1). `DebugScene` es un overlay disponible desde cualquier
+punto.
+
+`EndingScene.create()` para exhaustivamente cualquier escena de juego que
+pueda haber quedado activa (no solo HUD/CityMap/Location, también
+Dialogue/SuspectBoard/CaseFile/CrimeComputer/Report) antes de mostrarse —
+necesario porque se puede llegar a Ending por atajos de debug que no pasan
+por el cierre normal de la escena anterior (bug real encontrado probando
+el generador: una `DialogueScene` sin cerrar quedaba renderizada encima
+del reporte del siguiente caso, porque está registrada después que
+`ReportScene` en `main.ts`).
 
 `CaseSelectScene`/`CaseIntroScene` (selección manual de misión) fueron
 eliminadas a propósito: el jugador nunca elige qué caso investigar, ver
@@ -62,6 +74,16 @@ eliminadas a propósito: el jugador nunca elige qué caso investigar, ver
 `core/SaveSystem.ts` → `SaveData`) a JSON en `localStorage`, con 3 slots
 (`save-slot-0/1/2`). Incluye versión de esquema para poder migrar si el
 modelo de datos cambia.
+
+Caso especial: un caso GENERADO (ver Generador de casos) no vive en el
+registro estático de `data/cases/`, así que no alcanza con guardar su id —
+`SaveData.generatedCase` guarda el `CaseDefinition` completo (es un objeto
+de datos puro, 100% serializable). `SaveSystem` vive en `core/` y no puede
+depender de `systems/CaseManager` (regla de dependencia de arriba), así
+que quien llama a `save()`/`load()` (las escenas) es responsable de pasar
+el caso generado activo al guardar (`CaseManager.getCurrentGeneratedCaseIfAny()`)
+y de volver a registrarlo (`CaseManager.registerGeneratedCase(...)`) antes
+de cargar.
 
 ## Testing
 

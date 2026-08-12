@@ -3,6 +3,7 @@ import { COLORS_CSS, SCENE_KEYS } from '../core/Constants';
 import { SaveSystem } from '../core/SaveSystem';
 import { createButton } from '../ui/Button';
 import { getCase } from '../data/cases';
+import { CaseManager } from '../systems/CaseManager';
 
 export class LoadGameScene extends Phaser.Scene {
     constructor() {
@@ -22,10 +23,11 @@ export class LoadGameScene extends Phaser.Scene {
         const slots = SaveSystem.listSlots();
         slots.forEach((slot, i) => {
             const y = 200 + i * 110;
+            const tituloCaso = slot.data ? (getCase(slot.data.currentCaseId ?? '')?.titulo ?? slot.data.generatedCase?.titulo ?? 'Caso desconocido') : '';
             const label =
                 slot.empty || !slot.data
                     ? `Slot ${i + 1} — vacío`
-                    : `Slot ${i + 1} — ${getCase(slot.data.currentCaseId ?? '')?.titulo ?? 'Caso desconocido'} — Día ${slot.data.clock.dia}, ${String(slot.data.clock.hora).padStart(2, '0')}:${String(slot.data.clock.minuto).padStart(2, '0')}`;
+                    : `Slot ${i + 1} — ${tituloCaso} — Día ${slot.data.clock.dia}, ${String(slot.data.clock.hora).padStart(2, '0')}:${String(slot.data.clock.minuto).padStart(2, '0')}`;
 
             createButton(
                 this,
@@ -33,7 +35,8 @@ export class LoadGameScene extends Phaser.Scene {
                 y,
                 label,
                 () => {
-                    if (slot.empty) return;
+                    if (slot.empty || !slot.data) return;
+                    if (slot.data.generatedCase) CaseManager.registerGeneratedCase(slot.data.generatedCase);
                     SaveSystem.load(i);
                     this.scene.start(SCENE_KEYS.CITY_MAP);
                 },

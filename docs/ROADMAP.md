@@ -240,6 +240,76 @@ identikit):
   vez — cualquier caso futuro que reintroduzca la falla la va a explotar
   en el momento de agregarlo.
 
+## FASE 15 — Generador de casos procedural
+
+Pedido explícito del usuario tras el Caso 3: con solo 3 casos fijos, el
+ciclo se sentía igual a partir de la tercera partida. En vez de seguir
+agregando casos a mano indefinidamente (no escala), se construyó un
+generador que arma un caso nuevo combinando piezas del mundo ya existente
+— mismo mecanismo de fondo que usa Carmen Sandiego (criminal al azar, ruta
+al azar, testigos al azar) en vez de "casos" guionados de punta a punta.
+Detalle de diseño completo en `docs/GAME_DESIGN.md` → "Generador de
+casos".
+
+- [x] `src/systems/rng.ts`: PRNG determinístico (mulberry32) + helpers
+      (`pick`/`pickN`/`shuffle`/`randomInt`) — permite fuzz-testing
+      reproducible; el juego en sí usa `Math.random` por defecto.
+- [x] Pools de datos nuevos en `src/data/generator/`: `operatives.ts` (3
+      identidades confrontables reutilizadas de los casos fijos),
+      `bystanders.ts` (3 señuelos), `informants.ts` (19 NPCs civiles, cada
+      uno con su zona ya fija en `data/npcs.ts` — eso es lo que garantiza
+      que cada parada intermedia de una ruta generada tenga alguien ahí
+      para dar la pista), `crimeFlavors.ts` (6 "excusas" de crimen
+      genéricas, deliberadamente distintas del contenido de los 3 casos
+      fijos) y `dialogueTemplates.ts` (bancos de frases variadas por
+      atributo/ruta + builders genéricos de briefing/confrontación/falso
+      sospechoso/finales, reutilizando los mismos nombres de flag que ya
+      lee `EndingResolver`).
+- [x] `src/systems/CaseGenerator.ts`: arma un `CaseDefinition` completo —
+      operativo al azar, ruta al azar (restringida a zonas con informante
+      disponible salvo la parada final), informantes al azar por pista
+      (uno puede terminar con más de una, se fusionan en un solo árbol de
+      diálogo), sospechoso falso y excusa del crimen al azar. El objeto
+      resultante es indistinguible, para el resto del motor, de un caso
+      escrito a mano.
+- [x] `CaseManager`: los primeros `CASES.length` casos de la carrera son
+      los fijos; de ahí en más, cada `startNextCaseInSequence()` genera
+      uno nuevo y lo cachea en memoria (`registerGeneratedCase`/
+      `resolveCase`/`getCurrentGeneratedCaseIfAny`).
+- [x] `SaveSystem`: nuevo campo `generatedCase` en `SaveData` para poder
+      reconstruir un caso generado al cargar una partida (no vive en el
+      registro estático). `core/` no puede depender de `systems/` (regla
+      de arquitectura), así que quien guarda/carga (las escenas) es quien
+      pasa/registra el caso generado — no `SaveSystem` directamente.
+- [x] Nuevo botón en `DebugScene`: "Generar caso nuevo (forzar)", para
+      poder probar el generador sin jugar los 3 casos fijos primero.
+- [x] **Bug real encontrado y corregido** probando el generador en
+      navegador: `EndingScene` solo paraba HUD/Debug/CityMap/Location al
+      llegar a la pantalla de final, no `DialogueScene` — si se llegaba a
+      Ending por un atajo de debug con un diálogo todavía abierto (no
+      cerrado por el flujo normal), esa `DialogueScene` quedaba activa por
+      debajo y, al pasar al siguiente caso, se renderizaba ENCIMA del
+      reporte nuevo (está registrada después que `ReportScene` en
+      `main.ts`, y Phaser dibuja las escenas activas en orden de
+      registro). Corregido: la lista de limpieza de `EndingScene` ahora
+      es exhaustiva (todas las escenas de juego, no solo 4).
+- [x] Tests: `src/tests/CaseGenerator.test.ts` — determinismo por seed, dos
+      seeds distintos producen casos distintos, la ruta generada funciona
+      con `RouteSystem` igual que una escrita a mano, la pista falsa (si
+      existe) es coherente, y un **fuzzing de 300 casos generados**
+      corriendo las mismas invariantes que `DataIntegrity.test.ts` y
+      `CrimeComputerSystem.test.ts` (extraídas a
+      `src/tests/helpers/caseInvariants.ts`, reutilizables). Más un test
+      de round-trip guardar/cargar un caso generado en `SaveSystem.test.ts`.
+      Total: 150 tests.
+- [x] Verificado en navegador (Playwright,
+      `tools/e2e_generated_case_test.py`): reporte generado → briefing →
+      mapa (con la zona inicial de esta corrida marcada) → locación con un
+      informante reutilizado (retrato existente, diálogo genérico
+      coherente) → atajo de debug para completar el caso → final con el
+      operativo y la excusa correctos → rango actualizado → "Siguiente
+      caso" genera OTRO caso distinto, sin repetirse.
+
 ## Deuda de contenido conocida (no bloqueante)
 
 - `DialogueEngine.buildFallbackTree` sigue existiendo (y sigue siendo
@@ -258,6 +328,18 @@ identikit):
   otros tres solo se verificaron por test + debug mode, no jugando la
   secuencia completa de decisiones que los produce en una partida real —
   sería la única brecha real que queda en el caso 1.
+- El generador de casos (FASE 15) solo tiene 3 identidades confrontables
+  en el pool de operativos (`data/generator/operatives.ts`) — con
+  suficientes partidas, el mismo caco puede repetirse en casos generados
+  consecutivos. Crecer ese pool (nuevos NPCs + perfiles de identikit,
+  cuidando que ningún atributo quede único en la base — ver el test
+  genérico de `CrimeComputerSystem.test.ts`) es la mejora más directa a
+  la variedad de ahí en más.
+- Los casos generados no tienen retrato de "operativo enviado a este
+  trabajo en particular" más allá del retrato fijo del operativo — es
+  decir, siguen viéndose bien (reutilizan arte real), pero el fondo de la
+  locación donde se los confronta no siempre tiene un asset propio (varias
+  zonas todavía no tienen fondo generado, ver deuda de FASE 8).
 
 ## Próximos pasos sugeridos (en orden)
 

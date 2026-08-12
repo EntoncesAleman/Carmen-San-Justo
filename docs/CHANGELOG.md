@@ -2,6 +2,51 @@
 
 Formato: fecha, qué se hizo, por qué. Más reciente arriba.
 
+## 2026-08-12 (continuación — FASE 15, generador de casos procedural)
+
+Pedido explícito: "no te puede aburrir en la tercera partida" — con 3
+casos fijos, el ciclo se sentía igual desde la cuarta. Se construyó un
+generador que arma cada caso combinando piezas del mundo existente en vez
+de agregar casos escritos a mano indefinidamente (no escala). Mismo
+mecanismo de fondo que usa Carmen Sandiego: criminal al azar, ruta al
+azar, testigos al azar — ver detalle completo en `docs/GAME_DESIGN.md` →
+"Generador de casos" y `docs/ROADMAP.md` → FASE 15.
+
+- Nuevo `systems/CaseGenerator.ts` + pools en `data/generator/`
+  (operativos, señuelos, informantes, excusas de crimen, plantillas de
+  diálogo). Arma un `CaseDefinition` completo: operativo, ruta, sospechoso
+  falso y quién da cada pista, todo al azar mezclando NPCs/zonas ya
+  existentes en el mundo — no NPCs ni zonas nuevas por generación. El
+  resultado es indistinguible, para el resto del motor, de un caso escrito
+  a mano.
+- `CaseManager`: los primeros `CASES.length` casos de la carrera son los
+  fijos; de ahí en más cada caso se genera. `SaveSystem` gana un campo
+  `generatedCase` para poder persistir/reconstruir un caso generado activo
+  (no vive en el registro estático de casos).
+- **Bug real encontrado y corregido** jugando el generador en el
+  navegador: `EndingScene` no paraba `DialogueScene` al llegar a la
+  pantalla de final por un atajo de debug (con un diálogo sin cerrar de
+  por medio) — esa escena quedaba activa y, al pasar al siguiente caso, se
+  renderizaba encima del reporte nuevo (está registrada después que
+  `ReportScene` en `main.ts`, mismo tipo de bug de compositing entre
+  escenas ya documentado para HUD/CityMap/Location, en un camino menos
+  obvio). Corregido con una lista de limpieza exhaustiva.
+- 6 tests nuevos en `src/tests/CaseGenerator.test.ts`, incluido un
+  **fuzzing de 300 casos generados** contra las mismas invariantes de
+  integridad y de "ninguna pista sola resuelve el identikit" que ya
+  corrían sobre los casos fijos (invariantes extraídas a
+  `src/tests/helpers/caseInvariants.ts` para reutilizarlas), más un test
+  de round-trip guardar/cargar un caso generado. Total: 150 tests.
+- Nuevo botón en `DebugScene`: "Generar caso nuevo (forzar)". Nuevo script
+  de regresión `tools/e2e_generated_case_test.py`.
+- Verificado de punta a punta en navegador: reporte generado → briefing →
+  mapa (zona inicial de esa corrida) → locación con informante reutilizado
+  → atajo de debug para completar el caso → final correcto → rango
+  actualizado → "Siguiente caso" genera uno distinto. `npm run typecheck`,
+  `npm test` (150/150) y `npm run build` limpios; regresión completa de
+  los 3 casos fijos (`tools/e2e_smoke_test.py` + el test dedicado del
+  Caso 3) sigue pasando sin cambios de comportamiento.
+
 ## 2026-08-12 (continuación — FASE 14, arte del Caso 3)
 
 - Generados con Pollinations.ai (mismo pipeline y estilo que el primer

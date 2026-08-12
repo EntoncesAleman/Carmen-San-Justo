@@ -131,10 +131,55 @@ descripción, objeto robado, víctima, fecha/hora del hecho, sospechoso,
 zona inicial, `ruta[]` (la persecución completa), destino correcto,
 destinos falsos, pistas (reales y falsas, algunas con `revealsAttribute`),
 pistas requeridas para resolverlo, deadline y tabla de finales posibles.
-Agregar un caso nuevo no debería tocar ningún sistema, solo agregar un
-archivo de datos y registrarlo en `src/data/cases/index.ts` — los casos se
-asignan automáticamente en secuencia (`CaseManager.startNextCaseInSequence`,
-`gameState.casoIndex % CASES.length`, cíclico), nunca se eligen a mano.
+Los primeros `CASES.length` casos de la carrera son estos 3 casos escritos
+a mano — la "apertura" del juego. De ahí en más, ver Generador de casos.
+
+### Generador de casos (por qué el juego no se repite)
+
+Con solo un puñado de casos fijos, ciclar sobre ellos hace que la tercera
+partida ya se sienta igual a la primera — el problema real que Carmen
+Sandiego resuelve componiendo cada partida a partir de piezas sueltas
+(quién es el criminal, por dónde escapa, quién da cada pista) en vez de
+tener "casos" escritos de punta a punta. `CaseGenerator`
+(`src/systems/CaseGenerator.ts`) hace lo mismo acá: arma un
+`CaseDefinition` nuevo combinando, al azar, piezas que ya existen en el
+mundo:
+
+- **Operativo** (el caco): uno al azar de `data/generator/operatives.ts` —
+  reutiliza identidades ya jugables (con retrato, atributos fijos de
+  identikit y escena de confrontación) en vez de inventar personajes sin
+  cara. Narrativamente: no siempre manda "Los Administradores" al mismo
+  tipo al mismo trabajo.
+- **Ruta**: un camino al azar por el mapa de 21 zonas. Las paradas
+  intermedias (todas menos la última) se eligen solo entre zonas que
+  tienen al menos un informante viviendo ahí — si no, nadie podría darte
+  la pista de por dónde sigue el caco. La parada final y el destino falso
+  pueden ser cualquier zona, incluidas las que no tienen NPCs estáticos
+  (mismo patrón que "El Delta"/"Km 20" en los casos fijos).
+- **Informantes**: `data/generator/informants.ts` (19 NPCs civiles, ni
+  operativos ni señuelos ni el jefe) — se les asigna al azar quién da la
+  pista de la próxima parada y quién revela cada uno de los 6 atributos
+  del identikit. Un mismo informante puede terminar con más de una pista
+  para dar (se fusionan en un solo árbol de diálogo, igual que en los
+  casos fijos). El diálogo se arma con bancos de frases variadas
+  (`data/generator/dialogueTemplates.ts`), no siempre la misma línea para
+  el mismo dato.
+- **Sospechoso falso** y **excusa del crimen** (qué se robaron, a quién):
+  también al azar, de pools chicos (`bystanders.ts`, `crimeFlavors.ts`)
+  deliberadamente distintos del contenido de los 3 casos fijos.
+
+El objeto resultante es un `CaseDefinition` idéntico en forma al de un
+caso escrito a mano — ningún system ni scene sabe (ni necesita saber) si
+el caso activo es fijo o generado. `CaseManager.startNextCaseInSequence()`
+usa los fijos mientras alcancen y generador de ahí en más; los casos
+generados se cachean en memoria y, si el jugador guarda la partida, se
+persiste su contenido completo en el save (ver `SaveData.generatedCase`)
+para poder reconstruirlos al cargar.
+
+Verificado con fuzzing (300 casos generados con seeds distintos, ver
+`src/tests/CaseGenerator.test.ts`) contra las mismas invariantes de
+integridad y de "ninguna pista sola resuelve el identikit" que los casos
+fijos — no es una demo, tiene la misma vara de calidad.
 
 ## Finales (mínimo 7, ver `docs/STORY.md` para el detalle narrativo)
 

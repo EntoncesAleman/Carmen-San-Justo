@@ -3,6 +3,7 @@ import { CASES, getCase } from '../data/cases';
 import { CaseDefinition } from '../data/types';
 import { EventBus, Events } from '../core/EventBus';
 import { TimeSystem } from '../core/TimeSystem';
+import { CaseGenerator } from './CaseGenerator';
 
 // Finales que cuentan como "captura exitosa" a los fines de subir de rango.
 // Los demás (banda_escapa, sospechoso_equivocado, escandalo) son fracasos:
@@ -10,18 +11,43 @@ import { TimeSystem } from '../core/TimeSystem';
 const ENDINGS_EXITOSOS = new Set(['resuelto_correcto', 'final_perfecto', 'final_absurdo', 'final_secreto']);
 
 export class CaseManager {
+    // Casos generados en runtime (ver CaseGenerator) — no viven en el
+    // registro estático `CASES`, así que se cachean acá mientras dura la
+    // sesión. `SaveSystem` persiste el contenido completo del caso activo
+    // cuando es uno generado (ver SaveData.generatedCase), y lo vuelca de
+    // nuevo acá al cargar una partida.
+    private static generatedCases = new Map<string, CaseDefinition>();
+
     static isEndingExitoso(endingId: string): boolean {
         return ENDINGS_EXITOSOS.has(endingId);
     }
 
+    static registerGeneratedCase(def: CaseDefinition): void {
+        this.generatedCases.set(def.id, def);
+    }
+
+    private static resolveCase(caseId: string): CaseDefinition | undefined {
+        return getCase(caseId) ?? this.generatedCases.get(caseId);
+    }
+
     static getCurrentCase(): CaseDefinition | null {
         if (!gameState.currentCaseId) return null;
-        return getCase(gameState.currentCaseId) ?? null;
+        return this.resolveCase(gameState.currentCaseId) ?? null;
+    }
+
+    // Devuelve el caso activo SOLO si es uno generado (no vive en `CASES`)
+    // — para que SaveSystem sepa cuándo tiene que persistir el contenido
+    // completo del caso además del progreso, ya que un caso generado no
+    // se puede reconstruir por id la próxima vez que arranque la app.
+    static getCurrentGeneratedCaseIfAny(): CaseDefinition | null {
+        if (!gameState.currentCaseId) return null;
+        if (getCase(gameState.currentCaseId)) return null;
+        return this.generatedCases.get(gameState.currentCaseId) ?? null;
     }
 
     static startCase(caseId: string): void {
         gameState.reset();
-        const def = getCase(caseId);
+        const def = this.resolveCase(caseId);
         gameState.currentCaseId = caseId;
         if (def) {
             gameState.currentZoneId = def.zonaInicial;
@@ -30,11 +56,19 @@ export class CaseManager {
     }
 
     // El jugador NO elige caso: la agencia asigna el que sigue en la
-    // secuencia (gameState.casoIndex). Envuelve al llegar al final de
-    // CASES — la carrera es, en espíritu, indefinida.
+    // secuencia (gameState.casoIndex). Los primeros `CASES.length` casos
+    // son los escritos a mano (la "apertura" del juego); de ahí en más,
+    // cada caso se genera combinando piezas al azar (CaseGenerator) para
+    // que la carrera nunca se sienta igual dos veces — sin esto, el ciclo
+    // volvía a caso 1 apenas se terminaba el último caso fijo.
     static startNextCaseInSequence(): void {
-        const def = CASES[gameState.casoIndex % CASES.length];
-        this.startCase(def.id);
+        if (gameState.casoIndex < CASES.length) {
+            this.startCase(CASES[gameState.casoIndex].id);
+            return;
+        }
+        const generated = CaseGenerator.generate(gameState.casoIndex);
+        this.registerGeneratedCase(generated);
+        this.startCase(generated.id);
     }
 
     static endCase(endingId: string): void {

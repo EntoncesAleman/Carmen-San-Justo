@@ -45,6 +45,7 @@ src/
 ├── systems/      Lógica de gameplay sin estado visual: CaseManager,
 │                 ClueManager, DialogueEngine, RouteSystem (ruta del caco,
 │                 varias paradas), CrimeComputerSystem (identikit),
+│                 CaseGenerator (casos procedurales, ver data/generator/),
 │                 ReputationSystem, EventSystem (eventos aleatorios)
 ├── scenes/       Pantallas Phaser (Boot, Preloader, MainMenu, CityMap,
 │                 LocationScene, DialogueScene, CaseFileScene, DebugScene…)

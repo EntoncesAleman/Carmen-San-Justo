@@ -110,7 +110,7 @@ export class HUDScene extends Phaser.Scene {
                 95 + slot * 40,
                 `Slot ${slot + 1}`,
                 () => {
-                    SaveSystem.save(slot);
+                    SaveSystem.save(slot, CaseManager.getCurrentGeneratedCaseIfAny());
                     EventBus.emit(Events.GAME_SAVED, { slot });
                     this.toggleSaveMenu();
                 },

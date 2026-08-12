@@ -1,9 +1,15 @@
 import { SAVE } from './Constants';
 import { gameState } from './GameState';
+import { CaseDefinition } from '../data/types';
 
 export interface SaveData {
     schemaVersion: number;
     savedAt: string;
+    // Presente solo si el caso activo al guardar era uno generado (ver
+    // CaseGenerator) — no vive en el registro estático de casos, así que
+    // hay que guardar su contenido completo para poder reconstruirlo al
+    // cargar. `null`/ausente para los 3 casos fijos.
+    generatedCase?: CaseDefinition | null;
     casoIndex: number;
     casosResueltos: number;
     currentCaseId: string | null;
@@ -39,10 +45,14 @@ function slotKey(slot: number): string {
 }
 
 export class SaveSystem {
-    static save(slot: number): void {
+    // `generatedCase` lo provee quien llama (ver HUDScene), consultando
+    // `CaseManager.getCurrentGeneratedCaseIfAny()` — SaveSystem vive en
+    // core/ y no puede depender de systems/ (ver ARCHITECTURE.md).
+    static save(slot: number, generatedCase: CaseDefinition | null = null): void {
         const data: SaveData = {
             schemaVersion: SAVE.SCHEMA_VERSION,
             savedAt: new Date().toISOString(),
+            generatedCase,
             casoIndex: gameState.casoIndex,
             casosResueltos: gameState.casosResueltos,
             currentCaseId: gameState.currentCaseId,

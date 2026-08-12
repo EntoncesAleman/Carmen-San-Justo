@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { gameState } from '../core/GameState';
 import { SaveSystem } from '../core/SaveSystem';
 import { CaseManager } from '../systems/CaseManager';
+import { CaseGenerator } from '../systems/CaseGenerator';
+import { mulberry32 } from '../systems/rng';
 import { getFirstCase } from '../data/cases';
 
 // Node no expone `localStorage` global (a diferencia del navegador). Shim
@@ -56,6 +58,29 @@ describe('SaveSystem', () => {
 
     it('load devuelve false si el slot está vacío', () => {
         assert.equal(SaveSystem.load(2), false);
+    });
+
+    it('guarda y recupera un caso GENERADO completo (no vive en el registro estático)', () => {
+        const generado = CaseGenerator.generate(99, mulberry32(99));
+        CaseManager.registerGeneratedCase(generado);
+        CaseManager.startCase(generado.id);
+        gameState.collectedClueIds.push(generado.clues[0].id);
+
+        SaveSystem.save(2, CaseManager.getCurrentGeneratedCaseIfAny());
+        gameState.reset(); // simula cerrar el juego: se pierde el cache en memoria
+
+        const summary = SaveSystem.getSummary(2);
+        assert.ok(summary.data?.generatedCase, 'el save debería incluir el contenido completo del caso generado');
+        assert.equal(summary.data!.generatedCase!.id, generado.id);
+
+        // Como haría LoadGameScene: re-registrar el caso ANTES de load().
+        CaseManager.registerGeneratedCase(summary.data!.generatedCase!);
+        SaveSystem.load(2);
+
+        const recuperado = CaseManager.getCurrentCase();
+        assert.equal(recuperado?.id, generado.id);
+        assert.deepEqual(recuperado?.ruta, generado.ruta);
+        assert.equal(gameState.collectedClueIds[0], generado.clues[0].id);
     });
 
     it('listSlots devuelve exactamente SAVE.SLOT_COUNT entradas', () => {

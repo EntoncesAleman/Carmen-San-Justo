@@ -16,11 +16,32 @@ export class EndingScene extends Phaser.Scene {
         // Se difiere al siguiente tick: parar otras escenas en el mismo paso
         // en que esta escena está siendo procesada por el SceneManager puede
         // perderse (carrera interna de Phaser al encolar operaciones).
+        //
+        // Lista exhaustiva a propósito: cualquier escena de juego puede
+        // seguir "activa" (no parada) si se llegó a Ending por un atajo de
+        // debug (ej. "Completar caso") en vez del cierre normal de esa
+        // escena. Encontrado con DIALOGUE: abrir el debug en medio de una
+        // conversación sin cerrarla y usar "Completar caso" dejaba
+        // DialogueScene activa por debajo — como está registrada después
+        // que ReportScene en main.ts, se renderizaba ENCIMA del reporte
+        // del siguiente caso al volver. Mismo bug de fondo que el de
+        // HUD/CityMap/Location documentado originalmente acá, solo que en
+        // un camino menos obvio.
+        const escenasAParar = [
+            SCENE_KEYS.HUD,
+            SCENE_KEYS.DEBUG,
+            SCENE_KEYS.CITY_MAP,
+            SCENE_KEYS.LOCATION,
+            SCENE_KEYS.DIALOGUE,
+            SCENE_KEYS.SUSPECT_BOARD,
+            SCENE_KEYS.CASE_FILE,
+            SCENE_KEYS.CRIME_COMPUTER,
+            SCENE_KEYS.REPORT,
+        ];
         this.time.delayedCall(0, () => {
-            if (this.scene.isActive(SCENE_KEYS.HUD)) this.scene.stop(SCENE_KEYS.HUD);
-            if (this.scene.isActive(SCENE_KEYS.DEBUG)) this.scene.stop(SCENE_KEYS.DEBUG);
-            if (this.scene.isActive(SCENE_KEYS.CITY_MAP)) this.scene.stop(SCENE_KEYS.CITY_MAP);
-            if (this.scene.isActive(SCENE_KEYS.LOCATION)) this.scene.stop(SCENE_KEYS.LOCATION);
+            escenasAParar.forEach((key) => {
+                if (this.scene.isActive(key)) this.scene.stop(key);
+            });
         });
 
         this.cameras.main.setBackgroundColor(COLORS_CSS.BG_DARK);

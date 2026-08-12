@@ -53,13 +53,16 @@ Corre con el test runner nativo de Node (`node --test`) + `tsx` para poder
 importar TypeScript directamente, sin paso de build. Cubren
 `ClueManager`, `RouteSystem` (ruta del caco, varias paradas),
 `CrimeComputerSystem` (identikit), `ranks`, `ReputationSystem`,
-`TimeSystem`, `CaseManager`, `SaveSystem`, integridad de datos de todos los
-casos registrados (incluida la consistencia de `ruta` y de que el
+`TimeSystem`, `CaseManager`, `SaveSystem` (incluido guardar/cargar un caso
+generado), `CaseGenerator` (300 casos generados con seeds distintos
+verificados contra las mismas invariantes que los casos fijos —
+`src/tests/helpers/caseInvariants.ts`), integridad de datos de todos los
+casos fijos registrados (incluida la consistencia de `ruta` y de que el
 identikit completo identifique únicamente al sospechoso real) y,
 exhaustivamente, los **7 finales** de `EndingResolver` (cada branch de la
 lógica de finales tiene un test propio que fija el `GameState`
 directamente y verifica el resultado — más confiable que jugarlos
-manualmente en el navegador). 101 tests en total.
+manualmente en el navegador). 150 tests en total.
 
 Importante: `core/EventBus.ts` usa un `EventEmitter` propio (no
 `Phaser.Events.EventEmitter`) precisamente para que `data/` y `systems/`

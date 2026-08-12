@@ -99,6 +99,12 @@ export class DebugScene extends Phaser.Scene {
                 this.scene.start(SCENE_KEYS.REPORT);
             });
         });
+        btn('Generar caso nuevo (forzar)', () => {
+            gameState.casoIndex = CASES.length;
+            CaseManager.startNextCaseInSequence();
+            this.scene.stop(SCENE_KEYS.DEBUG);
+            this.scene.start(SCENE_KEYS.REPORT);
+        });
 
         this.stateText = this.add.text(this.scale.width / 2 - 400, 470, '', {
             fontFamily: 'monospace',
