@@ -4,14 +4,14 @@ import { audioManager } from './audio/AudioManager';
 import { Boot } from './scenes/Boot';
 import { Preloader } from './scenes/Preloader';
 import { MainMenu } from './scenes/MainMenu';
-import { CaseSelectScene } from './scenes/CaseSelectScene';
 import { LoadGameScene } from './scenes/LoadGameScene';
-import { CaseIntroScene } from './scenes/CaseIntroScene';
+import { ReportScene } from './scenes/ReportScene';
 import { CityMapScene } from './scenes/CityMapScene';
 import { LocationScene } from './scenes/LocationScene';
 import { DialogueScene } from './scenes/DialogueScene';
 import { SuspectBoardScene } from './scenes/SuspectBoardScene';
 import { CaseFileScene } from './scenes/CaseFileScene';
+import { CrimeComputerScene } from './scenes/CrimeComputerScene';
 import { EndingScene } from './scenes/EndingScene';
 import { HUDScene } from './scenes/HUDScene';
 import { DebugScene } from './scenes/DebugScene';
@@ -26,14 +26,14 @@ const config: Phaser.Types.Core.GameConfig = {
         Boot,
         Preloader,
         MainMenu,
-        CaseSelectScene,
         LoadGameScene,
-        CaseIntroScene,
+        ReportScene,
         CityMapScene,
         LocationScene,
         DialogueScene,
         SuspectBoardScene,
         CaseFileScene,
+        CrimeComputerScene,
         EndingScene,
         HUDScene,
         DebugScene,

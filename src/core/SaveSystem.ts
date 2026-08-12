@@ -4,10 +4,14 @@ import { gameState } from './GameState';
 export interface SaveData {
     schemaVersion: number;
     savedAt: string;
+    casoIndex: number;
+    casosResueltos: number;
     currentCaseId: string | null;
     currentZoneId: string;
     ended: boolean;
     endingId: string | null;
+    rutaProgresoIndex: number;
+    ordenCapturaEmitida: boolean;
     minutosTranscurridos: number;
     clock: { dia: number; hora: number; minuto: number };
     collectedClueIds: string[];
@@ -39,10 +43,14 @@ export class SaveSystem {
         const data: SaveData = {
             schemaVersion: SAVE.SCHEMA_VERSION,
             savedAt: new Date().toISOString(),
+            casoIndex: gameState.casoIndex,
+            casosResueltos: gameState.casosResueltos,
             currentCaseId: gameState.currentCaseId,
             currentZoneId: gameState.currentZoneId,
             ended: gameState.ended,
             endingId: gameState.endingId,
+            rutaProgresoIndex: gameState.rutaProgresoIndex,
+            ordenCapturaEmitida: gameState.ordenCapturaEmitida,
             minutosTranscurridos: gameState.minutosTranscurridos,
             clock: { ...gameState.clock },
             collectedClueIds: [...gameState.collectedClueIds],
@@ -66,10 +74,14 @@ export class SaveSystem {
         if (!raw) return false;
         const data = JSON.parse(raw) as SaveData;
 
+        gameState.casoIndex = data.casoIndex ?? 0;
+        gameState.casosResueltos = data.casosResueltos ?? 0;
         gameState.currentCaseId = data.currentCaseId;
         gameState.currentZoneId = data.currentZoneId;
         gameState.ended = data.ended;
         gameState.endingId = data.endingId;
+        gameState.rutaProgresoIndex = data.rutaProgresoIndex ?? 0;
+        gameState.ordenCapturaEmitida = data.ordenCapturaEmitida ?? false;
         gameState.minutosTranscurridos = data.minutosTranscurridos;
         gameState.clock = { ...data.clock };
         gameState.collectedClueIds = [...data.collectedClueIds];

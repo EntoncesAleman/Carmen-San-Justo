@@ -104,6 +104,36 @@ export const dialogueTrees: DialogueTree[] = [
                         effects: { confianza: -6, reputacionCallejera: 3 },
                         responseLine: 'Se ríe. "Dale, quedátelo. Yo tengo otros expedientes." No suelta nada.',
                     },
+                    {
+                        id: 'insistir_sagasti2',
+                        label: '"¿Alguna descripción física, algo?"',
+                        kind: 'insistir',
+                        next: 'end',
+                        givesClueId: 'clue_ojos_sagasti',
+                        effects: { confianza: 2 },
+                        responseLine: 'Un testigo lo describió con ojos verdes, de esos que no se olvidan. Es lo único físico que tenemos.',
+                    },
+                    { id: 'retirarse', label: 'Te vas.', kind: 'retirarse', next: 'end' },
+                ],
+            },
+        },
+    },
+    {
+        npcId: 'marta_yulis',
+        startNodeId: 'start',
+        nodes: {
+            start: {
+                npcLine: 'Marta revuelve una pila de formularios sin que nadie se lo pida. "¿Molina? Un nombre me suena..."',
+                options: [
+                    {
+                        id: 'preguntar_marta2',
+                        label: '"¿Tiene algo archivado sobre él?"',
+                        kind: 'preguntar',
+                        next: 'end',
+                        givesClueId: 'clue_profesion_marta',
+                        effects: { confianza: 4 },
+                        responseLine: 'Encuentra, por casualidad, un formulario viejo: "contador matriculado", dice. "Nunca tiré nada en mi vida, oficial."',
+                    },
                     { id: 'retirarse', label: 'Te vas.', kind: 'retirarse', next: 'end' },
                 ],
             },

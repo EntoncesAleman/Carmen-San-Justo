@@ -15,7 +15,8 @@ export class CityMapScene extends Phaser.Scene {
     create() {
         this.cameras.main.setBackgroundColor(COLORS_CSS.BG_DARK);
         if (!this.scene.isActive(SCENE_KEYS.HUD)) this.scene.launch(SCENE_KEYS.HUD);
-        audioManager.playMusic('investigacion');
+        audioManager.stopAmbient();
+        audioManager.playMusic(gameState.deadlineWarningEmitted ? 'peligro' : 'investigacion');
 
         this.add
             .text(this.scale.width / 2, 55, 'EL CINTURÓN', {
@@ -59,6 +60,11 @@ export class CityMapScene extends Phaser.Scene {
         createButton(this, 130, this.scale.height - 34, 'Expediente', () => this.scene.start(SCENE_KEYS.CASE_FILE), {
             width: 200,
             height: 44,
+        });
+        createButton(this, this.scale.width / 2, this.scale.height - 34, 'Sistema de Inteligencia Criminal', () => this.scene.start(SCENE_KEYS.CRIME_COMPUTER), {
+            width: 340,
+            height: 44,
+            fontSize: '13px',
         });
     }
 

@@ -13,11 +13,22 @@ export interface ClockState {
 }
 
 class GameState {
-    // Progreso
+    // Progreso de carrera (NO se resetea entre casos — persiste durante
+    // toda la partida/guardado, ver SaveSystem).
+    casoIndex = 0; // qué caso de CASES[] toca a continuación
+    casosResueltos = 0; // impulsa el rango (ver data/ranks.ts)
+
+    // Progreso del caso actual
     currentCaseId: string | null = null;
     currentZoneId: string = '';
     ended = false;
     endingId: string | null = null;
+
+    // Ruta del caco: en qué parada de CaseDefinition.ruta está el jugador
+    // parado en su reconstrucción de la persecución (0 = escena del crimen).
+    rutaProgresoIndex = 0;
+    // Se exige antes de poder confrontar/arrestar en la parada final.
+    ordenCapturaEmitida = false;
 
     // Reloj / tiempo
     minutosTranscurridos = 0;
@@ -48,10 +59,14 @@ class GameState {
     deadlineExpired = false;
 
     reset() {
+        // OJO: casoIndex y casosResueltos NO se resetean acá a propósito —
+        // son progreso de carrera entre casos, no estado del caso actual.
         this.currentCaseId = null;
         this.currentZoneId = '';
         this.ended = false;
         this.endingId = null;
+        this.rutaProgresoIndex = 0;
+        this.ordenCapturaEmitida = false;
         this.minutosTranscurridos = 0;
         this.clock = { dia: 1, hora: 8, minuto: 0 };
         this.collectedClueIds = [];
@@ -66,6 +81,15 @@ class GameState {
         this.hypothesisDestinoZoneId = null;
         this.deadlineWarningEmitted = false;
         this.deadlineExpired = false;
+    }
+
+    // Reinicia TODO, incluido el progreso de carrera. Usar solo al arrancar
+    // una partida nueva desde cero (MainMenu → "Nueva Partida"), nunca al
+    // pasar de un caso al siguiente.
+    resetCareer() {
+        this.casoIndex = 0;
+        this.casosResueltos = 0;
+        this.reset();
     }
 
     getNpcRelation(npcId: string): NpcRelationState {

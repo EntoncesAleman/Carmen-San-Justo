@@ -73,9 +73,20 @@ export class DebugScene extends Phaser.Scene {
             if (!def) return;
             CaseManager.setFlag('sospechoso_arrestado');
             gameState.hypothesisDestinoZoneId = def.destinoCorrectoZoneId;
+            gameState.rutaProgresoIndex = def.ruta.length - 1;
+            gameState.ordenCapturaEmitida = true;
             const endingId = EndingResolver.resolve(def);
-            CaseManager.endCase(endingId);
+            CaseManager.finalizeCaseAndAdvance(endingId);
             this.scene.start(SCENE_KEYS.ENDING);
+        });
+        btn('Emitir orden de captura', () => {
+            gameState.ordenCapturaEmitida = true;
+        });
+        btn('Avanzar una parada de la ruta', () => {
+            if (def && gameState.rutaProgresoIndex < def.ruta.length - 1) {
+                gameState.rutaProgresoIndex += 1;
+                gameState.hypothesisDestinoZoneId = def.ruta[gameState.rutaProgresoIndex];
+            }
         });
         btn('Reiniciar caso', () => {
             if (def) CaseManager.startCase(def.id);

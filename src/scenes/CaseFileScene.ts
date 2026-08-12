@@ -15,7 +15,7 @@ export class CaseFileScene extends Phaser.Scene {
         const def = CaseManager.getCurrentCase();
 
         this.add
-            .text(this.scale.width / 2, 50, 'EXPEDIENTE', { fontFamily: 'Georgia, serif', fontSize: '26px', color: COLORS_CSS.ACCENT })
+            .text(this.scale.width / 2, 58, 'EXPEDIENTE', { fontFamily: 'Georgia, serif', fontSize: '26px', color: COLORS_CSS.ACCENT })
             .setOrigin(0.5);
 
         if (!def) {

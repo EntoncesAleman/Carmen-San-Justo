@@ -1,17 +1,22 @@
 import { CaseDefinition, Clue } from '../types';
 import { briefingDialogue, confrontacionDialogue, dialogueTrees, falsoSospechosoDialogue } from './caso1_dialogues';
 
+// Ruta del caco: Terminal Sur (escena del hecho) → El Oeste Profundo
+// (parada intermedia, se reconstruye con la pista del kiosco) → El Delta
+// (parada final, se reconstruye con la pista de la remisería). Km 20 es la
+// pista falsa de Naza — un desvío, no una parada real.
 const clues: Clue[] = [
     {
         id: 'clue_kiosco_medialunas',
-        descripcion: 'Contreras compró tres docenas de medialunas la noche del operativo y dijo que iba "a ver a los del Delta antes de que se enfríen".',
+        descripcion: 'Contreras compró tres docenas de medialunas la noche del operativo y se subió a un remise de "Central Cacho", con base en El Oeste Profundo.',
         ubicacionZoneId: 'terminal_sur',
         npcId: 'simon_achaval',
         categoria: 'geografica',
         relevancia: 'alta',
         confiabilidad: 80,
-        destinosPosibles: ['el_delta'],
+        destinosPosibles: ['oeste_profundo'],
         esFalsa: false,
+        revealsAttribute: { key: 'comida', value: 'Medialunas' },
     },
     {
         id: 'clue_libro_guardia',
@@ -37,7 +42,7 @@ const clues: Clue[] = [
     },
     {
         id: 'clue_remise_pampa',
-        descripcion: 'Cacho llevó a "Pampa" Ledesma hasta el Muelle La Anguila la misma noche del operativo.',
+        descripcion: 'Cacho llevó a Contreras (a nombre de "Pampa" Ledesma) hasta el Muelle La Anguila esa misma noche.',
         ubicacionZoneId: 'oeste_profundo',
         npcId: 'cacho_domenech',
         categoria: 'criminal',
@@ -58,9 +63,9 @@ const clues: Clue[] = [
         esFalsa: true,
         contradiceConClueId: 'clue_libro_guardia',
     },
-    // Pistas opcionales: no son necesarias para resolver el caso, pero
-    // completan el mundo, dan color y cubren el resto de las categorías de
-    // pista pedidas en el diseño (visual, económica, absurda, contradictoria).
+    // Pistas opcionales: no son necesarias para la ruta, pero completan el
+    // identikit del sospechoso (Crime Computer) y las categorías de pista
+    // pedidas en el diseño (visual, económica, absurda, contradictoria).
     {
         id: 'clue_acertijo_palomas',
         descripcion: 'El Hombre de las Palomas vio una paloma volver tres veces al mismo techo, en Villa Quieta, en plena madrugada.',
@@ -71,17 +76,19 @@ const clues: Clue[] = [
         confiabilidad: 40,
         destinosPosibles: [],
         esFalsa: false,
+        revealsAttribute: { key: 'hobby', value: 'Numerología' },
     },
     {
         id: 'clue_cuaderno_patentes',
-        descripcion: 'Don Egidio anotó una camioneta blanca pasando dos veces por semana, siempre a la misma hora, cerca de Km 20.',
+        descripcion: 'Don Egidio anotó un Peugeot 504 pasando dos veces por semana, siempre a la misma hora, cerca de Terminal Sur.',
         ubicacionZoneId: 'lomas_bajas',
         npcId: 'egidio_paz',
         categoria: 'visual',
         relevancia: 'baja',
         confiabilidad: 55,
-        destinosPosibles: ['km_20'],
+        destinosPosibles: [],
         esFalsa: false,
+        revealsAttribute: { key: 'vehiculo', value: 'Peugeot 504' },
     },
     {
         id: 'clue_camaras_palomas',
@@ -97,7 +104,7 @@ const clues: Clue[] = [
     },
     {
         id: 'clue_cuenta_compartida',
-        descripcion: 'Salerno tiene una cuenta compartida con Los Administradores disfrazada de inversión inmobiliaria.',
+        descripcion: 'Salerno tiene una cuenta compartida con Los Administradores disfrazada de inversión inmobiliaria, a nombre de un "ingeniero" que nunca estudió nada.',
         ubicacionZoneId: 'palo_alto',
         npcId: 'gustavo_salerno',
         categoria: 'economica',
@@ -105,6 +112,31 @@ const clues: Clue[] = [
         confiabilidad: 65,
         destinosPosibles: [],
         esFalsa: false,
+        revealsAttribute: { key: 'profesion', value: 'Ingeniero trucho' },
+    },
+    {
+        id: 'clue_descripcion_ithurbide',
+        descripcion: 'Ithurbide confirma, a regañadientes, que el registro del operativo describe a Contreras como pelo negro.',
+        ubicacionZoneId: 'manzana_fria',
+        npcId: 'marina_ithurbide',
+        categoria: 'visual',
+        relevancia: 'baja',
+        confiabilidad: 70,
+        destinosPosibles: [],
+        esFalsa: false,
+        revealsAttribute: { key: 'cabello', value: 'Negro' },
+    },
+    {
+        id: 'clue_testigo_beba',
+        descripcion: 'Beba recuerda que el pasajero de esa noche tenía ojos marrones "de esos que no te miran de frente".',
+        ubicacionZoneId: 'terminal_sur',
+        npcId: 'beba_corvalan',
+        categoria: 'visual',
+        relevancia: 'baja',
+        confiabilidad: 60,
+        destinosPosibles: [],
+        esFalsa: false,
+        revealsAttribute: { key: 'ojos', value: 'Marrones' },
     },
 ];
 
@@ -113,11 +145,15 @@ export const caso1Medialunas: CaseDefinition = {
     titulo: 'El Operativo de las Medialunas',
     descripcion:
         'Un operativo de rutina en Terminal Sur termina con "El Ingeniero" Contreras desaparecido, información contradictoria por todos lados, y una caja de medialunas que todos mencionan antes que cualquier otra cosa.',
+    objetoRobado: 'El expediente completo del operativo — la única prueba real contra Los Administradores',
+    victima: 'La Comisaría 0',
+    fechaHoraDelHecho: 'Esta madrugada, cerca de las 03:00, en Terminal Sur',
     sospechosoId: 'el_ingeniero_contreras',
     zonaInicial: 'terminal_sur',
     deadlineMinutos: 720,
     clues,
     cluesRequeridasParaResolver: ['clue_kiosco_medialunas', 'clue_libro_guardia', 'clue_tango_lancha', 'clue_remise_pampa'],
+    ruta: ['terminal_sur', 'oeste_profundo', 'el_delta'],
     destinoCorrectoZoneId: 'el_delta',
     destinosFalsosZoneIds: ['km_20'],
     dialogueTrees,

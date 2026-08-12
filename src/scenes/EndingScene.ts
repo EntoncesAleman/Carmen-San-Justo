@@ -4,6 +4,7 @@ import { gameState } from '../core/GameState';
 import { CaseManager } from '../systems/CaseManager';
 import { createButton } from '../ui/Button';
 import { audioManager } from '../audio/AudioManager';
+import { getRankForCasosResueltos } from '../data/ranks';
 
 export class EndingScene extends Phaser.Scene {
     constructor() {
@@ -22,12 +23,14 @@ export class EndingScene extends Phaser.Scene {
         });
 
         this.cameras.main.setBackgroundColor(COLORS_CSS.BG_DARK);
-        audioManager.playMusic('menu');
+        audioManager.stopAmbient();
+        audioManager.playMusic(gameState.endingId && CaseManager.isEndingExitoso(gameState.endingId) ? 'captura' : 'menu');
         const def = CaseManager.getCurrentCase();
         const ending = def?.finales.find((f) => f.id === gameState.endingId);
+        const rank = getRankForCasosResueltos(gameState.casosResueltos);
 
         this.add
-            .text(this.scale.width / 2, 220, ending?.titulo ?? 'Fin del caso', {
+            .text(this.scale.width / 2, 190, ending?.titulo ?? 'Fin del caso', {
                 fontFamily: 'Georgia, serif',
                 fontSize: '30px',
                 color: COLORS_CSS.ACCENT,
@@ -35,7 +38,7 @@ export class EndingScene extends Phaser.Scene {
             .setOrigin(0.5);
 
         this.add
-            .text(this.scale.width / 2, 320, ending?.descripcion ?? 'El caso terminó de alguna manera.', {
+            .text(this.scale.width / 2, 290, ending?.descripcion ?? 'El caso terminó de alguna manera.', {
                 fontFamily: 'Georgia, serif',
                 fontSize: '16px',
                 color: COLORS_CSS.TEXT,
@@ -45,6 +48,19 @@ export class EndingScene extends Phaser.Scene {
             })
             .setOrigin(0.5);
 
-        createButton(this, this.scale.width / 2, 500, 'Volver al menú', () => this.scene.start(SCENE_KEYS.MAIN_MENU));
+        this.add
+            .text(this.scale.width / 2, 400, `Casos resueltos: ${gameState.casosResueltos}   |   Rango: ${rank.titulo}`, {
+                fontFamily: 'Georgia, serif',
+                fontSize: '15px',
+                color: COLORS_CSS.SUCCESS,
+            })
+            .setOrigin(0.5);
+
+        createButton(this, this.scale.width / 2, 480, 'Siguiente caso', () => {
+            CaseManager.startNextCaseInSequence();
+            this.scene.start(SCENE_KEYS.REPORT);
+        });
+
+        createButton(this, this.scale.width / 2, 550, 'Volver al menú', () => this.scene.start(SCENE_KEYS.MAIN_MENU));
     }
 }

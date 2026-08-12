@@ -5,6 +5,7 @@ import { LOCATIONS } from '../data/locations';
 import { NPCS } from '../data/npcs';
 import { CASES } from '../data/cases';
 import { CaseDefinition } from '../data/types';
+import { getSuspect } from '../data/suspects';
 
 // Estos tests no verifican comportamiento, verifican que los datos del
 // mundo sean consistentes entre sí. Están pensados para explotar rápido
@@ -152,6 +153,26 @@ function checkCaseIntegrity(caso: CaseDefinition) {
         conteo.forEach((count, npcId) => {
             assert.equal(count, 1, `${npcId} tiene ${count} árboles de diálogo definidos, debería tener 1`);
         });
+    });
+
+    it('ruta tiene al menos 2 paradas, todas zonas válidas', () => {
+        assert.ok(caso.ruta.length >= 2, `${caso.id} necesita una ruta de al menos 2 paradas (no un salto directo)`);
+        caso.ruta.forEach((zoneId) => assert.ok(zoneIds.has(zoneId), `${caso.id}: la ruta referencia una zona inexistente ${zoneId}`));
+    });
+
+    it('la ruta empieza en zonaInicial y termina en destinoCorrectoZoneId', () => {
+        assert.equal(caso.ruta[0], caso.zonaInicial, `${caso.id}: la ruta debería empezar en la zona inicial del caso`);
+        assert.equal(caso.ruta[caso.ruta.length - 1], caso.destinoCorrectoZoneId, `${caso.id}: la ruta debería terminar en el destino correcto`);
+    });
+
+    it('sospechosoId (y falsoSospechosoId, si existe) tienen un perfil en el Sistema de Inteligencia Criminal', () => {
+        assert.ok(getSuspect(caso.sospechosoId), `${caso.id}: falta un SuspectProfile para ${caso.sospechosoId} en data/suspects.ts`);
+    });
+
+    it('ninguna pista falsa revela un atributo del identikit (corrompería el Sistema de Inteligencia Criminal)', () => {
+        caso.clues
+            .filter((c) => c.esFalsa)
+            .forEach((c) => assert.ok(!c.revealsAttribute, `${caso.id}: la pista falsa ${c.id} no debería tener revealsAttribute`));
     });
 
     it('los 7 finales estándar están todos presentes', () => {

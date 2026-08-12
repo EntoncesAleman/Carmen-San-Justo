@@ -1,8 +1,8 @@
-"""Smoke test end-to-end de ambos casos, jugado en un navegador real.
+"""Smoke test end-to-end del flujo "estilo Carmen Sandiego argentinizado".
 
 No forma parte de `npm test` (que corre los unit tests de Node en
-src/tests/). Este script es un complemento manual para verificar la capa
-visual/de escenas de Phaser, que los unit tests no pueden cubrir.
+src/tests/). Complementa esos tests verificando la capa visual/de escenas
+de Phaser, que no pueden cubrir.
 
 Requisitos (no incluidos en package.json a propósito, para no mezclar
 dependencias de Python en un proyecto Node):
@@ -15,12 +15,23 @@ Uso:
     npm run dev &          # deja el server corriendo en :8080
     .venv-e2e/bin/python tools/e2e_smoke_test.py
 
-IMPORTANTE: si se agrega un caso nuevo (CASES.length cambia) o se cambia el
-layout de alguna escena, las coordenadas hardcodeadas acá pueden quedar
-obsoletas SIN que salte ningún error de consola (el click simplemente cae
-en otro botón o en espacio vacío). Si algo deja de tener sentido, comparar
-con una captura de pantalla antes de asumir que "no hay errores" significa
-"funciona".
+IMPORTANTE — cosas que ya rompieron este script antes y por qué:
+  1. El diálogo usa texto progresivo (TypewriterText): los botones de
+     opciones NO existen en el DOM/canvas hasta que el tipeo termina. Hay
+     que hacer click en la zona de texto (skip zone) antes de clickear una
+     opción, o esperar lo suficiente. Este script siempre hace skip.
+  2. CityMapScene usa una grilla de 4 columnas; SuspectBoardScene usa una
+     grilla de 5 columnas. Son fórmulas DISTINTAS — confundirlas hace que
+     los clicks caigan en el botón equivocado sin ningún error de consola
+     (falso positivo silencioso).
+  3. El overlay de DebugScene NO bloquea los clicks hacia la escena de
+     abajo (limitación de Phaser con escenas paralelas) — cerrarlo
+     SIEMPRE con la tecla backtick, nunca clickeando su botón "Cerrar"
+     (un click ahí puede además activar un botón de la escena de atrás).
+  4. Cualquier texto con centro vertical en y<40 en una escena que corre
+     en paralelo con HUDScene se renderiza corrupto (glitch de compositing
+     entre cámaras de Phaser). Si algo nuevo se ve mal, comparar con una
+     captura antes de asumir "funciona".
 """
 
 from playwright.sync_api import sync_playwright
@@ -50,123 +61,160 @@ def run():
 
             return click
 
-        def start_case(page, click, case_index):
-            """MainMenu -> Nueva Partida -> CaseSelectScene -> elegir caso -> CaseIntro -> briefing."""
-            click(512, 330)  # Nueva Partida (va a CaseSelectScene porque hay > 1 caso)
-            page.wait_for_timeout(300)
-            card_y = 220 + case_index * 150  # ver CaseSelectScene.ts
-            click(512, card_y)
-            page.wait_for_timeout(300)
-            click(512, 540)  # CaseIntroScene: "Ir a la comisaria"
-            page.wait_for_timeout(300)
+        def skip_typewriter(click, page):
+            """Click en la zona de texto del diálogo/reporte para saltar el tipeo."""
+            click(400, 150)
+            page.wait_for_timeout(150)
 
-        # --- 1) arranque + flujo principal, Caso 1 ----------------------
+        def start_new_game(page, click):
+            """MainMenu -> Nueva Partida -> ReportScene (SIN selección de caso)."""
+            click(512, 330)
+            page.wait_for_timeout(400)
+
+        def go_to_crime_scene(page, click):
+            """ReportScene -> briefing (Bracamonte) -> "Entendido" -> rechazar sobre -> CityMap."""
+            click(512, 708)
+            page.wait_for_timeout(400)
+            skip_typewriter(click, page)
+            click(512, 300)  # "Entendido."
+            page.wait_for_timeout(250)
+            skip_typewriter(click, page)
+            click(512, 366)  # rechazar sobre extraoficial (2da opción de node_extraoficial)
+            page.wait_for_timeout(500)
+
+        # --- 1) Flujo principal: SIN pantalla de elegir caso -------------
         page = new_page()
         page.goto(BASE_URL)
         page.wait_for_load_state("networkidle")
-        page.wait_for_timeout(500)
+        page.wait_for_timeout(600)
         click = canvas_click(page)
 
-        start_case(page, click, 0)
-        page.screenshot(path="/tmp/smoke_caso1_briefing.png")
-        click(512, 300)  # briefing: "Entendido."
-        page.wait_for_timeout(250)
-        click(512, 366)  # briefing: rechazar sobre extraoficial
+        start_new_game(page, click)
+        page.screenshot(path="/tmp/smoke_01_report_no_selection.png")
+        go_to_crime_scene(page, click)
+        page.screenshot(path="/tmp/smoke_02_citymap.png")
+
+        # Terminal Sur (zona actual, index1, cols=4 -> x=375,y=150)
+        click(375, 150)
         page.wait_for_timeout(400)
-        click(375, 150)  # CityMap: Terminal Sur (zona actual)
-        page.wait_for_timeout(400)
-        click(512, 200)  # Hablar con Don Simon
+        click(512, 200)  # Hablar con Don Simón
         page.wait_for_timeout(300)
-        click(512, 300)  # preguntar por las medialunas -> da la pista
+        skip_typewriter(click, page)
+        click(512, 300)  # preguntar -> da clue_kiosco_medialunas
         page.wait_for_timeout(300)
+        skip_typewriter(click, page)
+        page.screenshot(path="/tmp/smoke_03_clue_response.png")
         click(512, 500)  # Continuar
         page.wait_for_timeout(400)
+
         click(130, 734)  # Expediente
         page.wait_for_timeout(300)
-        page.screenshot(path="/tmp/smoke_caso1_expediente.png")
+        page.screenshot(path="/tmp/smoke_04_expediente.png")
         page.close()
-        assert not errors, f"errores de consola en el flujo del caso 1: {errors}"
-        print("[OK] Caso 1: flujo principal (menu -> caso -> dialogo -> pista -> expediente)")
+        assert not errors, f"errores de consola en el flujo principal: {errors}"
+        print("[OK] flujo principal (sin selección de caso, reporte -> briefing -> pista -> expediente)")
 
-        # --- 2) Caso 1: final "resuelto_correcto" vía debug -------------
+        # --- 2) Ruta multi-parada + Crime Computer + captura -------------
         page = new_page()
         page.goto(BASE_URL)
         page.wait_for_load_state("networkidle")
-        page.wait_for_timeout(500)
+        page.wait_for_timeout(600)
         click = canvas_click(page)
-        start_case(page, click, 0)
-        click(512, 300); page.wait_for_timeout(250)
-        click(512, 300); page.wait_for_timeout(400)  # aceptar sobre (para variar el path)
-        page.keyboard.press("Backquote"); page.wait_for_timeout(300)
-        click(442, 354)  # "Completar caso (forzar final)"
-        page.wait_for_timeout(400)
-        page.screenshot(path="/tmp/smoke_caso1_ending_resuelto.png")
-        page.close()
-        assert not errors, f"errores de consola en el final resuelto_correcto (caso 1): {errors}"
-        print("[OK] Caso 1: final resuelto_correcto")
+        start_new_game(page, click)
+        go_to_crime_scene(page, click)
 
-        # --- 3) Caso 1: "sospechoso_equivocado" jugado completo ---------
-        page = new_page()
-        page.goto(BASE_URL)
-        page.wait_for_load_state("networkidle")
-        page.wait_for_timeout(500)
-        click = canvas_click(page)
-        start_case(page, click, 0)
-        click(512, 300); page.wait_for_timeout(250)
-        click(512, 366); page.wait_for_timeout(400)
-        click(894, 734)  # Pizarron
-        page.wait_for_timeout(300)
-        click(305, 386)  # elegir Km 20 (destino falso) -- SuspectBoardScene usa cols=5
-        page.wait_for_timeout(300)
-        click(512, 384)  # continuar overlay -> viaja a Km 20
+        # Terminal Sur -> Simón (da clue_kiosco_medialunas, hop1 = oeste_profundo)
+        click(375, 150)
         page.wait_for_timeout(400)
-        click(512, 200)  # confrontar al camionero
+        click(512, 200)
         page.wait_for_timeout(300)
-        click(512, 300)  # arrestarlo (equivocadamente)
+        skip_typewriter(click, page)
+        click(512, 300)
         page.wait_for_timeout(300)
-        click(512, 500)  # Continuar
+        skip_typewriter(click, page)
+        click(512, 500)
         page.wait_for_timeout(400)
-        page.screenshot(path="/tmp/smoke_caso1_ending_sospechoso_equivocado.png")
-        page.close()
-        assert not errors, f"errores de consola en sospechoso_equivocado (caso 1): {errors}"
-        print("[OK] Caso 1: final sospechoso_equivocado (jugado de punta a punta)")
+        click(874, 728)  # Volver al mapa
+        page.wait_for_timeout(400)
 
-        # --- 4) Caso 1: "banda_escapa" agotando el reloj vía debug ------
-        page = new_page()
-        page.goto(BASE_URL)
-        page.wait_for_load_state("networkidle")
-        page.wait_for_timeout(500)
-        click = canvas_click(page)
-        start_case(page, click, 0)
-        click(512, 300); page.wait_for_timeout(250)
-        click(512, 366); page.wait_for_timeout(400)
-        page.keyboard.press("Backquote"); page.wait_for_timeout(300)
-        for _ in range(13):
-            click(212, 170)  # "+60 min"
-            page.wait_for_timeout(120)
-        page.wait_for_timeout(500)
-        page.screenshot(path="/tmp/smoke_caso1_ending_banda_escapa.png")
-        page.close()
-        assert not errors, f"errores de consola en banda_escapa (caso 1): {errors}"
-        print("[OK] Caso 1: final banda_escapa (deadline agotado)")
-
-        # --- 5) Caso 2: flujo principal + final resuelto_correcto -------
-        page = new_page()
-        page.goto(BASE_URL)
-        page.wait_for_load_state("networkidle")
-        page.wait_for_timeout(500)
-        click = canvas_click(page)
-        start_case(page, click, 1)
-        page.screenshot(path="/tmp/smoke_caso2_briefing.png")
-        click(512, 300); page.wait_for_timeout(250)  # Entendido
-        click(512, 300); page.wait_for_timeout(400)  # aceptar sobre extraoficial
-        page.keyboard.press("Backquote"); page.wait_for_timeout(300)
-        click(442, 354)  # "Completar caso (forzar final)"
+        # Pizarrón: adivinar hop1 = oeste_profundo (SuspectBoardScene usa cols=5)
+        click(894, 734)
         page.wait_for_timeout(400)
-        page.screenshot(path="/tmp/smoke_caso2_ending.png")
+        # boardTop con 1 pista = 138+20+26=184, startY=234, stepY=52; oeste_profundo index15 -> row3,col0
+        click(130, 234 + 3 * 52)
+        page.wait_for_timeout(300)
+        page.screenshot(path="/tmp/smoke_05_hop1_result.png")
+        click(512, 384)  # cerrar overlay -> teleporta a oeste_profundo
+        page.wait_for_timeout(400)
+
+        # Oeste Profundo -> Cacho -> "mostrar evidencia" da clue_remise_pampa (hop2 = el_delta)
+        click(512, 200)
+        page.wait_for_timeout(300)
+        skip_typewriter(click, page)
+        click(512, 366)
+        page.wait_for_timeout(300)
+        skip_typewriter(click, page)
+        click(512, 500)
+        page.wait_for_timeout(400)
+        click(874, 728)
+        page.wait_for_timeout(400)
+
+        # Pizarrón otra vez: ahora 2 pistas -> boardTop=138+40+26=204,startY=254; el_delta index17->row3,col2
+        click(894, 734)
+        page.wait_for_timeout(400)
+        click(130 + 2 * 175, 254 + 3 * 52)
+        page.wait_for_timeout(300)
+        page.screenshot(path="/tmp/smoke_06_hop2_final_result.png")
+        click(512, 384)
+        page.wait_for_timeout(400)
+        page.screenshot(path="/tmp/smoke_07_el_delta_locked.png")  # sospechoso visible pero bloqueado
+
+        click(874, 728)
+        page.wait_for_timeout(400)
+
+        # Crime Computer con las pistas de atributo ya en mano (comida via
+        # Simón) mas hobby (Hombre de las Palomas, Parque Obrero index8)
+        click(150, 346)
+        page.wait_for_timeout(400)
+        click(512, 266)  # 2do NPC del lugar
+        page.wait_for_timeout(300)
+        skip_typewriter(click, page)
+        click(512, 300)
+        page.wait_for_timeout(300)
+        skip_typewriter(click, page)
+        click(512, 500)
+        page.wait_for_timeout(400)
+        click(874, 728)
+        page.wait_for_timeout(400)
+
+        click(512, 734)  # Sistema de Inteligencia Criminal
+        page.wait_for_timeout(500)
+        page.screenshot(path="/tmp/smoke_08_crime_computer.png")
+        click(512, 610)  # CALCULAR (por si el auto-cálculo no alcanzó a pintar)
+        page.wait_for_timeout(300)
+        page.screenshot(path="/tmp/smoke_09_crime_computer_1_match.png")
+        click(512, 668)  # EMITIR ORDEN DE CAPTURA (scale.height - 100)
+        page.wait_for_timeout(400)
+
+        click(375, 542)  # volver a El Delta (index17, cols=4 -> row4,col1)
+        page.wait_for_timeout(400)
+        page.screenshot(path="/tmp/smoke_10_el_delta_unlocked.png")
+        click(512, 200)  # Confrontar
+        page.wait_for_timeout(300)
+        skip_typewriter(click, page)
+        click(512, 300)  # arrestar
+        page.wait_for_timeout(300)
+        skip_typewriter(click, page)
+        click(512, 500)
+        page.wait_for_timeout(500)
+        page.screenshot(path="/tmp/smoke_11_ending_with_rank.png")
+
+        click(512, 480)  # Siguiente caso
+        page.wait_for_timeout(400)
+        page.screenshot(path="/tmp/smoke_12_next_case_report_no_selection.png")
         page.close()
-        assert not errors, f"errores de consola en el flujo del caso 2: {errors}"
-        print("[OK] Caso 2: flujo principal + final forzado")
+        assert not errors, f"errores de consola en ruta/crime-computer/captura: {errors}"
+        print("[OK] ruta multi-parada + Crime Computer + orden de captura + captura + rango + siguiente caso")
 
     print("\nTodo OK. Capturas en /tmp/smoke_*.png")
 

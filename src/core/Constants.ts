@@ -70,6 +70,17 @@ export const DEBUG = {
     TOGGLE_KEY: 'BACKTICK',
 };
 
+export const FONTS = {
+    SERIF: 'Georgia, serif',
+    // Usada en pantallas "de computadora"/terminal (Crime Computer, Reporte,
+    // Expediente) para reforzar la estética retro policial pedida en el
+    // diseño — ver docs/CARMEN_AR_AUDIT.md. "monospace" genérico a
+    // propósito: un nombre de fuente específico (ej. "Courier New") que no
+    // esté instalado hace que Phaser caiga a un fallback con glifos rotos
+    // en algunos entornos (visto en Chromium headless).
+    MONO: 'monospace',
+};
+
 export const AUDIO = {
     MASTER_VOLUME: 0.18,
     SFX_VOLUME: 0.3,
@@ -86,14 +97,14 @@ export const SCENE_KEYS = {
     BOOT: 'Boot',
     PRELOADER: 'Preloader',
     MAIN_MENU: 'MainMenu',
-    CASE_SELECT: 'CaseSelectScene',
     LOAD_GAME: 'LoadGame',
-    CASE_INTRO: 'CaseIntro',
+    REPORT: 'ReportScene',
     CITY_MAP: 'CityMap',
     LOCATION: 'LocationScene',
     DIALOGUE: 'DialogueScene',
     SUSPECT_BOARD: 'SuspectBoardScene',
     CASE_FILE: 'CaseFileScene',
+    CRIME_COMPUTER: 'CrimeComputerScene',
     ENDING: 'EndingScene',
     HUD: 'HUDScene',
     DEBUG: 'DebugScene',

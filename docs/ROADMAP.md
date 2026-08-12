@@ -146,6 +146,74 @@ Checklist de `docs/TESTING.md`, verificado jugando en navegador
 
 ---
 
+## FASE 14 — Transformación Carmen-AR (persecución en vez de mission-select)
+
+Reforma estructural del loop principal para acercarlo al género clásico de
+persecución-por-mapa (ver `docs/GAME_DESIGN.md` → Loop principal), sin tocar
+el mundo/contenido ya existente ni copiar nada de ninguna franquicia.
+
+- [x] Eliminada la selección manual de caso (`CaseSelectScene`,
+      `CaseIntroScene` borradas). El caso llega solo: `ReportScene` nueva
+      (reporte policial estructurado, estilo memo) + asignación automática
+      y cíclica sobre `CASES` (`CaseManager.startNextCaseInSequence`,
+      `gameState.casoIndex`).
+- [x] `RouteSystem` (`src/systems/RouteSystem.ts`): la persecución pasó de
+      "un salto directo al destino final" a una **ruta de varias paradas**
+      (`CaseDefinition.ruta: string[]`). El pizarrón reconstruye la ruta
+      parada por parada. Reemplaza a `DeductionSystem` (eliminado, junto
+      con su test, por quedar sin ningún uso en producción).
+- [x] Sistema de Inteligencia Criminal / Crime Computer
+      (`CrimeComputerSystem` + `data/suspects.ts` + `CrimeComputerScene`):
+      identikit de 6 atributos armado con pistas (`revealsAttribute`),
+      base de sospechosos con señuelos que comparten atributos a propósito
+      (para que haga falta más de una pista), y **orden de captura**
+      obligatoria antes de poder confrontar (`gameState.ordenCapturaEmitida`,
+      gate en `LocationScene`).
+- [x] Sistema de rangos (`data/ranks.ts`, 7 niveles) ligado a
+      `gameState.casosResueltos`, progreso de carrera que persiste entre
+      casos (no se resetea con `reset()`, solo con `resetCareer()`).
+- [x] Caso 1 y Caso 2 migrados a la nueva estructura: `ruta`, `objetoRobado`,
+      `victima`, `fechaHoraDelHecho` agregados; clues existentes anotadas
+      con `revealsAttribute`; agregadas pistas/diálogos nuevos donde hacía
+      falta un atributo más para que el identikit no fuera trivial (ver
+      nota de diseño abajo).
+- [x] Texto progresivo tipo terminal (`TypewriterText`, salteable con
+      click) en diálogos y en el reporte; sonido de tecleo sutil.
+      Pasos de sonido placeholder al entrar a una locación.
+- [x] `tools/e2e_smoke_test.py` reescrito para el nuevo flujo completo
+      (reporte automático → ruta multi-parada → identikit → orden de
+      captura → captura → rango → siguiente caso automático), con
+      screenshots verificados manualmente.
+- [x] 23 tests nuevos (`RouteSystem`, `CrimeComputerSystem`, `ranks`,
+      extensión de `DataIntegrity.test.ts` con validación de `ruta` y de
+      que el identikit completo de cada caso registrado identifique
+      únicamente al sospechoso real). Total: 101 tests.
+- [ ] Pasada de UI tipo panel/terminal para el resto de las escenas
+      (`CityMapScene`, `LocationScene`, `SuspectBoardScene`,
+      `CaseFileScene`, `EndingScene` siguen con el estilo "Georgia serif"
+      anterior; solo `ReportScene`/`CrimeComputerScene` tienen la estética
+      terminal nueva).
+- [x] Audio: ambiente por tipo de zona (`data/ambient.ts`, drone "urbano"
+      vs. "agua" para zonas costeras/ribereñas, capa separada bajo la
+      música vía `AudioManager.playAmbient`) y 3 estados de música nuevos:
+      `reporte` (ReportScene, más solemne que el menú), `peligro`
+      (reemplaza a investigación/interrogatorio automáticamente al cruzar
+      el umbral de advertencia de deadline — genuinamente dinámico, no solo
+      en el instante del evento: `CityMapScene`/`LocationScene` chequean
+      `gameState.deadlineWarningEmitted` en cada `create()`) y `captura`
+      (EndingScene, solo en finales exitosos vía
+      `CaseManager.isEndingExitoso`).
+- [ ] Caso 3+ diseñado ya sobre la estructura nueva (ruta + identikit)
+      desde el arranque, no migrado después.
+
+**Nota de diseño encontrada y corregida en el proceso**: la primera versión
+del identikit de `senuelo_kiosquero` no compartía `comida` con el sospechoso
+real, lo que volvía la deducción trivial (una sola pista alcanzaba). Se
+ajustó para que comparta `comida: 'Medialunas'` con el caco real, obligando
+a una segunda pista de atributo distinta para acorralarlo — verificado con
+el test genérico agregado en `CrimeComputerSystem.test.ts` que corre sobre
+todos los casos registrados, no solo el caso 1.
+
 ## Deuda de contenido conocida (no bloqueante)
 
 - `DialogueEngine.buildFallbackTree` sigue existiendo (y sigue siendo

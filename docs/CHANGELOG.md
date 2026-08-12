@@ -2,6 +2,95 @@
 
 Formato: fecha, qué se hizo, por qué. Más reciente arriba.
 
+## 2026-08-12 (continuación — FASE 14, audio: ambiente + estados dinámicos)
+
+- `AudioManager` gana una segunda capa de audio (`ambientGain`, separada de
+  `musicGain`) para sonidos de ambiente que suenan en simultáneo con la
+  música, no en su lugar: `playAmbient(id)`/`stopAmbient()`, mismo
+  mecanismo de loop por `setInterval` que `playMusic`/`stopMusic` pero con
+  drones mucho más graves y silenciosos (gain ~0.05).
+- Nuevo `data/ambient.ts`: mapea zona → ambiente (`urbano` por defecto,
+  `agua` para las costeras/ribereñas — La Ribera, Costa Alta, El Delta,
+  Barranca Norte, Puente Sur). `LocationScene` lo dispara al entrar a
+  cualquier locación.
+- 3 estados de música nuevos en `tracks.ts`: `reporte` (ReportScene, tono
+  más solemne que el menú), `peligro` y `captura`. `peligro` reemplaza a
+  investigación/interrogatorio automáticamente en cuanto se cruza el
+  umbral de advertencia de deadline — y es genuinamente persistente, no
+  solo un blip: `CityMapScene`/`LocationScene` chequean
+  `gameState.deadlineWarningEmitted` en cada `create()`, así que la música
+  de peligro se mantiene aunque el jugador siga navegando después del
+  aviso. `captura` suena en `EndingScene` únicamente en finales exitosos
+  (nuevo `CaseManager.isEndingExitoso()`, reutiliza el mismo set que ya
+  decidía si sube de rango).
+- Verificado: `npm run typecheck`, `npm test` (101/101), `npm run build` y
+  regresión completa de `tools/e2e_smoke_test.py` sin cambios de
+  comportamiento visual (el audio no tiene aserciones automatizadas propias
+  — se revisó a mano que las llamadas nuevas no rompen ninguna escena).
+
+## 2026-08-12 (continuación — FASE 14, transformación Carmen-AR)
+
+Reforma estructural pedida explícitamente para acercar el loop del juego al
+género clásico de persecución-por-mapa (sin copiar nada de ninguna
+franquicia: solo la estructura). Detalle completo en `docs/ROADMAP.md` →
+FASE 14 y `docs/GAME_DESIGN.md` → Loop principal.
+
+- Eliminada la selección manual de caso: nueva `ReportScene` (reporte
+  policial automático, con tipeo progresivo) reemplaza a
+  `CaseSelectScene`/`CaseIntroScene` (borradas). Los casos se asignan en
+  secuencia cíclica sobre `CASES`, nunca a mano.
+- Nuevo `RouteSystem`: la persecución del caco pasó de un salto directo al
+  destino final a una **ruta de varias paradas** reconstruida una por una
+  en el pizarrón. Esto dejó a `DeductionSystem` sin ningún uso en
+  producción — se eliminó junto con su test dedicado.
+- Nuevo Sistema de Inteligencia Criminal (`CrimeComputerSystem` +
+  `data/suspects.ts` + `CrimeComputerScene`): identikit de 6 atributos
+  armado con pistas, más una **orden de captura obligatoria** antes de
+  poder confrontar al sospechoso (bloqueado en `LocationScene` si no está
+  emitida). **Bug de diseño propio encontrado y corregido**: el primer
+  identikit era resoluble con una sola pista porque un señuelo no
+  compartía ningún atributo con el sospechoso real; se ajustó para que
+  compartan `comida`, exigiendo una segunda pista distinta.
+- Nuevo sistema de rangos (`data/ranks.ts`, 7 niveles) ligado a
+  `gameState.casosResueltos`, progreso de carrera persistente entre casos.
+- Caso 1 y Caso 2 migrados a la estructura nueva (`ruta`, `objetoRobado`,
+  `victima`, `fechaHoraDelHecho`, `revealsAttribute` en las pistas
+  relevantes, pistas/diálogos nuevos donde hacía falta un atributo más).
+- Texto progresivo tipo terminal (`TypewriterText`, salteable con click,
+  con sonido de tecleo sutil) en diálogos y reportes; pasos placeholder al
+  entrar a una locación.
+- **Bug real encontrado y corregido durante la verificación**:
+  `ReportScene` calculaba la posición Y de cada línea con una altura fija,
+  sin contar que el texto de "objeto sustraído" podía envolver a 2 líneas
+  — la línea "VÍCTIMA" quedaba superpuesta encima. Corregido midiendo la
+  altura real del objeto de texto renderizado (`obj.height`) para avanzar
+  el cursor Y, en vez de asumir una sola línea.
+- `tools/e2e_smoke_test.py` reescrito de punta a punta para el nuevo flujo
+  (antes probaba selección de caso y persecución de un solo salto, ambos
+  ya inexistentes). Durante la escritura del script se encontró y corrigió
+  un error de coordenadas propio (un click a la altura equivocada del
+  botón "Emitir orden de captura" dejaba el resto del test corriendo en
+  blanco sobre la misma pantalla sin fallar — un falso positivo silencioso
+  que solo se detectó comparando capturas de pantalla, no logs).
+- 23 tests nuevos: `RouteSystem.test.ts`, `CrimeComputerSystem.test.ts`
+  (incluye un chequeo genérico que corre sobre todos los casos
+  registrados, no solo el caso 1), `Ranks.test.ts`, y extensión de
+  `DataIntegrity.test.ts` con validación de `ruta` y de que el identikit
+  completo de cada caso identifique únicamente al sospechoso real. Total:
+  101 tests, todos verdes.
+- Verificado de punta a punta en navegador (Playwright): reporte sin
+  selección de caso → briefing → pista → ruta reconstruida en 2 saltos →
+  identikit armado con 2 pistas → orden de captura → confrontación
+  desbloqueada → captura → final "Procedimiento perfecto" con rango →
+  "Siguiente caso" carga el Caso 2 automáticamente, de nuevo sin pantalla
+  de selección. `npm run typecheck`, `npm test` (101/101) y `npm run build`
+  limpios en cada paso.
+- Pendiente (documentado en ROADMAP FASE 14, no bloqueante): pasada de UI
+  tipo terminal para el resto de las escenas (hoy solo `ReportScene` y
+  `CrimeComputerScene` la tienen), sonidos ambiente por zona y estados de
+  música dinámica adicionales, Caso 3 diseñado ya sobre la estructura
+  nueva.
+
 ## 2026-08-12 (continuación — FASE 8, primer lote de arte)
 
 - Intentado Higgsfield para el arte definitivo: el `get_cost` preflight no

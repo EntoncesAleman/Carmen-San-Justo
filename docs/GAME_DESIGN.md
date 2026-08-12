@@ -4,13 +4,18 @@
 
 Un policía de dudosa reputación investiga a una banda criminal ficticia y
 absurda a través de una versión ficticia y caricaturesca de CABA y el
-conurbano. Género: detective / investigación / deducción / persecución. Vista
-2D, jugable en navegador.
+conurbano ("El Cinturón"). Género: persecución / investigación / deducción,
+en la tradición de los juegos clásicos de perseguir a un criminal por un
+mapa combinando pistas — pero argentinizado y con contenido 100% original.
+Vista 2D, jugable en navegador.
 
 Todo el contenido (personajes, lugares, la banda) es 100% original. No se
-representa a personas reales ni se copian mapas, textos o personajes de
-ninguna franquicia existente. La inspiración se limita al concepto: pistas,
-viajes, interrogatorios, deducción, persecución.
+representa a personas reales ni se copian mapas, textos, personajes, arte ni
+código de ninguna franquicia existente. La inspiración se limita a la
+ESTRUCTURA del género: el jugador no elige una misión, un caso le llega
+solo; sigue a un criminal en fuga a través de una ruta de varias paradas,
+recolectando pistas para reconstruir el próximo paso; y usa esas pistas para
+armar un identikit que finalmente permite emitir una orden de captura.
 
 ## Prioridad de desarrollo
 
@@ -18,17 +23,30 @@ viajes, interrogatorios, deducción, persecución.
 
 ## Loop principal
 
+El jugador **nunca elige un caso**. El caso le llega automáticamente al
+arrancar (o al resolver el anterior), como un llamado de guardia real:
+
 ```
-RECIBIR CASO → ANALIZAR INFORMACIÓN → VISITAR LUGAR → EXPLORAR →
-HABLAR CON PERSONAJES → CONSEGUIR PISTAS → DEDUCIR DESTINO → VIAJAR →
-NUEVAS PISTAS → IDENTIFICAR SOSPECHOSOS → PERSECUCIÓN → INTERCEPTAR →
-RESOLVER EL CASO
+DESPERTAR / REPORTE (ReportScene) → BRIEFING DEL JEFE → ESCENA DEL HECHO
+    → INVESTIGAR EL LUGAR (hablar con NPCs, explorar) → CONSEGUIR PISTAS
+    → PIZARRÓN: reconstruir la PRÓXIMA parada de la ruta del caco
+      (no el destino final — es una ruta de varias paradas, RouteSystem)
+    → VIAJAR a esa parada → nuevas pistas → repetir hasta la parada final
+    → SISTEMA DE INTELIGENCIA CRIMINAL: armar el identikit del sospechoso
+      combinando los atributos revelados por las pistas (cabello, ojos,
+      vehículo, profesión, hobby, comida) hasta acorralar a un único
+      sospechoso coincidente
+    → EMITIR ORDEN DE CAPTURA (obligatoria — sin orden no se puede confrontar)
+    → CONFRONTAR / CAPTURAR en la parada final
+    → FINAL DEL CASO → sube de RANGO → SIGUIENTE CASO (automático, de nuevo)
 ```
 
 El jugador nunca recibe instrucciones explícitas del tipo "andá a tal lugar".
-Recibe pistas ambiguas (algunas falsas) y tiene que decidir. Puede
-equivocarse, perder tiempo, y llegar a un final malo — el juego sigue siendo
-"completable" en todos los casos, solo que no todos los finales son buenos.
+Recibe pistas ambiguas (algunas falsas) y tiene que decidir tanto la próxima
+parada de la ruta como, más adelante, qué atributos del identikit ya
+conoce. Puede equivocarse, perder tiempo, o confrontar a un señuelo sin
+tener la orden de captura correcta — el juego sigue siendo "completable" en
+todos los casos, solo que no todos los finales son buenos.
 
 ## Sistemas principales
 
@@ -41,16 +59,47 @@ criminal | absurda | falsa | contradictoria), `confiabilidad` (0–100),
 `destinosPosibles[]`. Las pistas falsas siempre tienen una contradicción
 verificable con otra pista real (una fecha que no cierra, una zona
 incompatible con un horario) para que el jugador pueda descartarlas por
-deducción, no por azar.
+deducción, no por azar. Opcionalmente, una pista puede tener
+`revealsAttribute: { key, value }` — revela un atributo del identikit del
+sospechoso (ver Sistema de Inteligencia Criminal más abajo). Las pistas
+falsas nunca revelan atributos (corromperían el identikit sin dar ninguna
+pista de que algo anda mal).
 
-### Deducción
+### Persecución por ruta (RouteSystem)
 
-El jugador arma una hipótesis en el "Pizarrón de sospechosos"
-(`SuspectBoardScene`): combina pistas recolectadas y elige un destino/
-sospechoso. Si la combinación de pistas confiables apunta a una zona, viajar
-ahí avanza el caso. Si el jugador combina mal, no pierde instantáneamente:
-recibe una pista de recuperación (un NPC le marca el error) pero pierde
-tiempo, y el tiempo perdido tiene consecuencias (ver Tiempo).
+El caco (criminal) no salta directo a un destino final: se mueve por una
+**ruta de varias paradas** (`CaseDefinition.ruta: string[]`, mínimo 2,
+empieza en la zona del hecho y termina en el destino correcto). En el
+"Pizarrón" (`SuspectBoardScene`) el jugador no elige el destino final de
+entrada: reconstruye la ruta **parada por parada**, adivinando cuál es la
+PRÓXIMA zona con las pistas que ya tiene. Acertar una parada intermedia
+avanza `gameState.rutaProgresoIndex` y traslada al jugador ahí a seguir
+investigando; acertar la parada final habilita la confrontación (una vez
+emitida la orden de captura). Adivinar un destino falso conocido da
+"sospechoso equivocado"; cualquier otra cosa es "no concluyente". Esto es
+deliberadamente genérico: cualquier caso con un `ruta` de N zonas funciona
+sin tocar el motor (`src/systems/RouteSystem.ts`).
+
+### Sistema de Inteligencia Criminal (Crime Computer / identikit)
+
+Aparte de la ruta geográfica, el jugador arma un **identikit** del
+sospechoso: seis atributos (cabello, ojos, vehículo, profesión, hobby,
+comida), cada uno revelado por una pista distinta. La base de sospechosos
+(`src/data/suspects.ts`) incluye señuelos que comparten uno o más atributos
+con el caco real a propósito, para que hagan falta VARIAS pistas de
+atributo — nunca una sola — antes de acorralar a un único sospechoso
+coincidente (`src/systems/CrimeComputerSystem.ts`). Solo cuando queda
+exactamente un sospechoso, y es el real, se puede **emitir la orden de
+captura** (`gameState.ordenCapturaEmitida`) — sin orden, `LocationScene`
+bloquea la opción de confrontar aunque el sospechoso esté físicamente ahí.
+
+### Rangos
+
+Resolver un caso con éxito incrementa `gameState.casosResueltos`, que
+determina el rango actual (`src/data/ranks.ts`, 7 niveles, de "Cadete de
+Guardia" a "Leyenda de El Cinturón"). El rango se muestra en el reporte de
+cada caso nuevo y en la pantalla de final. Es progreso de carrera: no se
+resetea entre casos, solo con "Nueva Partida" (`gameState.resetCareer()`).
 
 ### Interrogación
 
@@ -78,11 +127,14 @@ finales están condicionados por umbrales de estas variables.
 ### Casos como datos
 
 Un caso (`src/data/cases/*.ts`) es un objeto de datos: id, título,
-descripción, sospechoso, ubicación inicial, ubicaciones posibles, pistas
-(reales y falsas), pistas requeridas para resolverlo, eventos, deadline y
-tabla de finales posibles. Agregar un caso nuevo no debería tocar ningún
-sistema, solo agregar un archivo de datos y registrarlo en
-`src/data/cases/index.ts`.
+descripción, objeto robado, víctima, fecha/hora del hecho, sospechoso,
+zona inicial, `ruta[]` (la persecución completa), destino correcto,
+destinos falsos, pistas (reales y falsas, algunas con `revealsAttribute`),
+pistas requeridas para resolverlo, deadline y tabla de finales posibles.
+Agregar un caso nuevo no debería tocar ningún sistema, solo agregar un
+archivo de datos y registrarlo en `src/data/cases/index.ts` — los casos se
+asignan automáticamente en secuencia (`CaseManager.startNextCaseInSequence`,
+`gameState.casoIndex % CASES.length`, cíclico), nunca se eligen a mano.
 
 ## Finales (mínimo 7, ver `docs/STORY.md` para el detalle narrativo)
 

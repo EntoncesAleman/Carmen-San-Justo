@@ -44,10 +44,17 @@ revés.
 
 ## Escenas (orden de arranque)
 
-`Boot` → `Preloader` → `MainMenu` → (`NewGame`/`LoadGame`) → `CaseIntro` →
-`CityMap` ⇄ `LocationScene` ⇄ `DialogueScene` | `SuspectBoardScene` |
-`CaseFileScene` → `EndingScene`. `DebugScene` es un overlay disponible desde
-cualquier punto.
+`Boot` → `Preloader` → `MainMenu` → (`NewGame`/`LoadGame`) → `ReportScene`
+(reporte automático del caso — no hay pantalla de elegir caso) →
+briefing del jefe (`DialogueScene`) → `CityMap` ⇄ `LocationScene` ⇄
+`DialogueScene` | `SuspectBoardScene` (pizarrón, ruta del caco) |
+`CrimeComputerScene` (identikit + orden de captura) | `CaseFileScene` →
+`EndingScene` → `ReportScene` del siguiente caso (automático, cíclico sobre
+`CASES`). `DebugScene` es un overlay disponible desde cualquier punto.
+
+`CaseSelectScene`/`CaseIntroScene` (selección manual de misión) fueron
+eliminadas a propósito: el jugador nunca elige qué caso investigar, ver
+`docs/GAME_DESIGN.md` → Loop principal.
 
 ## Guardado
 

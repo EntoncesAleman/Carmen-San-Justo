@@ -1,6 +1,6 @@
 import { AUDIO } from '../core/Constants';
 import { EventBus, Events } from '../core/EventBus';
-import { MUSIC_TRACKS, SFX, MusicTrackId, SfxId } from './tracks';
+import { AMBIENT_TRACKS, DEFAULT_SFX_GAIN, MUSIC_TRACKS, SFX, AmbientId, MusicTrackId, SfxId } from './tracks';
 
 // Sistema de audio modular con placeholders sintetizados (Web Audio API).
 // No depende de ningún archivo de audio externo: mientras no haya música ni
@@ -14,8 +14,11 @@ class AudioManager {
     private ctx: AudioContext | null = null;
     private masterGain: GainNode | null = null;
     private musicGain: GainNode | null = null;
+    private ambientGain: GainNode | null = null;
     private currentTrackId: MusicTrackId | null = null;
     private currentTrackTimer: ReturnType<typeof setInterval> | null = null;
+    private currentAmbientId: AmbientId | null = null;
+    private currentAmbientTimer: ReturnType<typeof setInterval> | null = null;
     private muted = !AUDIO.ENABLED_BY_DEFAULT;
     private unlockListenersAttached = false;
 
@@ -23,7 +26,10 @@ class AudioManager {
     init(): void {
         this.attachUnlockListeners();
         EventBus.on(Events.CLUE_ADDED, () => this.playSfx('clue_added'));
-        EventBus.on(Events.DEADLINE_WARNING, () => this.playSfx('warning'));
+        EventBus.on(Events.DEADLINE_WARNING, () => {
+            this.playSfx('warning');
+            this.playMusic('peligro');
+        });
         EventBus.on(Events.DEADLINE_EXPIRED, () => this.playSfx('error'));
         EventBus.on(Events.TRAVEL_COMPLETED, () => this.playSfx('travel'));
     }
@@ -48,6 +54,8 @@ class AudioManager {
             this.masterGain.connect(this.ctx.destination);
             this.musicGain = this.ctx.createGain();
             this.musicGain.connect(this.masterGain);
+            this.ambientGain = this.ctx.createGain();
+            this.ambientGain.connect(this.masterGain);
         }
         return this.ctx;
     }
@@ -105,6 +113,46 @@ class AudioManager {
         this.currentTrackId = null;
     }
 
+    // Drone de fondo por tipo de zona (urbano/agua), suena en simultáneo con
+    // la música — un segundo loop mucho más grave y silencioso, no un
+    // reemplazo. Ver `data/ambient.ts` para qué zonas usan cuál.
+    playAmbient(ambientId: AmbientId): void {
+        if (this.currentAmbientId === ambientId) return;
+        this.stopAmbient();
+        this.currentAmbientId = ambientId;
+
+        const ctx = this.ensureContext();
+        const track = AMBIENT_TRACKS[ambientId];
+        let noteIndex = 0;
+
+        const playNote = () => {
+            if (!this.ambientGain) return;
+            const freq = track.notes[noteIndex % track.notes.length];
+            const osc = ctx.createOscillator();
+            const noteGain = ctx.createGain();
+            osc.type = track.waveform;
+            osc.frequency.value = freq;
+            noteGain.gain.setValueAtTime(track.gain, ctx.currentTime);
+            noteGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + track.noteDurationMs / 1000);
+            osc.connect(noteGain);
+            noteGain.connect(this.ambientGain);
+            osc.start();
+            osc.stop(ctx.currentTime + track.noteDurationMs / 1000);
+            noteIndex++;
+        };
+
+        playNote();
+        this.currentAmbientTimer = setInterval(playNote, track.noteDurationMs);
+    }
+
+    stopAmbient(): void {
+        if (this.currentAmbientTimer !== null) {
+            clearInterval(this.currentAmbientTimer);
+            this.currentAmbientTimer = null;
+        }
+        this.currentAmbientId = null;
+    }
+
     playSfx(id: SfxId): void {
         const ctx = this.ensureContext();
         if (!this.masterGain) return;
@@ -115,7 +163,7 @@ class AudioManager {
         osc.type = def.waveform;
         osc.frequency.setValueAtTime(def.freqStart, ctx.currentTime);
         osc.frequency.exponentialRampToValueAtTime(Math.max(def.freqEnd, 1), ctx.currentTime + def.durationMs / 1000);
-        gain.gain.setValueAtTime(0.35, ctx.currentTime);
+        gain.gain.setValueAtTime(def.gain ?? DEFAULT_SFX_GAIN, ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + def.durationMs / 1000);
         osc.connect(gain);
         gain.connect(this.masterGain);

@@ -9,6 +9,7 @@ import { CaseManager } from '../systems/CaseManager';
 import { EndingResolver } from '../systems/EndingResolver';
 import { audioManager } from '../audio/AudioManager';
 import { getPortraitKey } from '../data/portraits';
+import { TypewriterText } from '../ui/TypewriterText';
 
 export interface DialogueSceneData {
     npcId: string;
@@ -70,7 +71,7 @@ export class DialogueScene extends Phaser.Scene {
         }
 
         const node = this.tree.nodes[this.currentNodeId];
-        const npcLineText = this.add.text(60, 110, node.npcLine, {
+        const npcLineText = this.add.text(60, 110, '', {
             fontFamily: 'Georgia, serif',
             fontSize: '18px',
             color: COLORS_CSS.TEXT,
@@ -80,14 +81,23 @@ export class DialogueScene extends Phaser.Scene {
         this.contentContainer.add(npcLineText);
 
         const options = DialogueEngine.getVisibleOptions(node, this.sceneData.npcId);
-        options.forEach((opt, i) => {
-            const btn = createButton(this, this.scale.width / 2, 300 + i * 66, opt.label, () => this.chooseOption(opt), {
-                width: 840,
-                height: 54,
-                fontSize: '16px',
+        const showOptions = () => {
+            options.forEach((opt, i) => {
+                const btn = createButton(this, this.scale.width / 2, 300 + i * 66, opt.label, () => this.chooseOption(opt), {
+                    width: 840,
+                    height: 54,
+                    fontSize: '16px',
+                });
+                this.contentContainer.add(btn);
             });
-            this.contentContainer.add(btn);
-        });
+        };
+
+        const typewriter = new TypewriterText(this, npcLineText, node.npcLine, 14);
+        typewriter.start(showOptions);
+
+        const skipZone = this.add.zone(60, 100, 900, 180).setOrigin(0, 0).setInteractive({ useHandCursor: true });
+        skipZone.on('pointerdown', () => typewriter.skip());
+        this.contentContainer.add(skipZone);
     }
 
     private chooseOption(opt: DialogueOption) {
@@ -111,7 +121,7 @@ export class DialogueScene extends Phaser.Scene {
         this.contentContainer.removeAll(true);
         const npc = getNpc(this.sceneData.npcId);
 
-        const text = this.add.text(60, 110, `${npc?.apodo ?? ''}: "${opt.responseLine}"`, {
+        const text = this.add.text(60, 110, '', {
             fontFamily: 'Georgia, serif',
             fontSize: '18px',
             color: COLORS_CSS.SUCCESS,
@@ -120,11 +130,20 @@ export class DialogueScene extends Phaser.Scene {
         });
         this.contentContainer.add(text);
 
-        const btn = createButton(this, this.scale.width / 2, 500, 'Continuar', () => {
-            this.currentNodeId = opt.next;
-            this.renderNode();
-        });
-        this.contentContainer.add(btn);
+        const showContinue = () => {
+            const btn = createButton(this, this.scale.width / 2, 500, 'Continuar', () => {
+                this.currentNodeId = opt.next;
+                this.renderNode();
+            });
+            this.contentContainer.add(btn);
+        };
+
+        const typewriter = new TypewriterText(this, text, `${npc?.apodo ?? ''}: "${opt.responseLine}"`, 14);
+        typewriter.start(showContinue);
+
+        const skipZone = this.add.zone(60, 100, 900, 180).setOrigin(0, 0).setInteractive({ useHandCursor: true });
+        skipZone.on('pointerdown', () => typewriter.skip());
+        this.contentContainer.add(skipZone);
     }
 
     private finishDialogue() {
@@ -134,7 +153,7 @@ export class DialogueScene extends Phaser.Scene {
             const def = CaseManager.getCurrentCase();
             if (def) {
                 const endingId = EndingResolver.resolve(def);
-                CaseManager.endCase(endingId);
+                CaseManager.finalizeCaseAndAdvance(endingId);
             }
             this.scene.start(SCENE_KEYS.ENDING);
             return;

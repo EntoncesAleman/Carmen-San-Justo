@@ -2,10 +2,10 @@ import * as Phaser from 'phaser';
 import { COLORS, COLORS_CSS, SCENE_KEYS } from '../core/Constants';
 import { createButton } from '../ui/Button';
 import { CaseManager } from '../systems/CaseManager';
-import { CASES, getFirstCase } from '../data/cases';
 import { SaveSystem } from '../core/SaveSystem';
 import { audioManager } from '../audio/AudioManager';
 import { PROTAGONIST_PORTRAIT_KEY } from '../data/portraits';
+import { gameState } from '../core/GameState';
 
 export class MainMenu extends Phaser.Scene {
     constructor() {
@@ -14,6 +14,7 @@ export class MainMenu extends Phaser.Scene {
 
     create() {
         this.cameras.main.setBackgroundColor(COLORS_CSS.BG_DARK);
+        audioManager.stopAmbient();
         audioManager.playMusic('menu');
 
         this.add
@@ -35,12 +36,10 @@ export class MainMenu extends Phaser.Scene {
         const hasSave = SaveSystem.listSlots().some((s) => !s.empty);
 
         createButton(this, this.scale.width / 2, 330, 'Nueva Partida', () => {
-            if (CASES.length > 1) {
-                this.scene.start(SCENE_KEYS.CASE_SELECT);
-                return;
-            }
-            CaseManager.startCase(getFirstCase().id);
-            this.scene.start(SCENE_KEYS.CASE_INTRO);
+            // El jugador NO elige caso: la agencia asigna el que sigue.
+            gameState.resetCareer();
+            CaseManager.startNextCaseInSequence();
+            this.scene.start(SCENE_KEYS.REPORT);
         });
 
         createButton(this, this.scale.width / 2, 400, hasSave ? 'Continuar' : 'Continuar (sin partidas guardadas)', () => {

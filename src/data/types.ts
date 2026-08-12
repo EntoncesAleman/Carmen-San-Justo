@@ -28,6 +28,24 @@ export type ClueCategoria =
     | 'falsa'
     | 'contradictoria';
 
+// Atributos del identikit del sospechoso (Crime Computer / Sistema de
+// Inteligencia Criminal). Cada pista puede revelar como máximo uno.
+export interface SuspectAttributes {
+    cabello: string;
+    ojos: string;
+    vehiculo: string;
+    profesion: string;
+    hobby: string;
+    comida: string;
+}
+
+export type SuspectAttributeKey = keyof SuspectAttributes;
+
+export interface SuspectAttributeReveal {
+    key: SuspectAttributeKey;
+    value: string;
+}
+
 export interface Clue {
     id: string;
     descripcion: string;
@@ -40,6 +58,25 @@ export interface Clue {
     esFalsa: boolean;
     // si es falsa, qué pista real la contradice (para poder descartarla por deducción)
     contradiceConClueId?: string;
+    // Si esta pista aporta un dato al identikit del sospechoso (Crime Computer)
+    revealsAttribute?: SuspectAttributeReveal;
+}
+
+// Base de sospechosos ficticios para el Sistema de Inteligencia Criminal.
+// El "caco" real de un caso es una entrada acá cuyo id coincide con
+// CaseDefinition.sospechosoId; el resto son señuelos para que filtrar por
+// atributos sea una deducción real, no trivial.
+export interface SuspectProfile {
+    id: string; // coincide con un NPC id cuando el sospechoso es confrontable
+    nombreClave: string;
+    atributos: SuspectAttributes;
+}
+
+export interface Rank {
+    id: string;
+    titulo: string;
+    // casos resueltos con éxito necesarios para alcanzar este rango
+    casosRequeridos: number;
 }
 
 export interface NPC {
@@ -125,11 +162,20 @@ export interface CaseDefinition {
     id: string;
     titulo: string;
     descripcion: string;
+    // Datos del reporte policial (ReportScene)
+    objetoRobado: string;
+    victima: string;
+    fechaHoraDelHecho: string;
     sospechosoId: string;
     zonaInicial: string;
     deadlineMinutos: number;
     clues: Clue[];
     cluesRequeridasParaResolver: string[];
+    // Ruta del caco: zonas en orden, de la escena del crimen (ruta[0], debe
+    // coincidir con zonaInicial) a la parada final (ruta[último], debe
+    // coincidir con destinoCorrectoZoneId). El jugador debe reconstruirla
+    // parada por parada en el Pizarrón — no es un salto directo.
+    ruta: string[];
     destinoCorrectoZoneId: string;
     destinosFalsosZoneIds: string[];
     dialogueTrees: DialogueTree[];

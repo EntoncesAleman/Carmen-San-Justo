@@ -120,6 +120,18 @@ export class HUDScene extends Phaser.Scene {
         this.saveMenuContainer = this.add.container(0, 0, [bg, title, ...buttons]);
     }
 
+    // NOTA: Phaser no bloquea automáticamente los clicks hacia escenas de
+    // abajo cuando una escena "overlay" está encima (cada escena tiene su
+    // propio input plugin e hitea de forma independiente) — un click
+    // pensado para un botón del debug puede también disparar algo debajo
+    // en el mapa/locación si coinciden en posición. Se probó pausar esas
+    // escenas mientras el debug está abierto, pero `scene.resume()` no
+    // reactivaba el input plugin de forma confiable (quedaba la escena
+    // trabada, un bug peor que el original) — revertido. Mitigación real:
+    // evitar que los botones del debug coincidan en pantalla con botones
+    // de las escenas de juego (ya es el caso: el panel del debug ocupa el
+    // costado izquierdo, ver DebugScene.ts) y cerrar el debug con la propia
+    // tecla backtick en vez de clickear "Cerrar" cerca de otros botones.
     private toggleDebug() {
         if (this.scene.isActive(SCENE_KEYS.DEBUG)) {
             this.scene.stop(SCENE_KEYS.DEBUG);
