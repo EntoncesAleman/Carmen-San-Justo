@@ -8,44 +8,59 @@ export interface MusicTrackDef {
     noteDurationMs: number;
     waveform: OscillatorType;
     gain: number;
+    // Nombre de instrumento General MIDI (ver AudioManager.loadInstrument,
+    // usa `soundfont-player`) para renderizar estas mismas notas con un
+    // timbre real en vez de un oscilador crudo. Opcional: si el soundfont
+    // todavía no cargó (o falla, ej. sin red) AudioManager sigue tocando
+    // estas notas por oscilador — nunca queda en silencio.
+    instrument?: string;
 }
 
-// Placeholders funcionales: no son música real, son loops de notas simples
-// que alcanzan para diferenciar el "clima" de cada contexto sin bloquear el
-// desarrollo esperando audio definitivo (ver ART_DIRECTION.md / TESTING.md).
-// Reemplazar por música real es un cambio contenido a este archivo + al
-// AudioManager, no a las escenas que lo consumen.
+// Composiciones simples (loops de 6-8 notas) pensadas para diferenciar el
+// "clima" de cada contexto, no para sonar como un tema orquestal — pero ya
+// no son un placeholder de un solo oscilador crudo: cada una tiene un
+// instrumento General MIDI real asignado (ver `instrument`, cargado con
+// `soundfont-player` — MIT, soundfonts gratuitos de
+// github.com/gleitz/midi-js-soundfonts) que las toca con timbre real.
 export const MUSIC_TRACKS: Record<MusicTrackId, MusicTrackDef> = {
     menu: {
         notes: [220, 261.63, 329.63, 261.63, 220, 196, 220, 261.63],
         noteDurationMs: 420,
         waveform: 'sine',
         gain: 0.5,
+        instrument: 'acoustic_grand_piano',
     },
     investigacion: {
         notes: [196, 220, 246.94, 220, 196, 174.61, 196, 220],
         noteDurationMs: 340,
         waveform: 'triangle',
         gain: 0.45,
+        instrument: 'vibraphone',
     },
     interrogatorio: {
         notes: [174.61, 174.61, 185, 174.61, 164.81, 164.81, 155.56, 164.81],
         noteDurationMs: 300,
         waveform: 'square',
         gain: 0.25,
+        instrument: 'clarinet',
     },
     persecucion: {
         notes: [293.66, 349.23, 293.66, 261.63, 293.66, 349.23, 392, 349.23],
         noteDurationMs: 160,
         waveform: 'sawtooth',
         gain: 0.3,
+        instrument: 'distortion_guitar',
     },
     // Más solemne que 'menu': suena en ReportScene, cuando llega el caso.
+    // Bandoneón (tango_accordion, el instrumento GM más cercano) a
+    // propósito — es el sonido que más "policial negro porteño" pega con
+    // el tono del juego.
     reporte: {
         notes: [196, 233.08, 196, 174.61, 155.56, 174.61, 196, 146.83],
         noteDurationMs: 480,
         waveform: 'triangle',
         gain: 0.4,
+        instrument: 'tango_accordion',
     },
     // Se dispara automáticamente cuando el reloj cruza el umbral de
     // advertencia de deadline (ver AudioManager.init) — reemplaza a
@@ -55,6 +70,7 @@ export const MUSIC_TRACKS: Record<MusicTrackId, MusicTrackDef> = {
         noteDurationMs: 130,
         waveform: 'square',
         gain: 0.32,
+        instrument: 'muted_trumpet',
     },
     // Suena en EndingScene cuando el caso terminó en una captura exitosa.
     captura: {
@@ -62,6 +78,7 @@ export const MUSIC_TRACKS: Record<MusicTrackId, MusicTrackDef> = {
         noteDurationMs: 220,
         waveform: 'triangle',
         gain: 0.45,
+        instrument: 'trumpet',
     },
 };
 

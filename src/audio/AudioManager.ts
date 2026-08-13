@@ -1,12 +1,25 @@
+import { instrument as loadSoundfontInstrument, Player as SoundfontPlayer } from 'soundfont-player';
 import { AUDIO } from '../core/Constants';
 import { EventBus, Events } from '../core/EventBus';
 import { PreferencesStore } from '../core/Preferences';
 import { AMBIENT_TRACKS, DEFAULT_SFX_GAIN, MUSIC_TRACKS, SFX, AmbientId, MusicTrackId, SfxId } from './tracks';
 
-// Sistema de audio modular con placeholders sintetizados (Web Audio API).
-// No depende de ningún archivo de audio externo: mientras no haya música ni
-// sonidos definitivos, esto cumple la regla de "no bloquear el desarrollo
-// esperando audio definitivo" (ver docs/ART_DIRECTION.md).
+// Convierte una frecuencia en Hz al número de nota MIDI más cercano, con
+// parte decimal — `soundfont-player` acepta notas MIDI fraccionarias y las
+// afina (detune) automáticamente, así que las mismas composiciones de
+// `tracks.ts` (pensadas en Hz, no en notas) suenan afinadas de verdad sin
+// tener que reescribirlas como nombres de nota.
+function hzToMidiNote(freqHz: number): number {
+    return 69 + 12 * Math.log2(freqHz / 440);
+}
+
+// Sistema de audio modular. La música usa instrumentos General MIDI reales
+// vía `soundfont-player` (MIT — ver package.json — soundfonts gratuitos de
+// github.com/gleitz/midi-js-soundfonts, sin costo ni auth) sobre las mismas
+// composiciones que antes sonaban por oscilador crudo; los SFX cortos siguen
+// por oscilador (no vale la pena instrumento real para un blip de 40ms).
+// Si el soundfont todavía no cargó (o falla, ej. sin red) sigue sonando por
+// oscilador — nunca se queda mudo esperando una descarga.
 //
 // Vive fuera de core/ y systems/ a propósito: usa `AudioContext`, que solo
 // existe en el navegador, y core/systems deben poder importarse en Node
@@ -20,6 +33,7 @@ class AudioManager {
     private currentTrackTimer: ReturnType<typeof setInterval> | null = null;
     private currentAmbientId: AmbientId | null = null;
     private currentAmbientTimer: ReturnType<typeof setInterval> | null = null;
+    private instrumentCache = new Map<string, Promise<SoundfontPlayer>>();
     // El default de Preferences (ver core/Preferences.ts) ya coincide con
     // AUDIO.ENABLED_BY_DEFAULT la primera vez que se abre el juego; de ahí
     // en más, lo que persiste ahí gana por sobre la constante.
@@ -81,6 +95,27 @@ class AudioManager {
         return this.muted;
     }
 
+    // Cachea la promesa de carga por nombre de instrumento — varios tracks
+    // pueden compartir instrumento, y una escena puede pedir el mismo track
+    // varias veces en una sesión (ej. volver al menú) sin volver a pedirlo
+    // por red cada vez.
+    private loadInstrument(name: string): Promise<SoundfontPlayer> {
+        const ctx = this.ensureContext();
+        let cached = this.instrumentCache.get(name);
+        if (!cached) {
+            // El nombre de instrumento en `tracks.ts` es un string plano
+            // (no importa el tipo `InstrumentName` de la librería ahí, para
+            // no acoplar los datos de audio a esta dependencia puntual) —
+            // se valida acá, en el único punto que sí conoce esa librería.
+            cached = loadSoundfontInstrument(ctx, name as Parameters<typeof loadSoundfontInstrument>[1], { destination: this.musicGain ?? undefined }).catch((err) => {
+                this.instrumentCache.delete(name);
+                throw err;
+            });
+            this.instrumentCache.set(name, cached);
+        }
+        return cached;
+    }
+
     playMusic(trackId: MusicTrackId): void {
         if (this.currentTrackId === trackId) return;
         this.stopMusic();
@@ -89,10 +124,27 @@ class AudioManager {
         const ctx = this.ensureContext();
         const track = MUSIC_TRACKS[trackId];
         let noteIndex = 0;
+        // Mientras el soundfont no terminó de cargar (o si falla, ej. sin
+        // red) sigue sonando por oscilador — se reemplaza solo apenas el
+        // instrumento está listo, sin cortar el loop que ya está sonando.
+        let instrumentPlayer: SoundfontPlayer | null = null;
 
-        const playNote = () => {
+        if (track.instrument) {
+            this.loadInstrument(track.instrument)
+                .then((player) => {
+                    // Si mientras cargaba el jugador ya cambió de música,
+                    // no lo usamos — evita que un load lento pise el track
+                    // que suena ahora.
+                    if (this.currentTrackId === trackId) instrumentPlayer = player;
+                })
+                .catch(() => {
+                    // Silencioso a propósito: el fallback por oscilador de
+                    // abajo ya cubre el caso.
+                });
+        }
+
+        const playOscillatorNote = (freq: number) => {
             if (!this.musicGain) return;
-            const freq = track.notes[noteIndex % track.notes.length];
             const osc = ctx.createOscillator();
             const noteGain = ctx.createGain();
             osc.type = track.waveform;
@@ -103,6 +155,15 @@ class AudioManager {
             noteGain.connect(this.musicGain);
             osc.start();
             osc.stop(ctx.currentTime + track.noteDurationMs / 1000);
+        };
+
+        const playNote = () => {
+            const freq = track.notes[noteIndex % track.notes.length];
+            if (instrumentPlayer) {
+                instrumentPlayer.play(String(hzToMidiNote(freq)), ctx.currentTime, { duration: track.noteDurationMs / 1000, gain: track.gain });
+            } else {
+                playOscillatorNote(freq);
+            }
             noteIndex++;
         };
 

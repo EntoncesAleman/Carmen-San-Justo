@@ -630,12 +630,32 @@ secciones originales.
       cruzar para resolver el caso — es sabor/inmersión sobre el viaje que
       ya existía, no un sistema de transporte nuevo con su propia UI.
 
+- [x] **MIDI real (instrumentos General MIDI vía soundfont)**: nueva
+      dependencia `soundfont-player` (MIT, ~100KB, sin tipos propios en
+      DefinitelyTyped pero trae su propio `index.d.ts`) — carga
+      soundfonts gratuitos de github.com/gleitz/midi-js-soundfonts (MIT,
+      hosteados sin costo en GitHub Pages, sin auth) bajo demanda por
+      instrumento. Cada `MusicTrackDef` en `audio/tracks.ts` ahora tiene
+      un `instrument` GM real (piano para el menú, bandoneón/tango_accordion
+      para el reporte — el toque "policial negro porteño" a propósito,
+      vibráfono para investigación, clarinete para interrogatorios,
+      guitarra distorsionada para persecución, trompeta con sordina para
+      peligro, trompeta para la fanfarria de captura) que toca las MISMAS
+      composiciones que ya existían (no se reescribió ninguna melodía) con
+      timbre real en vez de oscilador crudo — `hzToMidiNote()` en
+      `AudioManager.ts` convierte cada frecuencia en Hz a nota MIDI
+      fraccionaria, que `soundfont-player` afina automáticamente. Mientras
+      el soundfont no cargó (o si falla — sin red, por ejemplo) sigue
+      sonando por oscilador, el mismo placeholder de antes: nunca se queda
+      mudo esperando una descarga. Los SFX cortos (clicks, pasos, tipeo)
+      siguen 100% por oscilador — no vale la pena instrumento real para
+      un blip de 40ms. Verificado en navegador: los 3 fetches de
+      soundfont (piano/bandoneón/clarinete) devuelven 200 y no generan
+      ningún error de consola; los 4 scripts de e2e siguen pasando limpios
+      con la dependencia de red real de por medio.
+
 ### Pendiente, en orden de impacto (no implementado todavía)
 
-- [ ] MIDI real (`title.mid`, `investigation.mid`, `chase.mid`, etc.) en
-      vez de síntesis simple por osciladores — requiere decidir cómo
-      reproducir MIDI en navegador (librería tipo `midi-player-js` +
-      soundfont, o pre-renderizar a audio manteniendo la estética).
 - [ ] Animaciones/parpadeo ambiental en portraits y fondos (hoy 100%
       estático) — el fade-in de entrada entre escenas ya está (ver
       arriba), esto es aparte: idle animation sobre el arte ya en pantalla.

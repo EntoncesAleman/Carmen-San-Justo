@@ -2,6 +2,22 @@
 
 Formato: fecha, qué se hizo, por qué. Más reciente arriba.
 
+## 2026-08-13 (continuación — FASE 21, último ítem: MIDI real vía soundfont)
+
+- **Música con instrumentos reales** (`soundfont-player`, nueva dependencia
+  MIT — pedido explícito del usuario de sumar una librería de soundfont
+  gratuita): cada `MusicTrackDef` (`audio/tracks.ts`) tiene ahora un
+  `instrument` General MIDI (piano, bandoneón, vibráfono, clarinete,
+  guitarra distorsionada, trompeta con/sin sordina) que toca las MISMAS
+  composiciones de siempre con timbre real, cargado bajo demanda desde los
+  soundfonts gratuitos de github.com/gleitz/midi-js-soundfonts (MIT, sin
+  costo, sin auth). `AudioManager.hzToMidiNote()` convierte cada
+  frecuencia en Hz a nota MIDI fraccionaria — no hizo falta reescribir
+  ninguna melodía como nombres de nota. Si el soundfont no cargó todavía
+  (o falla, ej. sin red) sigue sonando por oscilador, el mismo placeholder
+  de antes — nunca se queda mudo. Verificado en navegador (fetches 200,
+  cero errores de consola) y con los 4 scripts de e2e de punta a punta.
+
 ## 2026-08-13 (continuación — FASE 21, ítems 7-10: dificultad progresiva, cursor propio, transición de entrada, preferencias persistidas)
 
 - **Dificultad progresiva por rango** (`CaseGenerator.difficultyTier()`,
