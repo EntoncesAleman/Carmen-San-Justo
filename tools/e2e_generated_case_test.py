@@ -2,13 +2,22 @@
 
 No se puede hardcodear la posición de cada NPC/zona como en los tests de
 los casos fijos porque la ruta y el sospechoso cambian en cada corrida.
-En cambio: (1) se visita la zona inicial (siempre marcada con el pin 📍 en
-el mapa, sin importar cuál sea) y se habla con el primer NPC ahí para
-confirmar que el diálogo generado se ve bien, y (2) se usa el botón
-genérico de DebugScene "Completar caso (forzar final)" para recorrer el
-resto del ciclo (identikit, orden, confrontación, final, rango,
-siguiente caso) sin depender de las coordenadas exactas de esta corrida.
+En cambio: (1) se visita una zona cualquiera de la lista de destinos y se
+habla con el primer NPC ahí para confirmar que el diálogo generado se ve
+bien, y (2) se usa el botón genérico de DebugScene "Completar caso (forzar
+final)" para recorrer el resto del ciclo (identikit, orden, confrontación,
+final, rango, siguiente caso) sin depender de las coordenadas exactas de
+esta corrida.
+
+Coordenadas de CityMap/Location/Dialogue centralizadas en
+tools/frame_coords.py (pantalla dividida, ver src/ui/frameLayout.ts).
 """
+
+import sys
+import os
+
+sys.path.insert(0, os.path.dirname(__file__))
+from frame_coords import destination_list_zone, location_npc_row, dialogue_option, dialogue_skip_zone
 
 from playwright.sync_api import sync_playwright
 
@@ -34,8 +43,8 @@ def run():
         def click(gx, gy):
             page.mouse.click(ox + gx * sx, oy + gy * sy)
 
-        def skip(pause=150):
-            click(400, 150)
+        def skip(pause=200):
+            click(*dialogue_skip_zone())
             page.wait_for_timeout(pause)
 
         # MainMenu -> Nueva Partida -> ReportScene (caso1) -> briefing -> CityMap
@@ -44,11 +53,11 @@ def run():
         click(512, 708)
         page.wait_for_timeout(400)
         skip()
-        click(512, 300)
-        page.wait_for_timeout(250)
+        click(*dialogue_option(0))
+        page.wait_for_timeout(300)
         skip()
-        click(512, 366)
-        page.wait_for_timeout(500)
+        click(*dialogue_option(1))
+        page.wait_for_timeout(700)
 
         # Debug -> Generar caso nuevo (forzar)
         page.keyboard.press("`")
@@ -61,33 +70,30 @@ def run():
         click(512, 708)
         page.wait_for_timeout(400)
         skip()
-        click(512, 300)
-        page.wait_for_timeout(250)
+        click(*dialogue_option(0))
+        page.wait_for_timeout(300)
         skip()
-        click(512, 366)
-        page.wait_for_timeout(500)
+        click(*dialogue_option(1))
+        page.wait_for_timeout(700)
         page.screenshot(path="/tmp/gen_02_citymap.png")
 
-        # CityMapScene.travelTo navega a LocationScene sin importar qué
-        # zona se clickee (cuesta tiempo de viaje si no es la actual, pero
-        # SIEMPRE termina en LocationScene) — no hace falta saber cuál es
-        # la zona inicial de esta corrida en particular para probar que la
-        # escena de locación (con un caso generado activo) renderiza bien.
-        click(150, 150)  # primera zona del grid, cualquiera que sea
-        page.wait_for_timeout(400)
+        # Cualquier fila de la lista de destinos navega a LocationScene
+        # (manzana_fria siempre está en la fila 0, sin importar cuál sea la
+        # zona inicial de esta corrida en particular).
+        click(*destination_list_zone('manzana_fria'))
+        page.wait_for_timeout(500)
         page.screenshot(path="/tmp/gen_03_first_location.png")
 
         # Hablar con el primer NPC del lugar, si hay alguno.
-        click(512, 200)
+        click(*location_npc_row(0))
         page.wait_for_timeout(300)
         skip()
         page.screenshot(path="/tmp/gen_04_informant_dialogue.png")
 
-        # Volver al mapa, abrir debug, y usar "Completar caso (forzar
-        # final)" para recorrer identikit + orden + confrontación + final
-        # sin depender de las coordenadas exactas de esta corrida.
-        click(874, 728)
-        page.wait_for_timeout(400)
+        # Abrir debug y usar "Completar caso (forzar final)" para recorrer
+        # identikit + orden + confrontación + final sin depender de las
+        # coordenadas exactas de esta corrida — funciona sin importar en
+        # qué escena/diálogo hayamos quedado (ver ui/sceneCleanup.ts).
         page.keyboard.press("`")
         page.wait_for_timeout(400)
         page.screenshot(path="/tmp/gen_05_debug_before_complete.png")

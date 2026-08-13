@@ -6,6 +6,7 @@ import { createButton } from '../ui/Button';
 import { audioManager } from '../audio/AudioManager';
 import { getRankForCasosResueltos } from '../data/ranks';
 import { addTerminalDivider } from '../ui/TerminalDivider';
+import { stopAllGameplayScenesExcept } from '../ui/sceneCleanup';
 
 export class EndingScene extends Phaser.Scene {
     constructor() {
@@ -15,34 +16,9 @@ export class EndingScene extends Phaser.Scene {
     create() {
         // Se difiere al siguiente tick: parar otras escenas en el mismo paso
         // en que esta escena está siendo procesada por el SceneManager puede
-        // perderse (carrera interna de Phaser al encolar operaciones).
-        //
-        // Lista exhaustiva a propósito: cualquier escena de juego puede
-        // seguir "activa" (no parada) si se llegó a Ending por un atajo de
-        // debug (ej. "Completar caso") en vez del cierre normal de esa
-        // escena. Encontrado con DIALOGUE: abrir el debug en medio de una
-        // conversación sin cerrarla y usar "Completar caso" dejaba
-        // DialogueScene activa por debajo — como está registrada después
-        // que ReportScene en main.ts, se renderizaba ENCIMA del reporte
-        // del siguiente caso al volver. Mismo bug de fondo que el de
-        // HUD/CityMap/Location documentado originalmente acá, solo que en
-        // un camino menos obvio.
-        const escenasAParar = [
-            SCENE_KEYS.HUD,
-            SCENE_KEYS.DEBUG,
-            SCENE_KEYS.CITY_MAP,
-            SCENE_KEYS.LOCATION,
-            SCENE_KEYS.DIALOGUE,
-            SCENE_KEYS.SUSPECT_BOARD,
-            SCENE_KEYS.CASE_FILE,
-            SCENE_KEYS.CRIME_COMPUTER,
-            SCENE_KEYS.REPORT,
-        ];
-        this.time.delayedCall(0, () => {
-            escenasAParar.forEach((key) => {
-                if (this.scene.isActive(key)) this.scene.stop(key);
-            });
-        });
+        // perderse (carrera interna de Phaser al encolar operaciones). Ver
+        // ui/sceneCleanup.ts para por qué esta lista es exhaustiva.
+        this.time.delayedCall(0, () => stopAllGameplayScenesExcept(this, SCENE_KEYS.ENDING));
 
         this.cameras.main.setBackgroundColor(COLORS_CSS.BG_DARK);
         audioManager.stopAmbient();

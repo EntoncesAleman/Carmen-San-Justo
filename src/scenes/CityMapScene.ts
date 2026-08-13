@@ -1,13 +1,19 @@
 import * as Phaser from 'phaser';
-import { COLORS_CSS, FONTS, SCENE_KEYS, TIME_COSTS } from '../core/Constants';
-import { ZONES } from '../data/zones';
+import { COLORS, COLORS_CSS, FONTS, SCENE_KEYS, TIME_COSTS } from '../core/Constants';
 import { EventBus, Events } from '../core/EventBus';
 import { gameState } from '../core/GameState';
 import { CaseManager } from '../systems/CaseManager';
-import { createButton } from '../ui/Button';
 import { audioManager } from '../audio/AudioManager';
-import { addTerminalDivider } from '../ui/TerminalDivider';
+import { FRAME } from '../ui/frameLayout';
+import { createIconToolbar } from '../ui/IconToolbar';
+import { renderDestinationListPanel } from '../ui/DestinationListPanel';
+import { renderLocationArtPanel } from '../ui/LocationArtPanel';
 
+// Pantalla dividida estilo persecución clásica: lista de destinos siempre
+// visible arriba a la izquierda, arte del lugar actual abajo a la
+// izquierda, estado del caso a la derecha, barra de íconos abajo. Mismo
+// frame que LocationScene/DialogueScene (ver ui/frameLayout.ts) — no es
+// una pantalla aparte, es "la misma pantalla" mostrando otro contenido.
 export class CityMapScene extends Phaser.Scene {
     constructor() {
         super(SCENE_KEYS.CITY_MAP);
@@ -19,58 +25,44 @@ export class CityMapScene extends Phaser.Scene {
         audioManager.stopAmbient();
         audioManager.playMusic(gameState.deadlineWarningEmitted ? 'peligro' : 'investigacion');
 
+        renderDestinationListPanel(this, (zoneId) => this.travelTo(zoneId));
+        renderLocationArtPanel(this);
+        this.renderStatusPanel();
+
+        createIconToolbar(this, [
+            { icon: '🗺', label: 'PIZARRÓN', onClick: () => this.scene.start(SCENE_KEYS.SUSPECT_BOARD) },
+            { icon: '🔍', label: 'EXPEDIENTE', onClick: () => this.scene.start(SCENE_KEYS.CASE_FILE) },
+            { icon: '💻', label: 'INTELIGENCIA CRIMINAL', onClick: () => this.scene.start(SCENE_KEYS.CRIME_COMPUTER) },
+        ]);
+    }
+
+    private renderStatusPanel() {
+        const def = CaseManager.getCurrentCase();
         this.add
-            .text(this.scale.width / 2, 55, 'EL CINTURÓN', {
-                fontFamily: FONTS.MONO,
-                fontSize: '24px',
-                color: COLORS_CSS.ACCENT,
-            })
-            .setOrigin(0.5);
-        addTerminalDivider(this, 74, 460);
+            .rectangle(FRAME.rightX, FRAME.contentTop, FRAME.rightWidth, FRAME.contentBottom - FRAME.contentTop, COLORS.PANEL, 0.9)
+            .setOrigin(0, 0)
+            .setStrokeStyle(2, COLORS.ACCENT);
 
-        this.add
-            .text(this.scale.width / 2, 88, '> ELEGÍ A DÓNDE VIAJAR_', {
-                fontFamily: FONTS.MONO,
-                fontSize: '13px',
-                color: COLORS_CSS.TEXT,
-            })
-            .setOrigin(0.5);
-
-        const cols = 4;
-        const startX = 150;
-        const startY = 150;
-        const stepX = 225;
-        const stepY = 98;
-
-        ZONES.forEach((zone, i) => {
-            const col = i % cols;
-            const row = Math.floor(i / cols);
-            const x = startX + col * stepX;
-            const y = startY + row * stepY;
-            const isHere = zone.id === gameState.currentZoneId;
-            createButton(this, x, y, isHere ? `📍 ${zone.nombre}` : zone.nombre, () => this.travelTo(zone.id), {
-                width: 205,
-                height: 62,
-                fontSize: '13px',
-                fontFamily: FONTS.MONO,
-            });
-        });
-
-        createButton(this, this.scale.width - 130, this.scale.height - 34, 'Pizarrón', () => this.scene.start(SCENE_KEYS.SUSPECT_BOARD), {
-            width: 200,
-            height: 44,
+        this.add.text(FRAME.rightX + 16, FRAME.contentTop + 16, def?.titulo ?? 'Sin caso activo', {
             fontFamily: FONTS.MONO,
+            fontSize: '16px',
+            color: COLORS_CSS.ACCENT,
+            wordWrap: { width: FRAME.rightWidth - 32 },
         });
-        createButton(this, 130, this.scale.height - 34, 'Expediente', () => this.scene.start(SCENE_KEYS.CASE_FILE), {
-            width: 200,
-            height: 44,
+
+        this.add.text(FRAME.rightX + 16, FRAME.contentTop + 60, def?.objetoRobado ?? '', {
             fontFamily: FONTS.MONO,
-        });
-        createButton(this, this.scale.width / 2, this.scale.height - 34, 'Sistema de Inteligencia Criminal', () => this.scene.start(SCENE_KEYS.CRIME_COMPUTER), {
-            width: 340,
-            height: 44,
             fontSize: '13px',
+            color: COLORS_CSS.TEXT,
+            wordWrap: { width: FRAME.rightWidth - 32 },
+            lineSpacing: 4,
+        });
+
+        this.add.text(FRAME.rightX + 16, FRAME.contentBottom - 40, '> Elegí un destino de la lista\n  o seguí investigando acá.', {
             fontFamily: FONTS.MONO,
+            fontSize: '12px',
+            color: '#9aa0ad',
+            wordWrap: { width: FRAME.rightWidth - 32 },
         });
     }
 

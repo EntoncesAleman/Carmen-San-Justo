@@ -18,21 +18,33 @@ Uso:
 IMPORTANTE — cosas que ya rompieron este script antes y por qué:
   1. El diálogo usa texto progresivo (TypewriterText): los botones de
      opciones NO existen en el DOM/canvas hasta que el tipeo termina. Hay
-     que hacer click en la zona de texto (skip zone) antes de clickear una
-     opción, o esperar lo suficiente. Este script siempre hace skip.
-  2. CityMapScene usa una grilla de 4 columnas; SuspectBoardScene usa una
-     grilla de 5 columnas. Son fórmulas DISTINTAS — confundirlas hace que
-     los clicks caigan en el botón equivocado sin ningún error de consola
-     (falso positivo silencioso).
+     que hacer click en la zona del globo de diálogo (skip zone) antes de
+     clickear una opción, o esperar lo suficiente. Este script siempre
+     hace skip primero.
+  2. Desde la pasada de "pantalla dividida" (FASE 17), CityMapScene,
+     LocationScene y DialogueScene comparten un mismo frame (lista de
+     destinos + arte arriba/abajo a la izquierda, panel derecho, barra de
+     íconos abajo — ver src/ui/frameLayout.ts). Las coordenadas de esas
+     tres escenas viven centralizadas en tools/frame_coords.py — actualizar
+     ESE archivo si el layout vuelve a cambiar, no cada script suelto.
+     SuspectBoardScene/CrimeComputerScene/CaseFileScene/EndingScene NO
+     forman parte de ese frame (son "pantallas de computadora" aparte,
+     con su propio layout centrado de siempre) y sus coordenadas siguen
+     hardcodeadas acá mismo.
   3. El overlay de DebugScene NO bloquea los clicks hacia la escena de
      abajo (limitación de Phaser con escenas paralelas) — cerrarlo
-     SIEMPRE con la tecla backtick, nunca clickeando su botón "Cerrar"
-     (un click ahí puede además activar un botón de la escena de atrás).
+     SIEMPRE con la tecla backtick, nunca clickeando su botón "Cerrar".
   4. Cualquier texto con centro vertical en y<40 en una escena que corre
      en paralelo con HUDScene se renderiza corrupto (glitch de compositing
      entre cámaras de Phaser). Si algo nuevo se ve mal, comparar con una
      captura antes de asumir "funciona".
 """
+
+import sys
+import os
+
+sys.path.insert(0, os.path.dirname(__file__))
+from frame_coords import toolbar_button, destination_list_zone, location_npc_row, dialogue_option, dialogue_skip_zone
 
 from playwright.sync_api import sync_playwright
 
@@ -62,9 +74,8 @@ def run():
             return click
 
         def skip_typewriter(click, page):
-            """Click en la zona de texto del diálogo/reporte para saltar el tipeo."""
-            click(400, 150)
-            page.wait_for_timeout(150)
+            click(*dialogue_skip_zone())
+            page.wait_for_timeout(200)
 
         def start_new_game(page, click):
             """MainMenu -> Nueva Partida -> ReportScene (SIN selección de caso)."""
@@ -76,11 +87,11 @@ def run():
             click(512, 708)
             page.wait_for_timeout(400)
             skip_typewriter(click, page)
-            click(512, 300)  # "Entendido."
-            page.wait_for_timeout(250)
+            click(*dialogue_option(0))  # "Entendido."
+            page.wait_for_timeout(300)
             skip_typewriter(click, page)
-            click(512, 366)  # rechazar sobre extraoficial (2da opción de node_extraoficial)
-            page.wait_for_timeout(500)
+            click(*dialogue_option(1))  # rechazar sobre extraoficial (2da opción de node_extraoficial)
+            page.wait_for_timeout(700)
 
         # --- 1) Flujo principal: SIN pantalla de elegir caso -------------
         page = new_page()
@@ -94,25 +105,19 @@ def run():
         go_to_crime_scene(page, click)
         page.screenshot(path="/tmp/smoke_02_citymap.png")
 
-        # Terminal Sur (zona actual, index1, cols=4 -> x=375,y=150)
-        click(375, 150)
+        click(*destination_list_zone('terminal_sur'))  # zona actual, viaje gratis
         page.wait_for_timeout(400)
-        click(512, 200)  # Hablar con Don Simón
+        click(*location_npc_row(0))  # Hablar con Don Simón
         page.wait_for_timeout(300)
         skip_typewriter(click, page)
-        click(512, 300)  # preguntar -> da clue_kiosco_medialunas
+        click(*dialogue_option(0))  # preguntar -> da clue_kiosco_medialunas
         page.wait_for_timeout(300)
         skip_typewriter(click, page)
         page.screenshot(path="/tmp/smoke_03_clue_response.png")
-        click(512, 500)  # Continuar
-        page.wait_for_timeout(400)
-        click(874, 728)  # Volver al mapa (LocationScene) -- antes faltaba
-        # este paso: sin él, (130,734) cae sobre "Explorar" de LocationScene
-        # en vez de "Expediente" de CityMapScene (falso positivo silencioso,
-        # sin error de consola, detectado recién al revisar la captura).
-        page.wait_for_timeout(400)
+        click(*dialogue_option(0))  # Continuar
+        page.wait_for_timeout(500)
 
-        click(130, 734)  # Expediente
+        click(*toolbar_button(2, 4))  # Expediente (4to ícono en LocationScene: Explorar/Pizarrón/Expediente/Inteligencia)
         page.wait_for_timeout(300)
         page.screenshot(path="/tmp/smoke_04_expediente.png")
         page.close()
@@ -129,92 +134,82 @@ def run():
         go_to_crime_scene(page, click)
 
         # Terminal Sur -> Simón (da clue_kiosco_medialunas, hop1 = oeste_profundo)
-        click(375, 150)
+        click(*destination_list_zone('terminal_sur'))
         page.wait_for_timeout(400)
-        click(512, 200)
+        click(*location_npc_row(0))
         page.wait_for_timeout(300)
         skip_typewriter(click, page)
-        click(512, 300)
+        click(*dialogue_option(0))
         page.wait_for_timeout(300)
         skip_typewriter(click, page)
-        click(512, 500)
-        page.wait_for_timeout(400)
-        click(874, 728)  # Volver al mapa
-        page.wait_for_timeout(400)
+        click(*dialogue_option(0))
+        page.wait_for_timeout(500)
 
-        # Pizarrón: adivinar hop1 = oeste_profundo (SuspectBoardScene usa cols=5)
-        click(894, 734)
+        # Pizarrón (2do ícono de 4 en LocationScene): adivinar hop1 = oeste_profundo
+        click(*toolbar_button(1, 4))
         page.wait_for_timeout(400)
-        # boardTop con 1 pista = 138+20+26=184, startY=234, stepY=52; oeste_profundo index15 -> row3,col0
+        # boardTop con 1 pista = 138+20+26=184, startY=234, stepY=52; oeste_profundo index15 -> row3,col0 (grilla propia de SuspectBoardScene, sin cambios)
         click(130, 234 + 3 * 52)
         page.wait_for_timeout(300)
         page.screenshot(path="/tmp/smoke_05_hop1_result.png")
         click(512, 384)  # cerrar overlay -> teleporta a oeste_profundo
-        page.wait_for_timeout(400)
+        page.wait_for_timeout(500)
 
         # Oeste Profundo -> Cacho -> "mostrar evidencia" da clue_remise_pampa (hop2 = el_delta)
-        click(512, 200)
+        click(*location_npc_row(0))
         page.wait_for_timeout(300)
         skip_typewriter(click, page)
-        click(512, 366)
+        click(*dialogue_option(1))
         page.wait_for_timeout(300)
         skip_typewriter(click, page)
-        click(512, 500)
-        page.wait_for_timeout(400)
-        click(874, 728)
-        page.wait_for_timeout(400)
+        click(*dialogue_option(0))
+        page.wait_for_timeout(500)
 
         # Pizarrón otra vez: ahora 2 pistas -> boardTop=138+40+26=204,startY=254; el_delta index17->row3,col2
-        click(894, 734)
+        click(*toolbar_button(1, 4))
         page.wait_for_timeout(400)
         click(130 + 2 * 175, 254 + 3 * 52)
         page.wait_for_timeout(300)
         page.screenshot(path="/tmp/smoke_06_hop2_final_result.png")
         click(512, 384)
-        page.wait_for_timeout(400)
+        page.wait_for_timeout(500)
         page.screenshot(path="/tmp/smoke_07_el_delta_locked.png")  # sospechoso visible pero bloqueado
 
-        click(874, 728)
-        page.wait_for_timeout(400)
-
-        # Crime Computer con las pistas de atributo ya en mano (comida via
-        # Simón) mas hobby (Hombre de las Palomas, Parque Obrero index8)
-        click(150, 346)
-        page.wait_for_timeout(400)
-        click(512, 266)  # 2do NPC del lugar
+        # Viajar a Parque Obrero -> Hombre de las Palomas (2do NPC del lugar) -> hobby
+        click(*destination_list_zone('parque_obrero'))
+        page.wait_for_timeout(500)
+        click(*location_npc_row(1))
         page.wait_for_timeout(300)
         skip_typewriter(click, page)
-        click(512, 300)
+        click(*dialogue_option(0))
         page.wait_for_timeout(300)
         skip_typewriter(click, page)
-        click(512, 500)
-        page.wait_for_timeout(400)
-        click(874, 728)
-        page.wait_for_timeout(400)
+        click(*dialogue_option(0))
+        page.wait_for_timeout(500)
 
-        click(512, 734)  # Sistema de Inteligencia Criminal
+        click(*toolbar_button(3, 4))  # Sistema de Inteligencia Criminal
         page.wait_for_timeout(500)
         page.screenshot(path="/tmp/smoke_08_crime_computer.png")
-        click(512, 610)  # CALCULAR (por si el auto-cálculo no alcanzó a pintar)
+        click(512, 610)  # CALCULAR (por si el auto-cálculo no alcanzó a pintar; escena propia, sin cambios)
         page.wait_for_timeout(300)
         page.screenshot(path="/tmp/smoke_09_crime_computer_1_match.png")
         click(512, 668)  # EMITIR ORDEN DE CAPTURA (scale.height - 100)
         page.wait_for_timeout(400)
 
-        click(375, 542)  # volver a El Delta (index17, cols=4 -> row4,col1)
-        page.wait_for_timeout(400)
-        page.screenshot(path="/tmp/smoke_10_el_delta_unlocked.png")
-        click(512, 200)  # Confrontar
-        page.wait_for_timeout(300)
-        skip_typewriter(click, page)
-        click(512, 300)  # arrestar
-        page.wait_for_timeout(300)
-        skip_typewriter(click, page)
-        click(512, 500)
+        click(*destination_list_zone('el_delta'))
         page.wait_for_timeout(500)
+        page.screenshot(path="/tmp/smoke_10_el_delta_unlocked.png")
+        click(*location_npc_row(0))  # Confrontar (único NPC visible ahora)
+        page.wait_for_timeout(300)
+        skip_typewriter(click, page)
+        click(*dialogue_option(0))  # arrestar
+        page.wait_for_timeout(300)
+        skip_typewriter(click, page)
+        click(*dialogue_option(0))
+        page.wait_for_timeout(600)
         page.screenshot(path="/tmp/smoke_11_ending_with_rank.png")
 
-        click(512, 480)  # Siguiente caso
+        click(512, 480)  # Siguiente caso (EndingScene, sin cambios)
         page.wait_for_timeout(400)
         page.screenshot(path="/tmp/smoke_12_next_case_report_no_selection.png")
         page.close()

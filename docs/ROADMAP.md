@@ -366,6 +366,52 @@ terminar.
       nueva (el contador de "Pistas X/Y" del HUD sube), explorar una
       segunda vez no la repite y cae de nuevo al evento decorativo.
 
+## FASE 17 — Pantalla dividida (fidelidad visual real)
+
+Pedido explícito tras ver el deploy: "tiene que ser igual, pero
+argentinizado" — mostrando una captura del Carmen Sandiego original (mapa
+de destinos + arte del lugar a la izquierda, retrato + globo de diálogo a
+la derecha, barra de íconos abajo). Hasta acá la fidelidad visual era solo
+de tono (paneles oscuros, tipografía monospace en algunas pantallas) — no
+alcanzaba; hacía falta el LAYOUT real, no solo el estilo. Detalle completo
+en `docs/GAME_DESIGN.md` → "Pantalla dividida".
+
+- [x] `src/ui/frameLayout.ts`: coordenadas compartidas del frame.
+- [x] `src/ui/DestinationListPanel.ts` / `LocationArtPanel.ts` /
+      `IconToolbar.ts`: los tres paneles reutilizables que arman el frame,
+      compartidos entre `CityMapScene`, `LocationScene` y `DialogueScene`
+      para que las tres se sientan "la misma pantalla".
+- [x] Rediseñadas `CityMapScene`, `LocationScene` y `DialogueScene` sobre
+      ese frame — lista de destinos y arte de la zona SIEMPRE visibles,
+      panel derecho específico de cada una (estado del caso / gente con
+      quién hablar / retrato+diálogo+opciones), barra de íconos
+      reemplazando los botones de texto sueltos de antes.
+      `SuspectBoardScene`/`CrimeComputerScene`/`CaseFileScene`/
+      `EndingScene` quedan fuera del frame a propósito — son "pantallas
+      de computadora" aparte, mismo criterio que el juego clásico.
+- [x] **Bug real encontrado y corregido, mismo patrón que el de
+      `EndingScene` (FASE 15)**: los botones de `DebugScene` que saltan
+      de caso (`Saltar a Caso N`, `Generar caso nuevo`) navegan a
+      `ReportScene` pero nunca paraban la escena de juego que hubiera
+      quedado activa por debajo (ej. `CityMapScene` del caso anterior) —
+      esa escena vieja, registrada después en `main.ts`, se seguía
+      dibujando ENCIMA de `ReportScene` con datos completamente
+      desactualizados (se detectó porque el panel de estado de
+      `CityMapScene` ahora muestra contenido real, algo que antes del
+      rediseño no se hubiera notado visualmente). Corregido extrayendo la
+      lógica de limpieza a un helper compartido
+      (`ui/sceneCleanup.ts` → `stopAllGameplayScenesExcept`), usado ahora
+      tanto por `EndingScene` como por `ReportScene`.
+- [x] Los 4 scripts de regresión de `tools/` reescritos con las
+      coordenadas nuevas, centralizadas en `tools/frame_coords.py` (antes
+      cada script tenía sus propias coordenadas hardcodeadas — con este
+      cambio de layout, TODAS quedaron obsoletas a la vez; centralizarlas
+      evita que vuelva a pasar).
+- [x] Verificado en navegador: los 3 casos fijos, un caso generado, y la
+      exploración, todos de punta a punta con capturas revisadas a mano
+      (no solo "sin errores de consola" — el bug de arriba no generaba
+      ningún error, solo contenido visual incorrecto).
+
 ## Deuda de contenido conocida (no bloqueante)
 
 - `DialogueEngine.buildFallbackTree` sigue existiendo (y sigue siendo

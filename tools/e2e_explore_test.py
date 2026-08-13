@@ -1,6 +1,16 @@
 """Verifica que 'Explorar' en Terminal Sur (caso1) ahora otorga
 clue_bolsa_medialunas_explorar, en vez de solo texto random sin efecto.
+
+Coordenadas de CityMap/Location/Dialogue centralizadas en
+tools/frame_coords.py (pantalla dividida, ver src/ui/frameLayout.ts).
 """
+
+import sys
+import os
+
+sys.path.insert(0, os.path.dirname(__file__))
+from frame_coords import toolbar_button, destination_list_zone, dialogue_option, dialogue_skip_zone
+
 from playwright.sync_api import sync_playwright
 
 BASE_URL = "http://localhost:8080/"
@@ -25,8 +35,8 @@ def run():
         def click(gx, gy):
             page.mouse.click(ox + gx * sx, oy + gy * sy)
 
-        def skip(pause=150):
-            click(400, 150)
+        def skip(pause=200):
+            click(*dialogue_skip_zone())
             page.wait_for_timeout(pause)
 
         click(512, 330)  # Nueva Partida
@@ -34,21 +44,21 @@ def run():
         click(512, 708)  # Ir a la escena del hecho
         page.wait_for_timeout(400)
         skip()
-        click(512, 300)  # Entendido
-        page.wait_for_timeout(250)
+        click(*dialogue_option(0))  # Entendido
+        page.wait_for_timeout(300)
         skip()
-        click(512, 366)  # rechazar sobre
-        page.wait_for_timeout(500)
+        click(*dialogue_option(1))  # rechazar sobre
+        page.wait_for_timeout(700)
 
-        click(375, 150)  # Terminal Sur (zona actual)
-        page.wait_for_timeout(400)
+        click(*destination_list_zone('terminal_sur'))  # zona actual, viaje gratis
+        page.wait_for_timeout(500)
         page.screenshot(path="/tmp/explore_00_before.png")
-        click(150, 728)  # Explorar
+        click(*toolbar_button(0, 4))  # Explorar (1er ícono en LocationScene)
         page.wait_for_timeout(400)
         page.screenshot(path="/tmp/explore_01_result.png")
         click(512, 400)  # cerrar overlay
         page.wait_for_timeout(300)
-        click(150, 728)  # Explorar de nuevo -- no debería repetir la pista
+        click(*toolbar_button(0, 4))  # Explorar de nuevo -- no debería repetir la pista
         page.wait_for_timeout(400)
         page.screenshot(path="/tmp/explore_02_second_click.png")
 

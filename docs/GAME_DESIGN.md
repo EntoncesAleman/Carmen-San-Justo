@@ -188,6 +188,43 @@ Verificado con fuzzing (300 casos generados con seeds distintos, ver
 integridad y de "ninguna pista sola resuelve el identikit" que los casos
 fijos — no es una demo, tiene la misma vara de calidad.
 
+## Pantalla dividida
+
+La estructura del loop (reporte automático, ruta, identikit) coincidía con
+el formato clásico de persecución desde la FASE 14, pero la PRESENTACIÓN
+visual seguía siendo genérica (paneles centrados, botones de texto). Pedido
+explícito: tiene que ser "igual, pero argentinizado" — no solo el
+mecanismo, también el layout de pantalla dividida reconocible al toque.
+
+`CityMapScene`, `LocationScene` y `DialogueScene` comparten ahora un mismo
+frame (coordenadas centralizadas en `src/ui/frameLayout.ts`, para que
+navegar entre las tres se sienta como "la misma pantalla" cambiando de
+contenido, no tres pantallas distintas):
+
+- **Arriba a la izquierda**: lista de destinos (`ui/DestinationListPanel.ts`)
+  — SIEMPRE visible, sin importar en qué escena de las tres se esté. El
+  jugador puede viajar directamente desde ahí, no hace falta "volver al
+  mapa" primero.
+- **Abajo a la izquierda**: arte de la zona actual
+  (`ui/LocationArtPanel.ts`) — la misma "ventana al lugar" en las tres
+  escenas.
+- **Derecha**: contenido específico de cada escena — estado del caso
+  (CityMap), lista de gente con quién hablar (Location), o retrato +
+  globo de diálogo + opciones (Dialogue, calcado del formato clásico:
+  retrato a la izquierda del panel, texto a la derecha, nombre del NPC
+  debajo del retrato).
+- **Abajo**: barra de íconos fija (`ui/IconToolbar.ts`) — Explorar (solo
+  en Location) / Pizarrón / Expediente / Sistema de Inteligencia Criminal,
+  reemplaza los botones de texto sueltos que tenía cada escena por su
+  cuenta.
+
+`SuspectBoardScene`, `CrimeComputerScene`, `CaseFileScene` y `EndingScene`
+NO forman parte de este frame a propósito — son "pantallas de computadora"
+aparte (con su propia estética terminal, ver FASE 14), accesibles desde la
+barra de íconos pero visualmente distintas, igual que en el juego clásico
+el identikit y el mapa de rutas se ven claramente como interfaces
+distintas de la pantalla principal de investigación.
+
 ## Finales (mínimo 7, ver `docs/STORY.md` para el detalle narrativo)
 
 1. Caso resuelto correctamente.

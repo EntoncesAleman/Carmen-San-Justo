@@ -2,6 +2,37 @@
 
 Formato: fecha, qué se hizo, por qué. Más reciente arriba.
 
+## 2026-08-13 (continuación — FASE 17, pantalla dividida)
+
+Pedido explícito tras ver el juego deployado: la fidelidad visual con
+Carmen Sandiego tenía que ser real (mismo layout), no solo de tono. Se
+mostró una captura del original — mapa de destinos + arte del lugar a la
+izquierda, retrato + globo de diálogo a la derecha, barra de íconos abajo
+— como referencia directa.
+
+- Nuevo frame de pantalla dividida compartido entre `CityMapScene`,
+  `LocationScene` y `DialogueScene` (`ui/frameLayout.ts` +
+  `DestinationListPanel.ts` + `LocationArtPanel.ts` + `IconToolbar.ts`):
+  lista de destinos y arte de la zona siempre visibles a la izquierda,
+  contenido específico de cada escena a la derecha, barra de íconos fija
+  abajo. `SuspectBoardScene`/`CrimeComputerScene`/`CaseFileScene`/
+  `EndingScene` quedan fuera a propósito (son "pantallas de computadora"
+  aparte, mismo criterio que el juego original).
+- **Bug real encontrado y corregido** (mismo patrón que el de
+  `EndingScene` de FASE 15): los botones de `DebugScene` que saltan de
+  caso nunca paraban la escena de juego anterior, que quedaba dibujada
+  ENCIMA de `ReportScene` con datos viejos — invisible antes del
+  rediseño (los paneles no mostraban datos "en vivo"), pero evidente
+  ahora. Corregido con un helper compartido (`ui/sceneCleanup.ts`) usado
+  por `EndingScene` y `ReportScene` por igual.
+- Los 4 scripts de regresión de Playwright reescritos con coordenadas
+  nuevas, centralizadas en `tools/frame_coords.py` — el cambio de layout
+  las volvió obsoletas a todas a la vez.
+- Verificado en navegador con capturas revisadas a mano en cada paso (el
+  bug de arriba no daba ningún error de consola, solo contenido visual
+  incorrecto — "sin errores" no alcanza como prueba). `npm run
+  typecheck`, `npm test` (164/164) y `npm run build` limpios.
+
 ## 2026-08-12 (continuación — FASE 16, más operativos + arreglo del sistema de exploración)
 
 Dos pedidos en un mismo mensaje: sumar más identidades al generador, y una

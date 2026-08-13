@@ -1,19 +1,22 @@
 import * as Phaser from 'phaser';
-import { COLORS_CSS, FONTS, SCENE_KEYS, TIME_COSTS } from '../core/Constants';
+import { COLORS, COLORS_CSS, FONTS, SCENE_KEYS, TIME_COSTS } from '../core/Constants';
 import { gameState } from '../core/GameState';
 import { getLocationByZone } from '../data/locations';
-import { getZone } from '../data/zones';
 import { getNpc } from '../data/npcs';
-import { createButton } from '../ui/Button';
 import { CaseManager } from '../systems/CaseManager';
 import { EventSystem } from '../systems/EventSystem';
 import { ExploreSystem } from '../systems/ExploreSystem';
 import { ClueManager } from '../systems/ClueManager';
 import { audioManager } from '../audio/AudioManager';
-import { getBackgroundKey } from '../data/portraits';
 import { getAmbientForZone } from '../data/ambient';
-import { addTerminalDivider } from '../ui/TerminalDivider';
+import { FRAME } from '../ui/frameLayout';
+import { createIconToolbar } from '../ui/IconToolbar';
+import { renderDestinationListPanel } from '../ui/DestinationListPanel';
+import { renderLocationArtPanel } from '../ui/LocationArtPanel';
 
+// Misma pantalla dividida que CityMapScene (lista de destinos + arte de la
+// zona a la izquierda) — acá el panel derecho pasa a mostrar la locación:
+// descripción + con quién se puede hablar, en vez del estado del caso.
 export class LocationScene extends Phaser.Scene {
     constructor() {
         super(SCENE_KEYS.LOCATION);
@@ -26,30 +29,56 @@ export class LocationScene extends Phaser.Scene {
         audioManager.playAmbient(getAmbientForZone(gameState.currentZoneId));
         this.playFootsteps();
 
-        const zone = getZone(gameState.currentZoneId);
+        renderDestinationListPanel(this, (zoneId) => this.travelTo(zoneId));
+        renderLocationArtPanel(this);
+        this.renderPeoplePanel();
+
+        createIconToolbar(this, [
+            { icon: '🔦', label: 'EXPLORAR', onClick: () => this.explore() },
+            { icon: '🗺', label: 'PIZARRÓN', onClick: () => this.scene.start(SCENE_KEYS.SUSPECT_BOARD) },
+            { icon: '🔍', label: 'EXPEDIENTE', onClick: () => this.scene.start(SCENE_KEYS.CASE_FILE) },
+            { icon: '💻', label: 'INTELIGENCIA CRIMINAL', onClick: () => this.scene.start(SCENE_KEYS.CRIME_COMPUTER) },
+        ]);
+    }
+
+    private travelTo(zoneId: string) {
+        if (zoneId === gameState.currentZoneId) {
+            this.scene.start(SCENE_KEYS.LOCATION);
+            return;
+        }
+        const expired = CaseManager.advanceTimeAndCheckDeadline(TIME_COSTS.VIAJAR_MINUTOS);
+        gameState.currentZoneId = zoneId;
+        if (expired) {
+            this.scene.start(SCENE_KEYS.ENDING);
+            return;
+        }
+        this.scene.start(SCENE_KEYS.LOCATION);
+    }
+
+    private renderPeoplePanel() {
         const location = getLocationByZone(gameState.currentZoneId);
         const def = CaseManager.getCurrentCase();
-
-        this.renderBackground(location?.id);
-
-        this.add
-            .text(this.scale.width / 2, 60, location?.nombre ?? zone?.nombre ?? 'Lugar desconocido', {
-                fontFamily: FONTS.MONO,
-                fontSize: '26px',
-                color: COLORS_CSS.ACCENT,
-            })
-            .setOrigin(0.5);
-        addTerminalDivider(this, 82, 500);
+        const panelHeight = FRAME.contentBottom - FRAME.contentTop;
 
         this.add
-            .text(this.scale.width / 2, 110, location?.descripcion ?? '', {
-                fontFamily: FONTS.MONO,
-                fontSize: '14px',
-                color: COLORS_CSS.TEXT,
-                align: 'center',
-                wordWrap: { width: 760 },
-            })
-            .setOrigin(0.5);
+            .rectangle(FRAME.rightX, FRAME.contentTop, FRAME.rightWidth, panelHeight, COLORS.PANEL, 0.9)
+            .setOrigin(0, 0)
+            .setStrokeStyle(2, COLORS.ACCENT);
+
+        this.add.text(FRAME.rightX + 16, FRAME.contentTop + 12, location?.nombre ?? 'Lugar desconocido', {
+            fontFamily: FONTS.MONO,
+            fontSize: '17px',
+            color: COLORS_CSS.ACCENT,
+            wordWrap: { width: FRAME.rightWidth - 32 },
+        });
+
+        this.add.text(FRAME.rightX + 16, FRAME.contentTop + 44, location?.descripcion ?? '', {
+            fontFamily: FONTS.MONO,
+            fontSize: '12px',
+            color: COLORS_CSS.TEXT,
+            wordWrap: { width: FRAME.rightWidth - 32 },
+            lineSpacing: 3,
+        });
 
         // Los NPCs "de rol especial" del caso activo (el sospechoso real y el
         // falso sospechoso) nunca viven en Location.npcIds: su aparición
@@ -71,14 +100,14 @@ export class LocationScene extends Phaser.Scene {
             }
         }
 
+        const listTop = FRAME.contentTop + 100;
         if (visibleNpcIds.length === 0) {
-            this.add
-                .text(this.scale.width / 2, 220, 'No hay nadie por acá ahora mismo.', {
-                    fontFamily: FONTS.MONO,
-                    fontSize: '15px',
-                    color: COLORS_CSS.TEXT,
-                })
-                .setOrigin(0.5);
+            this.add.text(FRAME.rightX + 16, listTop, 'No hay nadie por acá ahora mismo.', {
+                fontFamily: FONTS.MONO,
+                fontSize: '13px',
+                color: '#9aa0ad',
+            });
+            return;
         }
 
         visibleNpcIds.forEach((npcId, i) => {
@@ -89,28 +118,37 @@ export class LocationScene extends Phaser.Scene {
             const necesitaOrden = isSuspect && !gameState.ordenCapturaEmitida;
 
             let label: string;
-            if (necesitaOrden) label = `🔒 ${npc.apodo} está acá, pero falta la orden de captura`;
+            if (necesitaOrden) label = `🔒 ${npc.apodo} — falta la orden de captura`;
             else if (isSuspect) label = `⚠ Confrontar a ${npc.apodo}`;
-            else label = `Hablar con ${npc.apodo}`;
+            else label = `▸ Hablar con ${npc.apodo}`;
 
-            createButton(
-                this,
-                this.scale.width / 2,
-                200 + i * 66,
-                label,
-                () => {
-                    if (necesitaOrden) {
-                        this.showOverlay('Sabés que está acá, pero no tenés orden de captura.\nAndá al Sistema de Inteligencia Criminal (mapa) y armá el identikit primero.');
-                        return;
-                    }
-                    this.talkTo(npcId, !!isSuspect, !!isFalsoSospechoso);
-                },
-                { width: 560, height: 54, fontSize: '14px', fontFamily: FONTS.MONO },
-            );
+            const rowY = listTop + i * 60;
+            const row = this.add
+                .rectangle(FRAME.rightX + 16, rowY, FRAME.rightWidth - 32, 50, 0x000000, 0)
+                .setOrigin(0, 0)
+                .setStrokeStyle(1, necesitaOrden ? 0x555c6e : COLORS.ACCENT)
+                .setInteractive({ useHandCursor: true });
+            const text = this.add
+                .text(FRAME.rightX + 26, rowY + 25, label, {
+                    fontFamily: FONTS.MONO,
+                    fontSize: '13px',
+                    color: necesitaOrden ? '#7a8091' : COLORS_CSS.TEXT,
+                    wordWrap: { width: FRAME.rightWidth - 60 },
+                })
+                .setOrigin(0, 0.5);
+            void text;
+
+            row.on('pointerover', () => row.setStrokeStyle(1, necesitaOrden ? 0x555c6e : 0xffffff));
+            row.on('pointerout', () => row.setStrokeStyle(1, necesitaOrden ? 0x555c6e : COLORS.ACCENT));
+            row.on('pointerdown', () => {
+                audioManager.playSfx('ui_click');
+                if (necesitaOrden) {
+                    this.showOverlay('Sabés que está acá, pero no tenés orden de captura.\nAndá al Sistema de Inteligencia Criminal y armá el identikit primero.');
+                    return;
+                }
+                this.talkTo(npcId, !!isSuspect, !!isFalsoSospechoso);
+            });
         });
-
-        createButton(this, 150, this.scale.height - 40, 'Explorar', () => this.explore(), { fontFamily: FONTS.MONO });
-        createButton(this, this.scale.width - 150, this.scale.height - 40, 'Volver al mapa', () => this.scene.start(SCENE_KEYS.CITY_MAP), { fontFamily: FONTS.MONO });
     }
 
     // Placeholder funcional de pasos al entrar a una locación (ver
@@ -119,16 +157,6 @@ export class LocationScene extends Phaser.Scene {
         for (let i = 0; i < 3; i++) {
             this.time.delayedCall(i * 180, () => audioManager.playSfx('footstep'));
         }
-    }
-
-    private renderBackground(locationId: string | undefined) {
-        const bgKey = locationId ? getBackgroundKey(locationId) : undefined;
-        if (!bgKey || !this.textures.exists(bgKey)) return;
-
-        const img = this.add.image(this.scale.width / 2, this.scale.height / 2, bgKey);
-        img.setDisplaySize(this.scale.width, this.scale.height);
-        img.setAlpha(0.55);
-        this.add.rectangle(this.scale.width / 2, this.scale.height / 2, this.scale.width, this.scale.height, 0x000000, 0.35);
     }
 
     private talkTo(npcId: string, isSuspect: boolean, isFalsoSospechoso: boolean) {

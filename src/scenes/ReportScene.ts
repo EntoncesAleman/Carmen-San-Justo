@@ -7,6 +7,7 @@ import { getRankForCasosResueltos } from '../data/ranks';
 import { gameState } from '../core/GameState';
 import { audioManager } from '../audio/AudioManager';
 import { TypewriterText } from '../ui/TypewriterText';
+import { stopAllGameplayScenesExcept } from '../ui/sceneCleanup';
 
 // Reemplaza la vieja pantalla de "elegir misión": el caso llega solo. Esta
 // escena es el reporte policial que dispara todo — no hay ningún botón acá
@@ -17,6 +18,13 @@ export class ReportScene extends Phaser.Scene {
     }
 
     create() {
+        // Ver ui/sceneCleanup.ts: se puede llegar acá con una escena de
+        // juego anterior todavía activa (ej. saltar de caso desde el
+        // debug estando en CityMap/Location/Dialogue) — sin esto, esa
+        // escena vieja se sigue dibujando ENCIMA con datos del caso
+        // anterior (está registrada después en main.ts).
+        this.time.delayedCall(0, () => stopAllGameplayScenesExcept(this, SCENE_KEYS.REPORT));
+
         const def = CaseManager.getCurrentCase();
         this.cameras.main.setBackgroundColor(COLORS_CSS.BG_DARK);
         audioManager.playMusic('reporte');

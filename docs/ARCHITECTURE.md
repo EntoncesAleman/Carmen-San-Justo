@@ -55,14 +55,23 @@ briefing del jefe (`DialogueScene`) → `CityMap` ⇄ `LocationScene` ⇄
 repetir el caso 1). `DebugScene` es un overlay disponible desde cualquier
 punto.
 
-`EndingScene.create()` para exhaustivamente cualquier escena de juego que
-pueda haber quedado activa (no solo HUD/CityMap/Location, también
-Dialogue/SuspectBoard/CaseFile/CrimeComputer/Report) antes de mostrarse —
-necesario porque se puede llegar a Ending por atajos de debug que no pasan
-por el cierre normal de la escena anterior (bug real encontrado probando
-el generador: una `DialogueScene` sin cerrar quedaba renderizada encima
-del reporte del siguiente caso, porque está registrada después que
-`ReportScene` en `main.ts`).
+`EndingScene` y `ReportScene` paran exhaustivamente cualquier escena de
+juego que pueda haber quedado activa (`ui/sceneCleanup.ts` →
+`stopAllGameplayScenesExcept`) antes de mostrarse — necesario porque se
+puede llegar a cualquiera de las dos por atajos de debug que no pasan por
+el cierre normal de la escena anterior. Bug real encontrado dos veces por
+este motivo: una vez con `DialogueScene` sin cerrar renderizada encima del
+reporte del siguiente caso, y de nuevo con `CityMapScene` del caso
+anterior encima de un `ReportScene` recién generado — ambas veces porque
+Phaser dibuja las escenas activas en el orden en que están registradas en
+`main.ts`, y ninguna de las dos estaba en la lista de limpieza.
+
+`CityMapScene`, `LocationScene` y `DialogueScene` comparten un mismo frame
+de pantalla dividida (`ui/frameLayout.ts` + `DestinationListPanel.ts` +
+`LocationArtPanel.ts` + `IconToolbar.ts`) — ver `docs/GAME_DESIGN.md` →
+"Pantalla dividida". `SuspectBoardScene`/`CrimeComputerScene`/
+`CaseFileScene`/`EndingScene` no forman parte de ese frame, mantienen su
+propio layout centrado de siempre.
 
 `CaseSelectScene`/`CaseIntroScene` (selección manual de misión) fueron
 eliminadas a propósito: el jugador nunca elige qué caso investigar, ver
