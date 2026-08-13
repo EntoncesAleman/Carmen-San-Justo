@@ -8,4 +8,11 @@
 // Narrativamente: no siempre el mismo tipo hace el mismo trabajo para "Los
 // Administradores" — un operativo puede terminar mandado a cualquier
 // laburo, no solo al que ya conocés de un caso fijo.
-export const OPERATIVE_NPC_IDS: readonly string[] = ['el_ingeniero_contreras', 'chiche_molina', 'bocha_ferreyra'];
+export const OPERATIVE_NPC_IDS: readonly string[] = [
+    'el_ingeniero_contreras',
+    'chiche_molina',
+    'bocha_ferreyra',
+    'colorada_benitez',
+    'media_lengua_vidal',
+    'tuerto_ibarra',
+];

@@ -310,6 +310,62 @@ casos".
       operativo y la excusa correctos → rango actualizado → "Siguiente
       caso" genera OTRO caso distinto, sin repetirse.
 
+## FASE 16 — Más operativos + arreglo del sistema de exploración
+
+Pedido explícito del usuario: "sumar más identidades, y el sistema que usa
+el policía para recolectar pruebas ¿funciona bien?". Lo segundo llevó a
+auditar el flujo completo de recolección de evidencia, no solo el basado
+en diálogo (que ya estaba bien probado) — y encontró una función a medio
+terminar.
+
+- [x] Pool de operativos ampliado de 3 a 6
+      (`data/generator/operatives.ts`): "La Colorada" Benítez (peluquera),
+      "Media Lengua" Vidal (locutor trucho), "El Tuerto" Ibarra (chapista).
+      Cada uno con NPC, retrato generado (Pollinations, mismo pipeline) y
+      perfil de identikit diseñado con el mismo cuidado que los anteriores
+      — cada atributo nuevo introducido (las 3 profesiones) tiene un
+      señuelo propio que lo comparte, verificado por el fuzzing de 300
+      casos de `CaseGenerator.test.ts`.
+- [x] **Hallazgo real, auditando el sistema de recolección de pruebas**:
+      el botón "Explorar" de `LocationScene` (presente en TODAS las
+      locaciones) nunca tuvo efecto mecánico — solo disparaba flavor text
+      al azar (`EventSystem`/`randomEvents.ts`, explícitamente documentado
+      como "sin efecto mecánico"). El campo `Location.exploreClueId`
+      existía en el tipo desde el arranque del proyecto pero **nunca se
+      implementó ni se usó en ningún caso**: cero de las 27 pistas
+      originales de los 3 casos fijos pasaban por ahí. Además la capa era
+      la equivocada — `Location` es un dato de MUNDO (compartido entre
+      casos), pero qué se puede encontrar explorando es inherentemente
+      específico de CADA CASO, así que ese campo nunca hubiera podido
+      funcionar bien tal como estaba diseñado.
+- [x] Reemplazado por un mecanismo real: `Clue.npcId` ya era opcional —
+      una pista SIN `npcId` significa "se encuentra explorando, no
+      hablando con nadie". Nuevo `systems/ExploreSystem.ts` (función pura,
+      testeada) busca si hay una de esas pistas, todavía no recolectada,
+      en la zona actual del caso activo. `LocationScene.explore()` ahora
+      la prioriza sobre el evento aleatorio decorativo. Campo
+      `Location.exploreClueId` eliminado del tipo (dato muerto, capa
+      equivocada).
+- [x] Agregada una pista explorable real a cada uno de los 3 casos fijos
+      (en la escena del hecho, reforzando un atributo ya revelado por
+      testimonio — no uno nuevo) y al generador (una pista física en la
+      zona inicial de cada caso generado, mismo criterio).
+- [x] **Segundo hallazgo, mientras se auditaba**: ninguna pista de ningún
+      caso (fijo o generado) validaba que su `ubicacionZoneId` fuera una
+      zona real, ni que su `npcId` (cuando lo tiene) fuera un NPC real —
+      un typo en cualquiera de los dos hubiera quedado silenciosamente sin
+      detectar (una pista "perdida" en una zona que no existe, por
+      ejemplo). Agregado a `DataIntegrity.test.ts` y a
+      `tests/helpers/caseInvariants.ts` (por lo tanto también al fuzzing
+      del generador).
+- [x] Tests nuevos: `src/tests/ExploreSystem.test.ts` (5 casos, incluida
+      una pista falsa sin `npcId` construida a mano para confirmar que
+      `ExploreSystem` la ignora igual). Total: 164 tests.
+- [x] Verificado en navegador (Playwright, `tools/e2e_explore_test.py`):
+      explorar el kiosco de Terminal Sur en el Caso 1 otorga la pista
+      nueva (el contador de "Pistas X/Y" del HUD sube), explorar una
+      segunda vez no la repite y cae de nuevo al evento decorativo.
+
 ## Deuda de contenido conocida (no bloqueante)
 
 - `DialogueEngine.buildFallbackTree` sigue existiendo (y sigue siendo
@@ -328,13 +384,13 @@ casos".
   otros tres solo se verificaron por test + debug mode, no jugando la
   secuencia completa de decisiones que los produce en una partida real —
   sería la única brecha real que queda en el caso 1.
-- El generador de casos (FASE 15) solo tiene 3 identidades confrontables
-  en el pool de operativos (`data/generator/operatives.ts`) — con
-  suficientes partidas, el mismo caco puede repetirse en casos generados
-  consecutivos. Crecer ese pool (nuevos NPCs + perfiles de identikit,
-  cuidando que ningún atributo quede único en la base — ver el test
-  genérico de `CrimeComputerSystem.test.ts`) es la mejora más directa a
-  la variedad de ahí en más.
+- El generador de casos (FASE 15/16) tiene 6 identidades confrontables en
+  el pool de operativos (`data/generator/operatives.ts`, ampliado de 3 a 6
+  en FASE 16) — con suficientes partidas, el mismo caco puede seguir
+  repitiéndose eventualmente, solo que con menos frecuencia. Seguir
+  creciendo ese pool (mismo cuidado de siempre: ningún atributo nuevo debe
+  quedar único en la base sin un señuelo que lo comparta) sigue siendo la
+  mejora más directa a la variedad de ahí en más.
 - Los casos generados no tienen retrato de "operativo enviado a este
   trabajo en particular" más allá del retrato fijo del operativo — es
   decir, siguen viéndose bien (reutilizan arte real), pero el fondo de la

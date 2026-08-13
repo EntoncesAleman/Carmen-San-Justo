@@ -83,6 +83,19 @@ function checkCaseIntegrity(caso: CaseDefinition) {
         caso.destinosFalsosZoneIds.forEach((id) => assert.ok(zoneIds.has(id)));
     });
 
+    it('toda pista referencia una zona válida (ubicacionZoneId)', () => {
+        caso.clues.forEach((c) => assert.ok(zoneIds.has(c.ubicacionZoneId), `${c.id} referencia una zona inexistente ${c.ubicacionZoneId}`));
+    });
+
+    it('toda pista con npcId referencia un NPC que existe', () => {
+        // clue.npcId es metadata (documenta quién la cuenta) — ningún
+        // system la lee para decidir nada, así que un typo acá no rompe
+        // nada visible en el juego. Igual no debería pasar silenciosamente.
+        caso.clues
+            .filter((c) => c.npcId)
+            .forEach((c) => assert.ok(npcIds.has(c.npcId!), `${c.id} referencia un NPC inexistente ${c.npcId}`));
+    });
+
     it('cluesRequeridasParaResolver referencian pistas que existen', () => {
         caso.cluesRequeridasParaResolver.forEach((id) => {
             assert.ok(clueIds.has(id), `pista requerida inexistente: ${id}`);

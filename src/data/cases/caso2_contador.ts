@@ -5,6 +5,17 @@ import { briefingDialogue, confrontacionDialogue, dialogueTrees, falsoSospechoso
 // intermedia, Molina buscó ayuda técnica) → La Cervecera (parada final).
 const clues: Clue[] = [
     {
+        id: 'clue_calculadora_explorar',
+        descripcion: 'Revisando debajo de la mesa de Lo de Pipo encontrás una calculadora de bolsillo olvidada, con las teclas de sumar gastadas.',
+        ubicacionZoneId: 'parque_obrero',
+        categoria: 'visual',
+        relevancia: 'baja',
+        confiabilidad: 65,
+        destinosPosibles: [],
+        esFalsa: false,
+        revealsAttribute: { key: 'profesion', value: 'Contador' },
+    },
+    {
         id: 'clue_pipo_faltante',
         descripcion: 'Molina estuvo nervioso en Lo de Pipo, dijo que necesitaba "que alguien le mire una notebook" antes de decidir qué hacer con los libros.',
         ubicacionZoneId: 'parque_obrero',

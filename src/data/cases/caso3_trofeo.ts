@@ -7,6 +7,17 @@ import { briefingDialogue, confrontacionDialogue, dialogueTrees, falsoSospechoso
 // la pista falsa de Manteca — un desvío, no una parada real.
 const clues: Clue[] = [
     {
+        id: 'clue_pelo_vitrina_explorar',
+        descripcion: 'Revisando la vitrina rota del club encontrás un pelo rubio enganchado en una esquirla de vidrio.',
+        ubicacionZoneId: 'feria_usados',
+        categoria: 'visual',
+        relevancia: 'baja',
+        confiabilidad: 60,
+        destinosPosibles: [],
+        esFalsa: false,
+        revealsAttribute: { key: 'cabello', value: 'Rubio' },
+    },
+    {
         id: 'clue_colectivo_21',
         descripcion: 'Toto vio al ladrón salir corriendo del club con un bulto envuelto en arpillera y subirse a un colectivo de la línea 21.',
         ubicacionZoneId: 'feria_usados',

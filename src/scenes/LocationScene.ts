@@ -7,6 +7,8 @@ import { getNpc } from '../data/npcs';
 import { createButton } from '../ui/Button';
 import { CaseManager } from '../systems/CaseManager';
 import { EventSystem } from '../systems/EventSystem';
+import { ExploreSystem } from '../systems/ExploreSystem';
+import { ClueManager } from '../systems/ClueManager';
 import { audioManager } from '../audio/AudioManager';
 import { getBackgroundKey } from '../data/portraits';
 import { getAmbientForZone } from '../data/ambient';
@@ -155,6 +157,14 @@ export class LocationScene extends Phaser.Scene {
         const expired = CaseManager.advanceTimeAndCheckDeadline(TIME_COSTS.EXPLORAR_MINUTOS);
         if (expired) {
             this.scene.start(SCENE_KEYS.ENDING);
+            return;
+        }
+
+        const def = CaseManager.getCurrentCase();
+        const clue = def ? ExploreSystem.findExploreClue(def, gameState.currentZoneId) : null;
+        if (clue) {
+            ClueManager.addClue(clue);
+            this.showOverlay(`Revisás el lugar con más atención.\n\n${clue.descripcion}`);
             return;
         }
 

@@ -53,6 +53,15 @@ CHARACTERS = [
      "always chewing something", 121),
     ("npc_turco_almada_portrait", 44,
      "street vendor with a folding table of counterfeit watches and sunglasses, confused innocent expression", 132),
+    ("npc_colorada_benitez_portrait", 42,
+     "neighborhood hairdresser with bright dyed red curly hair, stained work coat, confident gossiping smile, "
+     "hair scissors in one hand", 143),
+    ("npc_media_lengua_vidal_portrait", 37,
+     "small-time bootleg radio announcer, headphones around neck, cheap flashy jacket, "
+     "exaggerated showman grin, holding a microphone", 154),
+    ("npc_tuerto_ibarra_portrait", 51,
+     "auto body shop mechanic with an eyepatch, grease-stained overalls, welding goggles pushed up on forehead, "
+     "stern unreadable expression", 165),
 ]
 
 BACKGROUNDS = [

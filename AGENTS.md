@@ -43,8 +43,9 @@ src/
 │                 clues.ts, cases.ts, gang.ts, endings.ts — NUNCA hardcodear
 │                 contenido narrativo dentro de una escena o sistema.
 ├── systems/      Lógica de gameplay sin estado visual: CaseManager,
-│                 ClueManager, DialogueEngine, RouteSystem (ruta del caco,
-│                 varias paradas), CrimeComputerSystem (identikit),
+│                 ClueManager, ExploreSystem (pruebas encontrables sin
+│                 hablar con nadie), DialogueEngine, RouteSystem (ruta del
+│                 caco, varias paradas), CrimeComputerSystem (identikit),
 │                 CaseGenerator (casos procedurales, ver data/generator/),
 │                 ReputationSystem, EventSystem (eventos aleatorios)
 ├── scenes/       Pantallas Phaser (Boot, Preloader, MainMenu, CityMap,

@@ -13,8 +13,6 @@ export interface Location {
     nombre: string;
     descripcion: string;
     npcIds: string[];
-    // Pista que se puede encontrar explorando este lugar sin hablar con nadie
-    exploreClueId?: string;
 }
 
 export type ClueCategoria =

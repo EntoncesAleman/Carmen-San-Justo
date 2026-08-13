@@ -23,6 +23,11 @@ export function assertCaseIntegrity(caso: CaseDefinition, zoneIds: Set<string>, 
     assert.equal(caso.ruta[caso.ruta.length - 1], caso.destinoCorrectoZoneId, `${caso.id}: la ruta debería terminar en destinoCorrectoZoneId`);
     assert.equal(new Set(caso.ruta).size, caso.ruta.length, `${caso.id}: la ruta repite alguna zona`);
 
+    caso.clues.forEach((c) => assert.ok(zoneIds.has(c.ubicacionZoneId), `${caso.id}: ${c.id} referencia una zona inexistente ${c.ubicacionZoneId}`));
+    caso.clues
+        .filter((c) => c.npcId)
+        .forEach((c) => assert.ok(npcIds.has(c.npcId!), `${caso.id}: ${c.id} referencia un NPC inexistente ${c.npcId}`));
+
     caso.cluesRequeridasParaResolver.forEach((id) => assert.ok(clueIds.has(id), `${caso.id}: pista requerida inexistente ${id}`));
 
     assert.ok(npcIds.has(caso.sospechosoId), `${caso.id}: sospechosoId inexistente (${caso.sospechosoId})`);

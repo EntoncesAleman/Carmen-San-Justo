@@ -65,6 +65,13 @@ sospechoso (ver Sistema de Inteligencia Criminal más abajo). Las pistas
 falsas nunca revelan atributos (corromperían el identikit sin dar ninguna
 pista de que algo anda mal).
 
+Dos formas de conseguir una pista, ambas reales (ninguna es decorativa):
+hablándole a un NPC (`npcId` presente, vía diálogo) o **explorando** el
+lugar sin hablar con nadie (`npcId` ausente — `systems/ExploreSystem.ts`
+encuentra la primera pista sin recolectar de la zona actual cuando se
+aprieta "Explorar" en `LocationScene`, antes de caer al evento decorativo
+de siempre).
+
 ### Persecución por ruta (RouteSystem)
 
 El caco (criminal) no salta directo a un destino final: se mueve por una
@@ -145,11 +152,11 @@ tener "casos" escritos de punta a punta. `CaseGenerator`
 `CaseDefinition` nuevo combinando, al azar, piezas que ya existen en el
 mundo:
 
-- **Operativo** (el caco): uno al azar de `data/generator/operatives.ts` —
-  reutiliza identidades ya jugables (con retrato, atributos fijos de
-  identikit y escena de confrontación) en vez de inventar personajes sin
-  cara. Narrativamente: no siempre manda "Los Administradores" al mismo
-  tipo al mismo trabajo.
+- **Operativo** (el caco): uno al azar de `data/generator/operatives.ts`
+  (6 identidades) — reutiliza identidades ya jugables (con retrato,
+  atributos fijos de identikit y escena de confrontación) en vez de
+  inventar personajes sin cara. Narrativamente: no siempre manda "Los
+  Administradores" al mismo tipo al mismo trabajo.
 - **Ruta**: un camino al azar por el mapa de 21 zonas. Las paradas
   intermedias (todas menos la última) se eligen solo entre zonas que
   tienen al menos un informante viviendo ahí — si no, nadie podría darte

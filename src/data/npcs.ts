@@ -187,6 +187,30 @@ export const NPCS: NPC[] = [
         zoneId: 'la_feria', infoQueConoce: 'Nada del caso; conoce todos los precios de la feria de memoria.', infoQueOculta: 'Nada.',
         puedeMentir: false,
     },
+    // Operativos nuevos, solo para el generador de casos procedural (ver
+    // data/generator/operatives.ts) — no tienen un caso fijo propio, la
+    // confrontación se arma genérica en CaseGenerator.
+    {
+        id: 'colorada_benitez', nombre: 'Benítez', apodo: '"La Colorada" Benítez', edadAproximada: 42,
+        personalidad: 'Peluquera de barrio, sabe todo de todos y no puede evitar contarlo.', apariencia: 'Guardapolvo con manchas de tintura, rulos imposibles.',
+        vozConceptual: 'Habla en confianza aunque acabe de conocerte.', relacionProtagonista: 'Ninguna previa; operativo ocasional de Los Administradores.',
+        zoneId: 'villa_flor', infoQueConoce: 'Depende del caso.', infoQueOculta: 'Depende del caso.',
+        puedeMentir: true,
+    },
+    {
+        id: 'media_lengua_vidal', nombre: 'Vidal', apodo: '"Media Lengua" Vidal', edadAproximada: 37,
+        personalidad: 'Locutor de radio de barrio, trucho, habla como si lo escuchara mucha gente.', apariencia: 'Auriculares colgando del cuello siempre, aunque no haya micrófono cerca.',
+        vozConceptual: 'Todo lo dice como si fuera una promo radial.', relacionProtagonista: 'Ninguna previa; operativo ocasional de Los Administradores.',
+        zoneId: 'terminal_norte', infoQueConoce: 'Depende del caso.', infoQueOculta: 'Depende del caso.',
+        puedeMentir: true,
+    },
+    {
+        id: 'tuerto_ibarra', nombre: 'Ibarra', apodo: '"El Tuerto" Ibarra', edadAproximada: 51,
+        personalidad: 'Chapista de confianza de medio barrio, parche en un ojo, nadie sabe bien por qué.', apariencia: 'Overol manchado de pintura, olor a soldadura permanente.',
+        vozConceptual: 'Corto, directo, no repite las cosas dos veces.', relacionProtagonista: 'Ninguna previa; operativo ocasional de Los Administradores.',
+        zoneId: 'puente_sur', infoQueConoce: 'Depende del caso.', infoQueOculta: 'Depende del caso.',
+        puedeMentir: true,
+    },
 ];
 
 export function getNpc(id: string): NPC | undefined {

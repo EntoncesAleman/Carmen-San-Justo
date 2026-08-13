@@ -119,6 +119,87 @@ export const SUSPECTS: SuspectProfile[] = [
             comida: 'Milanesas',
         },
     },
+    // Operativos nuevos para que el pool de "posibles cacos" del generador
+    // de casos (ver data/generator/operatives.ts) no repita siempre a los
+    // mismos 3. Cada atributo elegido reutiliza un valor que ya comparte
+    // otro sospechoso de la base — nunca uno nuevo sin señuelo — para no
+    // reintroducir la falla de "una sola pista resuelve todo" (ver
+    // CrimeComputerSystem.test.ts).
+    {
+        id: 'colorada_benitez',
+        nombreClave: '"La Colorada" Benítez',
+        atributos: {
+            cabello: 'Rubio',
+            ojos: 'Verdes',
+            vehiculo: 'Bicicleta',
+            profesion: 'Peluquera',
+            hobby: 'Fileteado porteño',
+            comida: 'Bondiola',
+        },
+    },
+    {
+        id: 'media_lengua_vidal',
+        nombreClave: '"Media Lengua" Vidal',
+        atributos: {
+            cabello: 'Pelado',
+            ojos: 'Marrones',
+            vehiculo: 'Ford Falcon',
+            profesion: 'Locutor',
+            hobby: 'Palomas',
+            comida: 'Empanadas',
+        },
+    },
+    {
+        id: 'tuerto_ibarra',
+        nombreClave: '"El Tuerto" Ibarra',
+        atributos: {
+            cabello: 'Canoso',
+            ojos: 'Azules',
+            vehiculo: 'Renault 12',
+            profesion: 'Chapista',
+            hobby: 'Truco',
+            comida: 'Milanesas',
+        },
+    },
+    // Señuelos de los 3 operativos nuevos: comparten SOLO la profesión
+    // (el único valor nuevo que introduce cada uno), el resto son valores
+    // ya compartidos en la base a propósito.
+    {
+        id: 'senuelo_peluquero',
+        nombreClave: '"Rulos" Andrada',
+        atributos: {
+            cabello: 'Negro',
+            ojos: 'Marrones',
+            vehiculo: 'Peugeot 504',
+            profesion: 'Peluquera',
+            hobby: 'Numerología',
+            comida: 'Empanadas',
+        },
+    },
+    {
+        id: 'senuelo_locutor',
+        nombreClave: '"Micrófono" Salcedo',
+        atributos: {
+            cabello: 'Rubio',
+            ojos: 'Verdes',
+            vehiculo: 'Fiat Duna',
+            profesion: 'Locutor',
+            hobby: 'Truco',
+            comida: 'Medialunas',
+        },
+    },
+    {
+        id: 'senuelo_chapista',
+        nombreClave: '"Fierrero" Domato',
+        atributos: {
+            cabello: 'Pelado',
+            ojos: 'Azules',
+            vehiculo: 'Combi Volkswagen',
+            profesion: 'Chapista',
+            hobby: 'Pesca',
+            comida: 'Bondiola',
+        },
+    },
 ];
 
 export function getSuspect(id: string): SuspectProfile | undefined {

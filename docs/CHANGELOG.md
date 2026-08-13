@@ -2,6 +2,44 @@
 
 Formato: fecha, qué se hizo, por qué. Más reciente arriba.
 
+## 2026-08-12 (continuación — FASE 16, más operativos + arreglo del sistema de exploración)
+
+Dos pedidos en un mismo mensaje: sumar más identidades al generador, y una
+pregunta directa sobre si el sistema de recolección de pruebas funciona
+bien. Lo segundo llevó a una auditoría real, no una respuesta de memoria.
+
+- Pool de operativos del generador ampliado de 3 a 6: "La Colorada"
+  Benítez, "Media Lengua" Vidal, "El Tuerto" Ibarra — cada uno con NPC,
+  retrato generado y perfil de identikit diseñado con el mismo cuidado que
+  los anteriores (ningún atributo nuevo queda único en la base sin un
+  señuelo que lo comparta). Confirmado con el fuzzing de 300 casos.
+- **Hallazgo real auditando la recolección de pruebas**: el botón
+  "Explorar", presente en todas las locaciones, nunca tuvo efecto
+  mecánico — solo mostraba flavor text al azar. El campo
+  `Location.exploreClueId` existía en el tipo desde el arranque del
+  proyecto pero jamás se implementó ni se usó: cero de las 27 pistas
+  originales pasaban por ahí, y la capa era la equivocada (`Location` es
+  dato de mundo compartido entre casos; qué se encuentra explorando es
+  específico de cada caso).
+- Reemplazado por un mecanismo real: una pista sin `npcId` (el campo ya
+  era opcional) significa "se encuentra explorando". Nuevo
+  `systems/ExploreSystem.ts`, cableado en `LocationScene.explore()` con
+  prioridad sobre el evento decorativo. Campo `exploreClueId` eliminado
+  (dato muerto). Agregada una pista real explorable a cada uno de los 3
+  casos fijos y al generador de casos.
+- **Segundo hallazgo**: ninguna pista de ningún caso validaba que su
+  `ubicacionZoneId` fuera una zona real ni que su `npcId` (si lo tiene)
+  fuera un NPC real — un typo hubiera dejado una pista inalcanzable sin
+  que ningún test lo detectara. Agregado a `DataIntegrity.test.ts` y a
+  `tests/helpers/caseInvariants.ts` (por lo tanto también al fuzzing).
+- 14 tests nuevos (`ExploreSystem.test.ts` + las validaciones de zona/NPC
+  agregadas a los existentes). Total: 164 tests. Verificado en navegador
+  (`tools/e2e_explore_test.py`): explorar otorga la pista una vez, no se
+  repite, después cae al evento decorativo de siempre. `npm run
+  typecheck`, `npm test` (164/164) y `npm run build` limpios; regresión
+  completa de los 3 casos fijos y el generador sin cambios de
+  comportamiento.
+
 ## 2026-08-12 (continuación — FASE 15, generador de casos procedural)
 
 Pedido explícito: "no te puede aburrir en la tercera partida" — con 3

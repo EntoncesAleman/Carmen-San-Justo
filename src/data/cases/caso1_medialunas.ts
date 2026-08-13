@@ -7,6 +7,17 @@ import { briefingDialogue, confrontacionDialogue, dialogueTrees, falsoSospechoso
 // pista falsa de Naza — un desvío, no una parada real.
 const clues: Clue[] = [
     {
+        id: 'clue_bolsa_medialunas_explorar',
+        descripcion: 'Revisando la vereda del kiosco encontrás una bolsa vacía de medialunas, todavía tibia por el sol de la mañana.',
+        ubicacionZoneId: 'terminal_sur',
+        categoria: 'visual',
+        relevancia: 'baja',
+        confiabilidad: 70,
+        destinosPosibles: [],
+        esFalsa: false,
+        revealsAttribute: { key: 'comida', value: 'Medialunas' },
+    },
+    {
         id: 'clue_kiosco_medialunas',
         descripcion: 'Contreras compró tres docenas de medialunas la noche del operativo y se subió a un remise de "Central Cacho", con base en El Oeste Profundo.',
         ubicacionZoneId: 'terminal_sur',

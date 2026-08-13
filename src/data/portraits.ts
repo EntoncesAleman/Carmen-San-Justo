@@ -17,6 +17,9 @@ export const NPC_PORTRAITS: Record<string, string> = {
     toto_ferradas: 'npc_toto_ferradas_portrait',
     bocha_ferreyra: 'npc_bocha_ferreyra_portrait',
     turco_almada: 'npc_turco_almada_portrait',
+    colorada_benitez: 'npc_colorada_benitez_portrait',
+    media_lengua_vidal: 'npc_media_lengua_vidal_portrait',
+    tuerto_ibarra: 'npc_tuerto_ibarra_portrait',
 };
 
 export const LOCATION_BACKGROUNDS: Record<string, string> = {

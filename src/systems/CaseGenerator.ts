@@ -123,6 +123,22 @@ export class CaseGenerator {
             addAssignment(informanteId, { clueId, kind: 'attribute', attributeKey: key, attributeValue: valor });
         });
 
+        // --- Una pista "física", encontrable explorando la escena del
+        // hecho sin hablar con nadie (ver ExploreSystem) — refuerza uno de
+        // los atributos ya revelados por testimonio, no agrega uno nuevo.
+        const atributoExplorar = pick(ATTRIBUTE_KEYS, rng);
+        clues.push({
+            id: `gen_${generationIndex}_explorar`,
+            descripcion: `Revisando la escena con más cuidado encontrás algo que se le cayó al que se escapó: ${perfil.atributos[atributoExplorar].toLowerCase()}.`,
+            ubicacionZoneId: ruta[0],
+            categoria: 'visual',
+            relevancia: 'baja',
+            confiabilidad: randomInt(50, 75, rng),
+            destinosPosibles: [],
+            esFalsa: false,
+            revealsAttribute: { key: atributoExplorar, value: perfil.atributos[atributoExplorar] },
+        });
+
         // --- Una pista falsa, a cargo de un informante todavía sin usar,
         // que apunta al destino falso y contradice la primera pista de
         // ruta real (mismo patrón que los 3 casos fijos).
