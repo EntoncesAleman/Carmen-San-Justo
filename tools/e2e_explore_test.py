@@ -1,15 +1,16 @@
 """Verifica que 'Explorar' en Terminal Sur (caso1) ahora otorga
 clue_bolsa_medialunas_explorar, en vez de solo texto random sin efecto.
 
-Coordenadas de CityMap/Location/Dialogue centralizadas en
-tools/frame_coords.py (pantalla dividida, ver src/ui/frameLayout.ts).
+Coordenadas centralizadas en tools/frame_coords.py (ver
+src/ui/frameLayout.ts / ui/ActionMenuPanel.ts — FASE 20, menú numerado
+único a la derecha).
 """
 
 import sys
 import os
 
 sys.path.insert(0, os.path.dirname(__file__))
-from frame_coords import toolbar_button, enter_current_location, dialogue_option, dialogue_skip_zone
+from frame_coords import action_menu_item, dialogue_option, dialogue_skip_zone
 
 from playwright.sync_api import sync_playwright
 
@@ -50,15 +51,18 @@ def run():
         click(*dialogue_option(1))  # rechazar sobre
         page.wait_for_timeout(700)
 
-        click(*enter_current_location())  # entrar a Terminal Sur sin viajar (gratis)
+        # CityMapScene(terminal_sur): item 0 = "Quedarme e investigar acá"
+        click(*action_menu_item(0))
         page.wait_for_timeout(500)
         page.screenshot(path="/tmp/explore_00_before.png")
-        click(*toolbar_button(0, 4))  # Explorar (1er ícono en LocationScene)
+
+        # LocationScene(terminal_sur): npcIds=[simon_achaval, beba_corvalan] -> Explorar es el ítem 2
+        click(*action_menu_item(2))
         page.wait_for_timeout(400)
         page.screenshot(path="/tmp/explore_01_result.png")
         click(512, 400)  # cerrar overlay
         page.wait_for_timeout(300)
-        click(*toolbar_button(0, 4))  # Explorar de nuevo -- no debería repetir la pista
+        click(*action_menu_item(2))  # Explorar de nuevo -- no debería repetir la pista
         page.wait_for_timeout(400)
         page.screenshot(path="/tmp/explore_02_second_click.png")
 

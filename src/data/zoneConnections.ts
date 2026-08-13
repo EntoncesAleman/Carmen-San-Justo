@@ -3,8 +3,9 @@
 // de "conexiones" del formato clásico de persecución (desde una ciudad
 // solo se listan las ciudades conectadas, no el mapa entero) — sin esto,
 // el mapa se sentía como "ir a cualquier lado sin límite real" aunque el
-// reloj/deadline ya existiera. Ver LocationScene/CityMapScene/
-// DialogueScene → `renderDestinationListPanel`.
+// reloj/deadline ya existiera. Ver CityMapScene/LocationScene → el menú
+// numerado de acciones (`ui/ActionMenuPanel.ts`) lista estas conexiones
+// como "Viajar a X".
 //
 // Simétrico a propósito (si A conecta con B, B conecta con A — como una
 // red de trenes/colectivos, no calles de un solo sentido). Verificado que

@@ -208,9 +208,10 @@ simétrico entre las 21 zonas (si A conecta con B, B conecta con A — como
 una red de trenes, no calles de un solo sentido), verificado conexo
 completo (cualquier zona es alcanzable desde cualquier otra) y compatible
 con las `ruta` de los 3 casos fijos (ver `src/tests/ZoneConnections.test.ts`).
-`ui/DestinationListPanel.ts` usa este grafo: el título del panel es la zona
-ACTUAL y la lista de abajo son solo sus conexiones directas — igual que la
-pantalla de "ver conexiones" clásica.
+El menú numerado de acciones (`ui/ActionMenuPanel.ts`, ver "Pantalla
+dividida" más abajo) usa este grafo: lista "Viajar a X" solo para las
+zonas conectadas a la actual — igual que la pantalla de "ver conexiones"
+clásica.
 
 Efecto en el gameplay: los informantes de atributo del identikit (elegidos
 al azar entre 19 NPCs, en cualquier zona) ya no están todos "a un click" —
@@ -220,11 +221,10 @@ del caso. Recorrer un caso de punta a punta jugando perfecto (sin errores,
 sin pistas falsas) ya no es gratis: hay una tensión real entre explorar
 todo y llegar a tiempo.
 
-Como el panel de destinos ya no lista la zona en la que estás parado (solo
-sus vecinas), `ui/LocationArtPanel.ts` ganó un `onEnter` opcional: en
-`CityMapScene`, clickear el arte de la zona actual entra directo a
-`LocationScene` sin viajar y sin costo de tiempo — reemplaza al viejo
-truco de "clickear tu propia zona en la lista".
+Como el menú de acciones no lista la zona en la que estás parado (solo
+sus vecinas), `CityMapScene` agrega "Quedarme e investigar acá" como
+primer ítem del menú, para entrar a `LocationScene` sin viajar y sin
+costo de tiempo.
 
 ### Deadline calibrado, no fijo
 
@@ -256,37 +256,41 @@ los 300 del fuzzing) — un caso imposible de ganar es, directamente, un bug.
 La estructura del loop (reporte automático, ruta, identikit) coincidía con
 el formato clásico de persecución desde la FASE 14, pero la PRESENTACIÓN
 visual seguía siendo genérica (paneles centrados, botones de texto). Pedido
-explícito: tiene que ser "igual, pero argentinizado" — no solo el
-mecanismo, también el layout de pantalla dividida reconocible al toque.
+explícito, dos veces: primero "igual, pero argentinizado" (FASE 17), y
+después, con referencias visuales concretas del juego original de 1985,
+"visualmente tiene que ser igual" (FASE 20) — el layout de FASE 17 tenía
+la idea correcta pero no calcaba la estructura real: gráfico+texto a la
+izquierda, un ÚNICO menú de acciones numerado a la derecha, no una lista
+de destinos separada de una barra de íconos separada de un panel de
+contenido.
 
-`CityMapScene`, `LocationScene` y `DialogueScene` comparten ahora un mismo
-frame (coordenadas centralizadas en `src/ui/frameLayout.ts`, para que
-navegar entre las tres se sienta como "la misma pantalla" cambiando de
-contenido, no tres pantallas distintas):
+`CityMapScene`, `LocationScene` y `DialogueScene` comparten un mismo frame
+(coordenadas centralizadas en `src/ui/frameLayout.ts`, para que navegar
+entre las tres se sienta como "la misma pantalla" cambiando de contenido,
+no tres pantallas distintas):
 
-- **Arriba a la izquierda**: lista de destinos (`ui/DestinationListPanel.ts`)
-  — SIEMPRE visible, sin importar en qué escena de las tres se esté. El
-  título es la zona ACTUAL y la lista son solo sus zonas CONECTADAS (ver
-  "Red de conexiones entre zonas" más abajo), no las 21 zonas del mundo. El
-  jugador puede viajar directamente desde ahí, no hace falta "volver al
-  mapa" primero.
-- **Abajo a la izquierda**: arte de la zona actual
-  (`ui/LocationArtPanel.ts`) — la misma "ventana al lugar" en las tres
-  escenas.
-- **Derecha**: contenido específico de cada escena — estado del caso
-  (CityMap), lista de gente con quién hablar (Location), o retrato +
-  globo de diálogo + opciones (Dialogue, calcado del formato clásico:
-  retrato a la izquierda del panel, texto a la derecha, nombre del NPC
-  debajo del retrato).
-- **Abajo**: barra de íconos fija (`ui/IconToolbar.ts`) — Explorar (solo
-  en Location) / Pizarrón / Expediente / Sistema de Inteligencia Criminal,
-  reemplaza los botones de texto sueltos que tenía cada escena por su
-  cuenta.
+- **Columna izquierda, arriba**: gráfico grande (`ui/LocationArtPanel.ts`
+  en CityMap/Location — arte de la zona actual; retrato de con quién
+  hablás en Dialogue, ver `DialogueScene.renderPortrait`). Mismo lugar,
+  mismo tamaño, sea cual sea el contenido.
+- **Columna izquierda, abajo**: panel de texto (`ui/DescriptionTextPanel.ts`
+  en CityMap/Location — descripción del caso o del lugar; globo de
+  diálogo en Dialogue). Calca el "gráfico arriba + texto de descripción y
+  pistas abajo" del formato clásico.
+- **Columna derecha**: UN SOLO menú vertical NUMERADO de acciones
+  (`ui/ActionMenuPanel.ts`) — viajar a una zona conectada, hablar con
+  alguien, explorar, pizarrón, expediente, inteligencia criminal, o las
+  opciones de una conversación (DialogueScene arma sus propias filas
+  numeradas con el mismo criterio visual). Reemplaza la lista de destinos
+  + barra de íconos + panel de contenido que antes vivían en tres lugares
+  separados — calca el "1. Depart / 2. Show Connections / 3. Investigate /
+  4. Visit Interpol" del formato clásico, con las acciones propias del
+  juego en vez de esas cuatro fijas.
 
 `SuspectBoardScene`, `CrimeComputerScene`, `CaseFileScene` y `EndingScene`
 NO forman parte de este frame a propósito — son "pantallas de computadora"
-aparte (con su propia estética terminal, ver FASE 14), accesibles desde la
-barra de íconos pero visualmente distintas, igual que en el juego clásico
+aparte (con su propia estética terminal, ver FASE 14), accesibles desde el
+menú de acciones pero visualmente distintas, igual que en el juego clásico
 el identikit y el mapa de rutas se ven claramente como interfaces
 distintas de la pantalla principal de investigación.
 

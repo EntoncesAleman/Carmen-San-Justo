@@ -2,6 +2,48 @@
 
 Formato: fecha, qué se hizo, por qué. Más reciente arriba.
 
+## 2026-08-13 (continuación — FASE 20: layout calcado del formato clásico de 1985 + arreglo de exploit de investigación)
+
+Pedido enfático del usuario, con una descripción muy detallada del
+gameplay/interfaz del "Where in the World Is Carmen Sandiego?" original de
+1985 (DOS/Apple II/C64): el parecido visual tenía que ser mucho más fuerte
+todavía. El layout de FASE 17/19 tenía la idea correcta (columna de arte +
+columna de contenido) pero no calcaba la ESTRUCTURA real: el original usa
+gráfico+texto a la izquierda y un ÚNICO menú de acciones NUMERADO a la
+derecha ("1. Depart / 2. Show Connections / 3. Investigate / 4. Visit
+Interpol"), no una lista de destinos separada de una barra de íconos
+separada de un panel de contenido.
+
+- Frame rediseñado (`ui/frameLayout.ts`): columna izquierda = arte grande
+  arriba + panel de texto abajo (SIEMPRE en el mismo lugar, sea zona,
+  lugar o retrato de con quién hablás). Columna derecha = un solo menú
+  vertical numerado (`ui/ActionMenuPanel.ts`, nuevo) que reemplaza
+  `DestinationListPanel.ts` + `IconToolbar.ts` (eliminados, dead code) —
+  viajar, hablar, explorar, pizarrón, expediente, inteligencia criminal,
+  todo en la misma lista numerada. `DialogueScene` arma sus propias filas
+  numeradas con el mismo criterio visual para las opciones de diálogo.
+  `ui/DescriptionTextPanel.ts` (nuevo) es el panel de texto compartido.
+- **Bug real de coordenadas encontrado en el proceso, dos veces**: primero
+  asumí una altura de fila fija (34px) para el menú de acciones sin
+  medirla — el alto real es ~26px (texto plano, sin fondo por ítem), así
+  que por acumulación el click al ítem 7 terminaba cayendo sobre el ítem 9
+  en escenas con muchos ítems (saltaba directo al Sistema de Inteligencia
+  Criminal en vez de al Pizarrón). Las opciones de diálogo, en cambio, SÍ
+  tienen fondo+borde por ítem (`DialogueScene.renderOptionRow`) y su alto
+  real es ~41px, no 26 — dos componentes visualmente parecidos, alturas de
+  fila distintas. Corregido midiendo a mano contra capturas reales (escaneo
+  de píxeles fila por fila) en vez de asumir — mismo patrón de bug que ya
+  había pasado con `DestinationListPanel` en FASE 18, esta vez en dos
+  componentes en vez de uno.
+- **Segundo bug real, en el Pizarrón**: el fix del exploit de fuerza bruta
+  (ver abajo) redujo las opciones mostradas de "las 21 zonas del mundo" a
+  "solo las que señala una pista ya conseguida" — pero los scripts de
+  regresión todavía asumían la grilla vieja de 21 zonas para calcular en
+  qué fila/columna caía cada zona, así que clickeaban posiciones vacías.
+  Los 4 scripts de `tools/e2e_*.py` reescritos y verificados de punta a
+  punta (no solo "sin errores de consola" — revisando capturas reales del
+  estado del juego en cada paso, la lección de FASE 17 repetida).
+
 ## 2026-08-13 (continuación — FASE 19: identidad visual retro real + AMBA real)
 
 Pedido explícito y enfático del usuario: el parecido visual con el género

@@ -457,6 +457,71 @@ formato clásico, no había una razón real para planificar el recorrido.
       3 casos fijos y un caso generado, incluyendo el recorrido multi-salto
       completo hasta la captura y el final.
 
+## FASE 19 — Identidad visual retro real + AMBA real
+
+Pedido explícito y enfático: el parecido visual con el género de aventura
+de investigación retro tenía que ser fuerte de verdad, sin copiar diseño
+de personajes/logos/texto de ninguna obra existente.
+
+- [x] Tipografía real: `@fontsource/vt323` (self-hosted, OFL) reemplaza
+      `monospace` genérico y `Georgia, serif` en TODA la interfaz.
+      `Preloader` espera `document.fonts.ready` antes de mostrar el menú.
+- [x] Paleta casi negra (`#050505`/`#0a0a0a`) con bordes ámbar — "monitor
+      de fósforo de terminal policial", no panel plano de UI moderna.
+- [x] Arte regenerado como pixel art de verdad: el modelo de Pollinations
+      ignora "pixel art" como palabra de estilo (probado), así que el
+      look se fuerza DESPUÉS, algorítmicamente (`pixelate()` en
+      `tools/generate_art.py`: downscale + cuantización de paleta +
+      reescalado `NEAREST`). Los 16 retratos y 4 fondos existentes
+      regenerados con este pipeline.
+- [x] Lugares del AMBA reales (San Telmo, Palermo, Constitución, Liniers,
+      Tigre...) en vez de nombres ficcionalizados — `Zone.nombre` ahora ES
+      el barrio/partido real, `id` interno no cambia.
+- [x] **Bug real de gameplay encontrado por el usuario jugando**: el
+      Pizarrón dejaba arriesgar una hipótesis sobre cualquiera de las 21
+      zonas del mundo, gratis y sin límite, y teletransportaba gratis al
+      elegir una — se podía reconstruir la ruta entera a fuerza bruta sin
+      haber juntado una sola pista real. Ahora una zona solo es opción
+      válida si algún clue YA CONSEGUIDO la señala como destino posible
+      (`Clue.destinosPosibles`), y arriesgar una hipótesis cuesta tiempo
+      real como cualquier viaje. Invariante nueva y permanente: todo caso
+      (fijo o generado) tiene, para cada salto de ruta, al menos un clue
+      real que lo respalda.
+
+## FASE 20 — Layout calcado del formato clásico de 1985 + arreglo de exploit de investigación
+
+El usuario pidió, con una descripción muy detallada del gameplay/interfaz
+real del juego original de 1985, un parecido visual todavía más fuerte.
+El layout de FASE 17/19 tenía la idea correcta pero no calcaba la
+estructura real: gráfico+texto a la izquierda, un ÚNICO menú de acciones
+NUMERADO a la derecha — no una lista de destinos + barra de íconos +
+panel de contenido en tres lugares separados.
+
+- [x] Frame rediseñado (`ui/frameLayout.ts`): columna izquierda = arte
+      grande arriba + panel de texto abajo (mismo lugar sea zona, lugar o
+      retrato de con quién hablás). Columna derecha = un solo menú
+      vertical numerado (`ui/ActionMenuPanel.ts`, nuevo), reemplaza
+      `DestinationListPanel.ts` + `IconToolbar.ts` (eliminados).
+      `ui/DescriptionTextPanel.ts` (nuevo) es el panel de texto
+      compartido. `DialogueScene` arma sus propias filas numeradas con el
+      mismo criterio visual.
+- [x] **Bug real de coordenadas, dos veces**: alto de fila del menú de
+      acciones asumido sin medir (34px) vs. real (~26px, texto plano sin
+      fondo por ítem) — por acumulación, clicks a ítems altos (ej. índice
+      7) caían sobre el ítem equivocado. Las opciones de diálogo tienen
+      fondo+borde por ítem y su alto real es otro (~41px) — dos
+      componentes parecidos, alturas distintas. Corregido midiendo a mano
+      contra capturas reales en vez de asumir (mismo patrón de bug que
+      FASE 18, esta vez en dos componentes).
+- [x] **Segundo bug real**: el fix del exploit de FASE 19 redujo las
+      opciones del Pizarrón de "21 zonas" a "solo las que señala una
+      pista conseguida" — los scripts de regresión seguían asumiendo la
+      grilla vieja de 21 zonas para calcular fila/columna, clickeando
+      posiciones vacías.
+- [x] Los 4 scripts de `tools/e2e_*.py` reescritos y verificados de punta
+      a punta revisando capturas del estado real del juego en cada paso,
+      no solo "sin errores de consola".
+
 ## Deuda de contenido conocida (no bloqueante)
 
 - `DialogueEngine.buildFallbackTree` sigue existiendo (y sigue siendo

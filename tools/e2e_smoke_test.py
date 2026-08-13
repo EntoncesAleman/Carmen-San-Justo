@@ -18,50 +18,34 @@ Uso:
 IMPORTANTE — cosas que ya rompieron este script antes y por qué:
   1. El diálogo usa texto progresivo (TypewriterText): los botones de
      opciones NO existen en el DOM/canvas hasta que el tipeo termina. Hay
-     que hacer click en la zona del globo de diálogo (skip zone) antes de
-     clickear una opción, o esperar lo suficiente. Este script siempre
-     hace skip primero.
-  2. Desde la pasada de "pantalla dividida" (FASE 17), CityMapScene,
-     LocationScene y DialogueScene comparten un mismo frame (lista de
-     destinos + arte arriba/abajo a la izquierda, panel derecho, barra de
-     íconos abajo — ver src/ui/frameLayout.ts). Las coordenadas de esas
-     tres escenas viven centralizadas en tools/frame_coords.py — actualizar
-     ESE archivo si el layout vuelve a cambiar, no cada script suelto.
-     SuspectBoardScene/CrimeComputerScene/CaseFileScene/EndingScene NO
-     forman parte de ese frame (son "pantallas de computadora" aparte,
-     con su propio layout centrado de siempre) y sus coordenadas siguen
-     hardcodeadas acá mismo.
-  3. El overlay de DebugScene NO bloquea los clicks hacia la escena de
+     que hacer click en la zona de texto (skip zone) antes de clickear una
+     opción, o esperar lo suficiente. Este script siempre hace skip primero.
+  2. Desde FASE 20 (menú numerado), CityMapScene, LocationScene y
+     DialogueScene comparten un mismo frame: columna izquierda = arte
+     arriba + texto abajo, columna derecha = UN SOLO menú numerado de
+     acciones (viajar, hablar, explorar, pizarrón, expediente,
+     inteligencia — o las opciones de un diálogo). Las coordenadas viven
+     centralizadas en tools/frame_coords.py (`action_menu_item(i)` /
+     `dialogue_option(i)`) — actualizar ESE archivo si el layout vuelve a
+     cambiar, no cada script suelto. SuspectBoardScene/CrimeComputerScene/
+     DebugScene/EndingScene NO forman parte de ese frame y siguen con
+     coordenadas propias hardcodeadas acá.
+  3. El ÍNDICE de cada ítem del menú numerado depende de CUÁNTOS ítems lo
+     preceden (NPCs de la locación, si hay "Explorar", cuántas conexiones
+     tiene la zona) — no es fijo entre escenas. Cada paso de este script
+     comenta explícitamente qué índice corresponde a qué acción y por qué,
+     basado en `src/data/locations.ts` (npcIds por lugar) y
+     `src/data/zoneConnections.ts` (conexiones por zona).
+  4. El overlay de DebugScene NO bloquea los clicks hacia la escena de
      abajo (limitación de Phaser con escenas paralelas) — cerrarlo
      SIEMPRE con la tecla backtick, nunca clickeando su botón "Cerrar".
-  4. Cualquier texto con centro vertical en y<40 en una escena que corre
-     en paralelo con HUDScene se renderiza corrupto (glitch de compositing
-     entre cámaras de Phaser). Si algo nuevo se ve mal, comparar con una
-     captura antes de asumir "funciona".
-  5. Desde la red de conexiones entre zonas (ver data/zoneConnections.ts),
-     el panel de destinos ya NO lista las 21 zonas del mundo: solo lista
-     las CONECTADAS a la zona en la que estás parado. Un "viaje" a una
-     zona no adyacente necesita varios clicks seguidos (uno por salto) —
-     usar el helper `travel()` de acá abajo, que resuelve el camino más
-     corto con `frame_coords.shortest_path`. Y ya no existe el truco de
-     "clickear tu propia zona en la lista" para entrar gratis a la
-     locación: eso ahora es `enter_current_location()` (clickear el panel
-     de arte).
 """
 
 import sys
 import os
 
 sys.path.insert(0, os.path.dirname(__file__))
-from frame_coords import (
-    toolbar_button,
-    destination_list_zone,
-    enter_current_location,
-    shortest_path,
-    location_npc_row,
-    dialogue_option,
-    dialogue_skip_zone,
-)
+from frame_coords import action_menu_item, dialogue_option, dialogue_skip_zone
 
 from playwright.sync_api import sync_playwright
 
@@ -94,18 +78,6 @@ def run():
             click(*dialogue_skip_zone())
             page.wait_for_timeout(200)
 
-        def travel(click, page, current_zone, target_zone):
-            """Viaja de `current_zone` a `target_zone` haciendo un click
-            por cada salto real del camino más corto (ver shortest_path).
-            Devuelve `target_zone` para poder reasignar la variable de
-            zona actual en el llamador."""
-            zone = current_zone
-            for next_zone in shortest_path(current_zone, target_zone):
-                click(*destination_list_zone(zone, next_zone))
-                page.wait_for_timeout(400)
-                zone = next_zone
-            return zone
-
         def start_new_game(page, click):
             """MainMenu -> Nueva Partida -> ReportScene (SIN selección de caso)."""
             click(512, 330)
@@ -134,9 +106,11 @@ def run():
         go_to_crime_scene(page, click)
         page.screenshot(path="/tmp/smoke_02_citymap.png")
 
-        click(*enter_current_location())  # entrar a Terminal Sur sin viajar (gratis)
+        # CityMapScene(terminal_sur): item 0 = "Quedarme e investigar acá"
+        click(*action_menu_item(0))
         page.wait_for_timeout(400)
-        click(*location_npc_row(0))  # Hablar con Don Simón
+        # LocationScene(terminal_sur): npcIds=[simon_achaval, beba_corvalan] -> item 0 = Simón
+        click(*action_menu_item(0))
         page.wait_for_timeout(300)
         skip_typewriter(click, page)
         click(*dialogue_option(0))  # preguntar -> da clue_kiosco_medialunas
@@ -146,7 +120,9 @@ def run():
         click(*dialogue_option(0))  # Continuar
         page.wait_for_timeout(500)
 
-        click(*toolbar_button(2, 4))  # Expediente (4to ícono en LocationScene: Explorar/Pizarrón/Expediente/Inteligencia)
+        # LocationScene(terminal_sur): items=[Simón,Beba,Explorar,4 viajar] -> Expediente no está acá,
+        # hay que ir por Pizarrón(7)/Inteligencia(9); para el expediente: item 8
+        click(*action_menu_item(8))  # Expediente
         page.wait_for_timeout(300)
         page.screenshot(path="/tmp/smoke_04_expediente.png")
         page.close()
@@ -161,12 +137,11 @@ def run():
         click = canvas_click(page)
         start_new_game(page, click)
         go_to_crime_scene(page, click)
-        zone = 'terminal_sur'  # zonaInicial de caso1_medialunas
 
         # Terminal Sur -> Simón (da clue_kiosco_medialunas, hop1 = oeste_profundo)
-        click(*enter_current_location())
+        click(*action_menu_item(0))  # Quedarme e investigar (CityMap)
         page.wait_for_timeout(400)
-        click(*location_npc_row(0))
+        click(*action_menu_item(0))  # Simón (Location)
         page.wait_for_timeout(300)
         skip_typewriter(click, page)
         click(*dialogue_option(0))
@@ -175,42 +150,63 @@ def run():
         click(*dialogue_option(0))
         page.wait_for_timeout(500)
 
-        # Pizarrón (2do ícono de 4 en LocationScene): adivinar hop1 = oeste_profundo
-        click(*toolbar_button(1, 4))
+        # Pizarrón: items=[Simón(0),Beba(1),Explorar(2),4 viajar(3-6)] -> Pizarrón = 7
+        click(*action_menu_item(7))
         page.wait_for_timeout(400)
-        # boardTop con 1 pista = 138+20+26=184, startY=234, stepY=52; oeste_profundo index15 -> row3,col0 (grilla propia de SuspectBoardScene, sin cambios)
-        click(130, 234 + 3 * 52)
+        # El Pizarrón solo ofrece zonas señaladas por pistas YA CONSEGUIDAS
+        # (ver SuspectBoardScene.ts / fix del exploit de fuerza bruta): con 1
+        # sola pista real, hay UNA sola opción ("Morón" = oeste_profundo),
+        # en la fila 0 columna 0 de la grilla propia de la escena (sin
+        # cambios por el rework visual). boardTop con 1 pista = 138+20+26=184.
+        click(130, 184 + 50)
         page.wait_for_timeout(300)
         page.screenshot(path="/tmp/smoke_05_hop1_result.png")
         click(512, 384)  # cerrar overlay -> teleporta a oeste_profundo
         page.wait_for_timeout(500)
-        zone = 'oeste_profundo'
 
-        # Oeste Profundo -> Cacho -> "mostrar evidencia" da clue_remise_pampa (hop2 = el_delta)
-        click(*location_npc_row(0))
+        # LocationScene(oeste_profundo): npcIds=[cacho_domenech] -> item 0 = Cacho
+        click(*action_menu_item(0))
         page.wait_for_timeout(300)
         skip_typewriter(click, page)
-        click(*dialogue_option(1))
+        click(*dialogue_option(1))  # "mostrar evidencia" -> da clue_remise_pampa (hop2 = el_delta)
         page.wait_for_timeout(300)
         skip_typewriter(click, page)
         click(*dialogue_option(0))
         page.wait_for_timeout(500)
 
-        # Pizarrón otra vez: ahora 2 pistas -> boardTop=138+40+26=204,startY=254; el_delta index17->row3,col2
-        click(*toolbar_button(1, 4))
+        # LocationScene(oeste_profundo): items=[Cacho(0),Explorar(1),5 viajar(2-6)] -> Pizarrón = 7
+        click(*action_menu_item(7))
         page.wait_for_timeout(400)
-        click(130 + 2 * 175, 254 + 3 * 52)
+        # Ahora 2 pistas reales colectadas -> 2 opciones: oeste_profundo (de
+        # Simón, ya recorrida) en col0, el_delta (de Cacho, la nueva) en
+        # col1. boardTop con 2 pistas = 138+40+26=204.
+        click(130 + 175, 204 + 50)
         page.wait_for_timeout(300)
         page.screenshot(path="/tmp/smoke_06_hop2_final_result.png")
         click(512, 384)
         page.wait_for_timeout(500)
-        zone = 'el_delta'
         page.screenshot(path="/tmp/smoke_07_el_delta_locked.png")  # sospechoso visible pero bloqueado
 
-        # Viajar a Parque Obrero -> Hombre de las Palomas (2do NPC del lugar) -> hobby
-        zone = travel(click, page, zone, 'parque_obrero')
-        page.wait_for_timeout(200)
-        click(*location_npc_row(1))
+        # LocationScene(el_delta), 0 npcIds propios + sospechoso bloqueado:
+        # items=[sospechoso bloqueado(0),Explorar(1),3 viajar(2-4)]. Ruta a
+        # Parque Obrero (no conectado directo): el_delta -> barranca_norte
+        # -> costa_alta -> parque_obrero. Conexiones el_delta=[km_20,
+        # barranca_norte,oeste_profundo] -> barranca_norte es la 2da -> item
+        # index = 2(offset) + 1 = 3.
+        click(*action_menu_item(3))
+        page.wait_for_timeout(400)
+        # LocationScene(barranca_norte), 0 npcIds: items=[Explorar(0),3 viajar(1-3)].
+        # Conexiones=[costa_alta,terminal_norte,el_delta] -> costa_alta es la 1ra -> item 1.
+        click(*action_menu_item(1))
+        page.wait_for_timeout(400)
+        # LocationScene(costa_alta), npcIds=[yamila_cospito]: items=[Yamila(0),Explorar(1),4 viajar(2-5)].
+        # Conexiones=[palo_alto,barranca_norte,parque_obrero,la_cervecera] -> parque_obrero es la 3ra -> item 2+2=4.
+        click(*action_menu_item(4))
+        page.wait_for_timeout(400)
+        page.screenshot(path="/tmp/smoke_07b_parque_obrero.png")
+
+        # LocationScene(parque_obrero), npcIds=[pipo_escanciano, hombre_de_las_palomas] -> item 1 = Hombre de las Palomas
+        click(*action_menu_item(1))
         page.wait_for_timeout(300)
         skip_typewriter(click, page)
         click(*dialogue_option(0))
@@ -219,19 +215,33 @@ def run():
         click(*dialogue_option(0))
         page.wait_for_timeout(500)
 
-        click(*toolbar_button(3, 4))  # Sistema de Inteligencia Criminal
+        # LocationScene(parque_obrero): items=[Pipo(0),Palomas(1),Explorar(2),4 viajar(3-6),Pizarrón(7),Expediente(8),Inteligencia(9)]
+        click(*action_menu_item(9))  # Sistema de Inteligencia Criminal
         page.wait_for_timeout(500)
         page.screenshot(path="/tmp/smoke_08_crime_computer.png")
         click(512, 610)  # CALCULAR (por si el auto-cálculo no alcanzó a pintar; escena propia, sin cambios)
         page.wait_for_timeout(300)
         page.screenshot(path="/tmp/smoke_09_crime_computer_1_match.png")
-        click(512, 668)  # EMITIR ORDEN DE CAPTURA (scale.height - 100)
+        click(512, 668)  # EMITIR ORDEN DE CAPTURA (CrimeComputerScene, sin cambios) -> vuelve a CityMap(parque_obrero)
         page.wait_for_timeout(400)
 
-        zone = travel(click, page, zone, 'el_delta')
+        # CityMapScene(parque_obrero): items=[Quedarme(0),4 viajar(1-4)]. Ruta a
+        # El Delta: parque_obrero -> costa_alta -> barranca_norte -> el_delta.
+        # Conexiones parque_obrero=[barrio_fabrica,villa_flor,el_cruce,costa_alta] -> costa_alta es la 4ta -> item 1+3=4.
+        click(*action_menu_item(4))
+        page.wait_for_timeout(400)
+        # LocationScene(costa_alta): items=[Yamila(0),Explorar(1),4 viajar(2-5)].
+        # Conexiones=[palo_alto,barranca_norte,parque_obrero,la_cervecera] -> barranca_norte es la 2da -> item 2+1=3.
+        click(*action_menu_item(3))
+        page.wait_for_timeout(400)
+        # LocationScene(barranca_norte): items=[Explorar(0),3 viajar(1-3)].
+        # Conexiones=[costa_alta,terminal_norte,el_delta] -> el_delta es la 3ra -> item 1+2=3.
+        click(*action_menu_item(3))
         page.wait_for_timeout(500)
         page.screenshot(path="/tmp/smoke_10_el_delta_unlocked.png")
-        click(*location_npc_row(0))  # Confrontar (único NPC visible ahora)
+
+        # LocationScene(el_delta), ahora desbloqueado: item 0 = "Confrontar a..."
+        click(*action_menu_item(0))
         page.wait_for_timeout(300)
         skip_typewriter(click, page)
         click(*dialogue_option(0))  # arrestar

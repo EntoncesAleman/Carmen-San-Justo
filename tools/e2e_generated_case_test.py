@@ -9,22 +9,22 @@ final)" para recorrer el resto del ciclo (identikit, orden, confrontación,
 final, rango, siguiente caso) sin depender de las coordenadas exactas de
 esta corrida.
 
-Coordenadas de CityMap/Location/Dialogue centralizadas en
-tools/frame_coords.py (pantalla dividida, ver src/ui/frameLayout.ts).
+Coordenadas centralizadas en tools/frame_coords.py (ver
+src/ui/frameLayout.ts / ui/ActionMenuPanel.ts — FASE 20, menú numerado
+único a la derecha en vez de lista de destinos + barra de íconos).
 
-Desde la red de conexiones entre zonas (ver data/zoneConnections.ts), el
-panel de destinos ya no lista las 21 zonas del mundo siempre en el mismo
-orden — lista solo las conectadas a la zona actual, que en un caso
-generado es aleatoria. Por eso ya no se puede asumir "tal zona siempre
-está en la fila 0"; en cambio se usa `enter_current_location()` para
-entrar directo a la zona inicial de ESTA corrida, sea cual sea.
+El menú de CityMapScene siempre tiene "Quedarme e investigar acá" como
+ítem 0, sea cual sea la zona inicial de esta corrida (aleatoria en un
+caso generado) — no hace falta saber el nombre de la zona para entrar. En
+LocationScene, el primer NPC listado (si hay alguno) también es siempre
+el ítem 0.
 """
 
 import sys
 import os
 
 sys.path.insert(0, os.path.dirname(__file__))
-from frame_coords import enter_current_location, location_npc_row, dialogue_option, dialogue_skip_zone
+from frame_coords import action_menu_item, dialogue_option, dialogue_skip_zone
 
 from playwright.sync_api import sync_playwright
 
@@ -84,13 +84,13 @@ def run():
         page.wait_for_timeout(700)
         page.screenshot(path="/tmp/gen_02_citymap.png")
 
-        # Entrar a la zona inicial de esta corrida (aleatoria) sin viajar.
-        click(*enter_current_location())
+        # CityMapScene: item 0 = "Quedarme e investigar acá" (zona inicial de esta corrida, sea cual sea).
+        click(*action_menu_item(0))
         page.wait_for_timeout(500)
         page.screenshot(path="/tmp/gen_03_first_location.png")
 
-        # Hablar con el primer NPC del lugar, si hay alguno.
-        click(*location_npc_row(0))
+        # LocationScene: item 0 = primer NPC del lugar, si hay alguno.
+        click(*action_menu_item(0))
         page.wait_for_timeout(300)
         skip()
         page.screenshot(path="/tmp/gen_04_informant_dialogue.png")

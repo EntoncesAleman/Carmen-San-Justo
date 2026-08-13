@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { COLORS, COLORS_CSS, FONTS, SCENE_KEYS, TIME_COSTS } from '../core/Constants';
+import { COLORS, COLORS_CSS, FONTS, SCENE_KEYS } from '../core/Constants';
 import { DialogueEngine } from '../systems/DialogueEngine';
 import { DialogueOption, DialogueTree } from '../data/types';
 import { getNpc } from '../data/npcs';
@@ -10,10 +10,6 @@ import { audioManager } from '../audio/AudioManager';
 import { getPortraitKey } from '../data/portraits';
 import { TypewriterText } from '../ui/TypewriterText';
 import { FRAME } from '../ui/frameLayout';
-import { createIconToolbar } from '../ui/IconToolbar';
-import { renderDestinationListPanel } from '../ui/DestinationListPanel';
-import { renderLocationArtPanel } from '../ui/LocationArtPanel';
-import { gameState } from '../core/GameState';
 
 export interface DialogueSceneData {
     npcId: string;
@@ -22,23 +18,18 @@ export interface DialogueSceneData {
     isConfrontacion?: boolean;
 }
 
-const PORTRAIT_SIZE = 150;
-const BUBBLE_TOP = FRAME.contentTop + 16;
-const BUBBLE_HEIGHT = 200;
-const OPTIONS_TOP = BUBBLE_TOP + BUBBLE_HEIGHT + 24;
-
-// Mismo frame que CityMapScene/LocationScene (lista de destinos + arte a
-// la izquierda) — el panel derecho pasa a ser retrato + globo de diálogo,
-// calcado del formato clásico de persecución (retrato a la izquierda del
-// panel, texto en un globo a la derecha, nombre del NPC debajo del
-// retrato, opciones como filas debajo de todo).
+// Mismo frame que CityMapScene/LocationScene, pero acá la columna
+// izquierda muestra el retrato de con quién hablás (en vez de la zona) y
+// el texto de diálogo debajo (en vez de la descripción) — calca el
+// "gráfico de testigo arriba + texto abajo" del formato clásico. La
+// columna derecha sigue siendo el menú numerado de acciones, ahora
+// mostrando las opciones de la conversación.
 export class DialogueScene extends Phaser.Scene {
     private sceneData!: DialogueSceneData;
     private tree!: DialogueTree;
     private currentNodeId!: string;
     private contentContainer!: Phaser.GameObjects.Container;
     private pendingEndsCase = false;
-    private portraitX = FRAME.rightX + 16;
 
     constructor() {
         super(SCENE_KEYS.DIALOGUE);
@@ -56,66 +47,49 @@ export class DialogueScene extends Phaser.Scene {
         audioManager.playMusic(this.sceneData.isConfrontacion ? 'persecucion' : 'interrogatorio');
         audioManager.playSfx('dialog_open');
 
-        renderDestinationListPanel(this, (zoneId) => this.travelTo(zoneId));
-        renderLocationArtPanel(this);
+        this.renderPortrait();
 
         this.add
             .rectangle(FRAME.rightX, FRAME.contentTop, FRAME.rightWidth, FRAME.contentBottom - FRAME.contentTop, COLORS.PANEL, 0.9)
             .setOrigin(0, 0)
             .setStrokeStyle(2, COLORS.ACCENT);
-
-        this.renderPortrait();
-
-        createIconToolbar(this, [
-            { icon: '🗺', label: 'PIZARRÓN', onClick: () => this.scene.start(SCENE_KEYS.SUSPECT_BOARD) },
-            { icon: '🔍', label: 'EXPEDIENTE', onClick: () => this.scene.start(SCENE_KEYS.CASE_FILE) },
-            { icon: '💻', label: 'INTELIGENCIA CRIMINAL', onClick: () => this.scene.start(SCENE_KEYS.CRIME_COMPUTER) },
-        ]);
+        this.add.text(FRAME.rightX + 16, FRAME.contentTop + 14, 'QUÉ DECIR', {
+            fontFamily: FONTS.MONO,
+            fontSize: '17px',
+            color: COLORS_CSS.ACCENT,
+        });
+        this.add.rectangle(FRAME.rightX + 16, FRAME.contentTop + 44, FRAME.rightWidth - 32, 1, COLORS.ACCENT, 0.5).setOrigin(0, 0);
 
         this.contentContainer = this.add.container(0, 0);
         this.renderNode();
     }
 
-    private travelTo(zoneId: string) {
-        if (zoneId === gameState.currentZoneId) {
-            this.scene.start(SCENE_KEYS.LOCATION);
-            return;
-        }
-        const expired = CaseManager.advanceTimeAndCheckDeadline(TIME_COSTS.VIAJAR_MINUTOS);
-        gameState.currentZoneId = zoneId;
-        if (expired) {
-            this.scene.start(SCENE_KEYS.ENDING);
-            return;
-        }
-        this.scene.start(SCENE_KEYS.LOCATION);
-    }
-
     private renderPortrait() {
         const npc = getNpc(this.sceneData.npcId);
-        const portraitY = FRAME.contentTop + 16;
         const portraitKey = getPortraitKey(this.sceneData.npcId);
+        const size = FRAME.artHeight - 40;
+        const cx = FRAME.leftX + FRAME.leftWidth / 2;
+        const cy = FRAME.contentTop + FRAME.artHeight / 2;
 
-        this.add.rectangle(this.portraitX + PORTRAIT_SIZE / 2, portraitY + PORTRAIT_SIZE / 2, PORTRAIT_SIZE, PORTRAIT_SIZE, COLORS.BG_DARK).setStrokeStyle(2, COLORS.ACCENT);
+        this.add.rectangle(FRAME.leftX, FRAME.contentTop, FRAME.leftWidth, FRAME.artHeight, 0x000000, 1).setOrigin(0, 0).setStrokeStyle(2, COLORS.ACCENT);
         if (portraitKey && this.textures.exists(portraitKey)) {
-            const img = this.add.image(this.portraitX + PORTRAIT_SIZE / 2, portraitY + PORTRAIT_SIZE / 2, portraitKey);
-            img.setDisplaySize(PORTRAIT_SIZE - 6, PORTRAIT_SIZE - 6);
+            const img = this.add.image(cx, cy - 10, portraitKey);
+            img.setDisplaySize(size, size);
         }
 
         this.add
-            .text(this.portraitX + PORTRAIT_SIZE / 2, portraitY + PORTRAIT_SIZE + 16, npc?.apodo ?? '', {
+            .text(FRAME.leftX + 10, FRAME.contentTop + FRAME.artHeight - 26, npc?.apodo ?? '', {
                 fontFamily: FONTS.MONO,
-                fontSize: '13px',
+                fontSize: '15px',
                 color: COLORS_CSS.ACCENT,
-                wordWrap: { width: PORTRAIT_SIZE },
-                align: 'center',
+                backgroundColor: '#000000cc',
+                padding: { x: 4, y: 2 },
             })
-            .setOrigin(0.5, 0);
+            .setOrigin(0, 0);
     }
 
-    private bubbleBounds() {
-        const x = this.portraitX + PORTRAIT_SIZE + 16;
-        const width = FRAME.rightX + FRAME.rightWidth - 16 - x;
-        return { x, y: BUBBLE_TOP, width, height: BUBBLE_HEIGHT };
+    private textBubbleBounds() {
+        return { x: FRAME.leftX, y: FRAME.textTop, width: FRAME.leftWidth, height: FRAME.contentBottom - FRAME.textTop };
     }
 
     private renderNode() {
@@ -127,23 +101,26 @@ export class DialogueScene extends Phaser.Scene {
         }
 
         const node = this.tree.nodes[this.currentNodeId];
-        const bubble = this.bubbleBounds();
-        const bubbleBg = this.add.rectangle(bubble.x, bubble.y, bubble.width, bubble.height, COLORS.BG_DARK, 0.6).setOrigin(0, 0).setStrokeStyle(1, 0x555c6e);
+        const bubble = this.textBubbleBounds();
+        const bubbleBg = this.add.rectangle(bubble.x, bubble.y, bubble.width, bubble.height, COLORS.PANEL, 0.9).setOrigin(0, 0).setStrokeStyle(2, COLORS.ACCENT);
         this.contentContainer.add(bubbleBg);
 
-        const npcLineText = this.add.text(bubble.x + 12, bubble.y + 12, '', {
+        const npcLineText = this.add.text(bubble.x + 14, bubble.y + 12, '', {
             fontFamily: FONTS.MONO,
             fontSize: '14px',
             color: COLORS_CSS.TEXT,
-            wordWrap: { width: bubble.width - 24 },
+            wordWrap: { width: bubble.width - 28 },
             lineSpacing: 5,
         });
         this.contentContainer.add(npcLineText);
 
         const options = DialogueEngine.getVisibleOptions(node, this.sceneData.npcId);
         const showOptions = () => {
+            let y = FRAME.contentTop + 60;
             options.forEach((opt, i) => {
-                this.contentContainer.add(this.renderOptionRow(opt.label, OPTIONS_TOP + i * 54, () => this.chooseOption(opt)));
+                const row = this.renderOptionRow(`${i + 1}. ${opt.label}`, y, () => this.chooseOption(opt));
+                this.contentContainer.add(row.container);
+                y += row.height + 10;
             });
         };
 
@@ -155,21 +132,29 @@ export class DialogueScene extends Phaser.Scene {
         this.contentContainer.add(skipZone);
     }
 
-    private renderOptionRow(label: string, y: number, onClick: () => void): Phaser.GameObjects.Container {
-        const x = FRAME.rightX + 16;
+    private renderOptionRow(label: string, y: number, onClick: () => void): { container: Phaser.GameObjects.Container; height: number } {
         const width = FRAME.rightWidth - 32;
-        const bg = this.add.rectangle(0, 0, width, 44, COLORS.BG_DARK, 0.7).setStrokeStyle(1, COLORS.ACCENT);
-        const text = this.add
-            .text(-width / 2 + 12, 0, label, { fontFamily: FONTS.MONO, fontSize: '13px', color: COLORS_CSS.TEXT, wordWrap: { width: width - 24 } })
+        const text = this.add.text(0, 0, label, {
+            fontFamily: FONTS.MONO,
+            fontSize: '15px',
+            color: COLORS_CSS.TEXT,
+            wordWrap: { width: width - 20 },
+        });
+        const height = text.height + 16;
+        text.destroy();
+
+        const bg = this.add.rectangle(0, 0, width, height, 0x000000, 0.3).setStrokeStyle(1, COLORS.ACCENT).setOrigin(0, 0);
+        const label2 = this.add
+            .text(10, height / 2, label, { fontFamily: FONTS.MONO, fontSize: '15px', color: COLORS_CSS.TEXT, wordWrap: { width: width - 20 } })
             .setOrigin(0, 0.5);
         bg.setInteractive({ useHandCursor: true });
-        bg.on('pointerover', () => bg.setStrokeStyle(1, 0xffffff));
-        bg.on('pointerout', () => bg.setStrokeStyle(1, COLORS.ACCENT));
+        bg.on('pointerover', () => label2.setColor(COLORS_CSS.ACCENT));
+        bg.on('pointerout', () => label2.setColor(COLORS_CSS.TEXT));
         bg.on('pointerdown', () => {
             audioManager.playSfx('ui_click');
             onClick();
         });
-        return this.add.container(x + width / 2, y, [bg, text]);
+        return { container: this.add.container(FRAME.rightX + 16, y, [bg, label2]), height };
     }
 
     private chooseOption(opt: DialogueOption) {
@@ -192,24 +177,25 @@ export class DialogueScene extends Phaser.Scene {
     private showResponse(opt: DialogueOption) {
         this.contentContainer.removeAll(true);
         const npc = getNpc(this.sceneData.npcId);
-        const bubble = this.bubbleBounds();
-        const bubbleBg = this.add.rectangle(bubble.x, bubble.y, bubble.width, bubble.height, COLORS.BG_DARK, 0.6).setOrigin(0, 0).setStrokeStyle(1, COLORS.SUCCESS);
+        const bubble = this.textBubbleBounds();
+        const bubbleBg = this.add.rectangle(bubble.x, bubble.y, bubble.width, bubble.height, COLORS.PANEL, 0.9).setOrigin(0, 0).setStrokeStyle(2, COLORS.SUCCESS);
         this.contentContainer.add(bubbleBg);
 
-        const text = this.add.text(bubble.x + 12, bubble.y + 12, '', {
+        const text = this.add.text(bubble.x + 14, bubble.y + 12, '', {
             fontFamily: FONTS.MONO,
             fontSize: '14px',
             color: COLORS_CSS.SUCCESS,
-            wordWrap: { width: bubble.width - 24 },
+            wordWrap: { width: bubble.width - 28 },
             lineSpacing: 5,
         });
         this.contentContainer.add(text);
 
         const showContinue = () => {
-            this.contentContainer.add(this.renderOptionRow('Continuar', OPTIONS_TOP, () => {
+            const row = this.renderOptionRow('1. Continuar', FRAME.contentTop + 60, () => {
                 this.currentNodeId = opt.next;
                 this.renderNode();
-            }));
+            });
+            this.contentContainer.add(row.container);
         };
 
         const typewriter = new TypewriterText(this, text, `${npc?.apodo ?? ''}: "${opt.responseLine}"`, 14);

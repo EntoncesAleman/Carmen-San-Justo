@@ -67,19 +67,21 @@ Phaser dibuja las escenas activas en el orden en que están registradas en
 `main.ts`, y ninguna de las dos estaba en la lista de limpieza.
 
 `CityMapScene`, `LocationScene` y `DialogueScene` comparten un mismo frame
-de pantalla dividida (`ui/frameLayout.ts` + `DestinationListPanel.ts` +
-`LocationArtPanel.ts` + `IconToolbar.ts`) — ver `docs/GAME_DESIGN.md` →
-"Pantalla dividida". `SuspectBoardScene`/`CrimeComputerScene`/
-`CaseFileScene`/`EndingScene` no forman parte de ese frame, mantienen su
-propio layout centrado de siempre.
+de pantalla dividida (`ui/frameLayout.ts` + `ui/LocationArtPanel.ts` +
+`ui/DescriptionTextPanel.ts` + `ui/ActionMenuPanel.ts`) — ver
+`docs/GAME_DESIGN.md` → "Pantalla dividida". `SuspectBoardScene`/
+`CrimeComputerScene`/`CaseFileScene`/`EndingScene` no forman parte de ese
+frame, mantienen su propio layout centrado de siempre.
 
-`DestinationListPanel` solo lista las zonas conectadas a la actual
-(`data/zoneConnections.ts`, grafo de adyacencia fijo entre las 21 zonas) —
-no viaje libre a cualquier zona del mundo. Como la zona actual ya no
-aparece en esa lista, `LocationArtPanel` acepta un `onEnter` opcional que
-`CityMapScene` usa para entrar a `LocationScene` sin viajar (clickear el
-arte de la zona). Ver `docs/GAME_DESIGN.md` → "Red de conexiones entre
-zonas".
+Columna izquierda = arte arriba + texto abajo (zona/lugar en CityMap y
+Location, retrato + diálogo en DialogueScene). Columna derecha = un único
+menú vertical NUMERADO de acciones (`ActionMenuPanel.renderActionMenu`) —
+viajar a una zona CONECTADA (`data/zoneConnections.ts`, grafo de
+adyacencia fijo entre las 21 zonas, no viaje libre a cualquier zona del
+mundo), hablar con alguien, explorar, pizarrón, expediente, inteligencia
+criminal. La zona actual no es un ítem del menú (solo sus conexiones); la
+forma de "entrar" a la locación en la que ya estás parado sin viajar es
+el primer ítem del menú de `CityMapScene` ("Quedarme e investigar acá").
 
 `CaseSelectScene`/`CaseIntroScene` (selección manual de misión) fueron
 eliminadas a propósito: el jugador nunca elige qué caso investigar, ver
