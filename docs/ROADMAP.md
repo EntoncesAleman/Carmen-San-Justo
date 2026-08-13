@@ -554,12 +554,15 @@ secciones originales.
       CityMapScene/LocationScene — 2 scripts de `tools/e2e_*.py`
       actualizados y reverificados de punta a punta.
 
+- [x] **Nombre del detective en las líneas de diálogo**: `DialogueEngine.withDetectiveName()`
+      reemplaza el placeholder "Fierro" (escrito a mano en los 3 casos
+      fijos + plantillas del generador) por `gameState.detectiveName` en
+      cualquier texto de diálogo al mostrarse — un solo punto de
+      sustitución, sin tocar el contenido de los casos. Verificado en
+      navegador: NPCs saludan por el nombre real ingresado.
+
 ### Pendiente, en orden de impacto (no implementado todavía)
 
-- [ ] Nombre del detective integrado en las LÍNEAS de diálogo de los NPCs
-      (hoy solo aparece en pantallas "de sistema": reporte, expediente,
-      inteligencia criminal, final) — requiere tocar los árboles de
-      diálogo de los 3 casos fijos + `dialogueTemplates.ts` del generador.
 - [ ] Arte de zona faltante: 17 de 21 zonas no tienen fondo ilustrado
       propio (panel de arte negro sin imagen). Mismo pipeline de
       `tools/generate_art.py` (FASE 19), solo falta correrlo para el

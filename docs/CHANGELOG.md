@@ -2,6 +2,19 @@
 
 Formato: fecha, qué se hizo, por qué. Más reciente arriba.
 
+## 2026-08-13 (continuación — FASE 21, ítem 3: nombre del detective en las líneas de diálogo)
+
+Los 3 casos fijos y las plantillas del generador ya tenían un nombre de
+protagonista escrito a mano en los diálogos ("Fierro" — placeholder desde
+antes de que existiera `NameEntryScene`). En vez de reescribir a mano
+cada una de las ~20 líneas que lo mencionan, `DialogueEngine.withDetectiveName()`
+(nuevo) reemplaza "Fierro" por `gameState.detectiveName` en cualquier
+texto de diálogo al mostrarse (`DialogueScene.renderNode`/`showResponse`)
+— un solo punto de sustitución cubre TODA la superficie de diálogo
+existente y futura, sin tocar el contenido de los casos. Si todavía no
+hay nombre asignado (debug, casos viejos), se mantiene "Fierro" como
+default.
+
 ## 2026-08-13 (continuación — FASE 21, ítem 2: mapa gráfico de viaje)
 
 Pedido: "viajar" no podía seguir siendo solo una línea de texto en el

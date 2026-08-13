@@ -1,6 +1,6 @@
 import * as Phaser from 'phaser';
 import { COLORS, COLORS_CSS, FONTS, SCENE_KEYS } from '../core/Constants';
-import { DialogueEngine } from '../systems/DialogueEngine';
+import { DialogueEngine, withDetectiveName } from '../systems/DialogueEngine';
 import { DialogueOption, DialogueTree } from '../data/types';
 import { getNpc } from '../data/npcs';
 import { EventBus, Events } from '../core/EventBus';
@@ -124,7 +124,7 @@ export class DialogueScene extends Phaser.Scene {
             });
         };
 
-        const typewriter = new TypewriterText(this, npcLineText, node.npcLine, 14);
+        const typewriter = new TypewriterText(this, npcLineText, withDetectiveName(node.npcLine), 14);
         typewriter.start(showOptions);
 
         const skipZone = this.add.zone(bubble.x, bubble.y, bubble.width, bubble.height).setOrigin(0, 0).setInteractive({ useHandCursor: true });
@@ -198,7 +198,7 @@ export class DialogueScene extends Phaser.Scene {
             this.contentContainer.add(row.container);
         };
 
-        const typewriter = new TypewriterText(this, text, `${npc?.apodo ?? ''}: "${opt.responseLine}"`, 14);
+        const typewriter = new TypewriterText(this, text, withDetectiveName(`${npc?.apodo ?? ''}: "${opt.responseLine}"`), 14);
         typewriter.start(showContinue);
 
         const skipZone = this.add.zone(bubble.x, bubble.y, bubble.width, bubble.height).setOrigin(0, 0).setInteractive({ useHandCursor: true });

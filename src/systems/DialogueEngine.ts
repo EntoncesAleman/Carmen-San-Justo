@@ -6,6 +6,20 @@ import { CaseManager } from './CaseManager';
 import { ClueManager } from './ClueManager';
 import { ReputationSystem } from './ReputationSystem';
 
+// "Fierro" es el nombre de protagonista escrito a mano en los diálogos de
+// los 3 casos fijos y en las plantillas del generador — quedó como
+// placeholder desde antes de que existiera `NameEntryScene` (FASE 21).
+// Ahora que el jugador escribe su propio nombre, cada línea de diálogo lo
+// reemplaza por el nombre real al mostrarse — así "Fierro" sigue
+// funcionando como nombre por default (debug, casos sin detectiveName
+// todavía asignado) sin tener que tocar cientos de líneas de texto a mano.
+const PROTAGONIST_PLACEHOLDER = /Fierro/g;
+
+export function withDetectiveName(text: string): string {
+    if (!gameState.detectiveName) return text;
+    return text.replace(PROTAGONIST_PLACEHOLDER, gameState.detectiveName);
+}
+
 export class DialogueEngine {
     static getTreeForNpc(npcId: string): DialogueTree {
         const def = CaseManager.getCurrentCase();
