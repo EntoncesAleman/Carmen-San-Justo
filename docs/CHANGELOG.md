@@ -2,6 +2,37 @@
 
 Formato: fecha, qué se hizo, por qué. Más reciente arriba.
 
+## 2026-08-13 (continuación — FASE 21: auditoría + identidad del detective)
+
+El usuario entregó una especificación extremadamente detallada (80
+secciones) de reconstrucción visual/jugable, con instrucción explícita de
+auditar primero y avanzar en orden de prioridad sin pedir confirmación
+en cada paso. Esto es DEMASIADO GRANDE para un solo pase — se documenta
+acá el primer tramo real, no el total. Ver `docs/ROADMAP.md` → FASE 21
+para el punch list completo pendiente.
+
+- `docs/VISUAL_AUDIT.md` y `docs/GAMEPLAY_AUDIT.md` (nuevos): auditoría
+  jugando la app real (no leyendo código), con capturas revisadas a mano,
+  comparando estado actual contra el pedido, honesta sobre qué ya está
+  hecho y qué falta.
+- **Identidad del detective** (la brecha más grande encontrada,
+  pedida explícitamente): `NameEntryScene` nueva — terminal con input por
+  teclado real (no un botón "Comenzar" genérico), antes del primer
+  reporte de cada carrera nueva. El nombre se guarda en
+  `gameState.detectiveName` (persistido por `SaveSystem`) y aparece en
+  `ReportScene`, `CaseFileScene`, `CrimeComputerScene` y `EndingScene`
+  como campo "DETECTIVE:".
+- **Confianza de pistas visible**: `CaseFileScene` ahora muestra
+  "(CONFIANZA: ALTA/MEDIA/BAJA)" por pista, derivado del
+  `Clue.confiabilidad` que ya existía en los datos pero nunca se
+  mostraba en pantalla.
+- **Bug real encontrado en la auditoría**: `ReportScene` usaba un color
+  de panel hardcodeado (`0x11141c`) que no coincidía con `COLORS.PANEL`
+  (casi negro) del resto de la interfaz desde FASE 19 — inconsistencia
+  visible al lado de cualquier otra pantalla, corregida.
+- Los 4 scripts de `tools/e2e_*.py` actualizados: "Nueva Partida" ahora
+  pasa por `NameEntryScene` antes de llegar al reporte.
+
 ## 2026-08-13 (continuación — FASE 20: layout calcado del formato clásico de 1985 + arreglo de exploit de investigación)
 
 Pedido enfático del usuario, con una descripción muy detallada del

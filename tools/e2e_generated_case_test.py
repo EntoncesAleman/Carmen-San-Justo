@@ -54,8 +54,11 @@ def run():
             click(*dialogue_skip_zone())
             page.wait_for_timeout(pause)
 
-        # MainMenu -> Nueva Partida -> ReportScene (caso1) -> briefing -> CityMap
+        # MainMenu -> Nueva Partida -> NameEntryScene (FASE 21) -> ReportScene (caso1) -> briefing -> CityMap
         click(512, 330)
+        page.wait_for_timeout(300)
+        page.keyboard.type("Fierro")
+        page.keyboard.press("Enter")
         page.wait_for_timeout(400)
         click(512, 708)
         page.wait_for_timeout(400)

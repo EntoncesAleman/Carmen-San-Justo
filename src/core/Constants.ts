@@ -108,6 +108,7 @@ export const SCENE_KEYS = {
     BOOT: 'Boot',
     PRELOADER: 'Preloader',
     MAIN_MENU: 'MainMenu',
+    NAME_ENTRY: 'NameEntryScene',
     LOAD_GAME: 'LoadGame',
     REPORT: 'ReportScene',
     CITY_MAP: 'CityMap',

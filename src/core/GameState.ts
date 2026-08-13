@@ -17,6 +17,12 @@ class GameState {
     // toda la partida/guardado, ver SaveSystem).
     casoIndex = 0; // qué caso de CASES[] toca a continuación
     casosResueltos = 0; // impulsa el rango (ver data/ranks.ts)
+    // Nombre que el jugador escribe en NameEntryScene al arrancar una
+    // carrera nueva — se usa en ReportScene/CaseFileScene/CrimeComputerScene
+    // para que el juego se dirija al jugador por su nombre, no solo al
+    // protagonista fijo. No se resetea en reset() (persiste entre casos de
+    // la misma carrera), solo se pisa al arrancar una carrera nueva.
+    detectiveName = '';
 
     // Progreso del caso actual
     currentCaseId: string | null = null;

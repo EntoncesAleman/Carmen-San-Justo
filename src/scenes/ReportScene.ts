@@ -29,7 +29,7 @@ export class ReportScene extends Phaser.Scene {
         this.cameras.main.setBackgroundColor(COLORS_CSS.BG_DARK);
         audioManager.playMusic('reporte');
 
-        const panel = this.add.rectangle(this.scale.width / 2, this.scale.height / 2, 880, 620, 0x11141c, 0.96).setStrokeStyle(2, COLORS.ACCENT);
+        const panel = this.add.rectangle(this.scale.width / 2, this.scale.height / 2, 880, 620, COLORS.PANEL, 0.96).setStrokeStyle(2, COLORS.ACCENT);
         void panel;
 
         const rank = getRankForCasosResueltos(gameState.casosResueltos);
@@ -48,6 +48,7 @@ export class ReportScene extends Phaser.Scene {
         line('           REPORTE URGENTE — POLICÍA DE EL CINTURÓN', 14, COLORS_CSS.ACCENT);
         line('======================================================', 13, COLORS_CSS.ACCENT);
         y += 6;
+        line(`DETECTIVE:            ${gameState.detectiveName || '—'}`);
         line(`EXPEDIENTE N°:        ${expediente}`);
         line(`RANGO ACTUAL:         ${rank.titulo}`);
         y += 10;

@@ -79,8 +79,12 @@ def run():
             page.wait_for_timeout(200)
 
         def start_new_game(page, click):
-            """MainMenu -> Nueva Partida -> ReportScene (SIN selección de caso)."""
+            """MainMenu -> Nueva Partida -> NameEntryScene (FASE 21, escribir
+            nombre + Enter) -> ReportScene (SIN selección de caso)."""
             click(512, 330)
+            page.wait_for_timeout(300)
+            page.keyboard.type("Fierro")
+            page.keyboard.press("Enter")
             page.wait_for_timeout(400)
 
         def go_to_crime_scene(page, click):

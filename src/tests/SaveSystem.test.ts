@@ -45,15 +45,18 @@ describe('SaveSystem', () => {
         CaseManager.startCase(caso.id);
         gameState.collectedClueIds.push(caso.clues[0].id);
         gameState.reputacionPolicial = 77;
+        gameState.detectiveName = 'TOMÁS';
 
         SaveSystem.save(1);
         gameState.reset(); // simula cerrar el juego / volver al menú
+        gameState.detectiveName = ''; // reset() no lo toca (es de carrera) — limpiar a mano para que la aserción de abajo sea real, no un falso positivo
 
         const loaded = SaveSystem.load(1);
         assert.equal(loaded, true);
         assert.equal(gameState.currentCaseId, caso.id);
         assert.deepEqual(gameState.collectedClueIds, [caso.clues[0].id]);
         assert.equal(gameState.reputacionPolicial, 77);
+        assert.equal(gameState.detectiveName, 'TOMÁS');
     });
 
     it('load devuelve false si el slot está vacío', () => {

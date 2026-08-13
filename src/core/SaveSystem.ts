@@ -10,6 +10,7 @@ export interface SaveData {
     // hay que guardar su contenido completo para poder reconstruirlo al
     // cargar. `null`/ausente para los 3 casos fijos.
     generatedCase?: CaseDefinition | null;
+    detectiveName: string;
     casoIndex: number;
     casosResueltos: number;
     currentCaseId: string | null;
@@ -53,6 +54,7 @@ export class SaveSystem {
             schemaVersion: SAVE.SCHEMA_VERSION,
             savedAt: new Date().toISOString(),
             generatedCase,
+            detectiveName: gameState.detectiveName,
             casoIndex: gameState.casoIndex,
             casosResueltos: gameState.casosResueltos,
             currentCaseId: gameState.currentCaseId,
@@ -84,6 +86,7 @@ export class SaveSystem {
         if (!raw) return false;
         const data = JSON.parse(raw) as SaveData;
 
+        gameState.detectiveName = data.detectiveName ?? '';
         gameState.casoIndex = data.casoIndex ?? 0;
         gameState.casosResueltos = data.casosResueltos ?? 0;
         gameState.currentCaseId = data.currentCaseId;

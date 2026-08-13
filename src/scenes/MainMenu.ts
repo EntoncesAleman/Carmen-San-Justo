@@ -1,11 +1,9 @@
 import * as Phaser from 'phaser';
 import { COLORS, COLORS_CSS, SCENE_KEYS } from '../core/Constants';
 import { createButton } from '../ui/Button';
-import { CaseManager } from '../systems/CaseManager';
 import { SaveSystem } from '../core/SaveSystem';
 import { audioManager } from '../audio/AudioManager';
 import { PROTAGONIST_PORTRAIT_KEY } from '../data/portraits';
-import { gameState } from '../core/GameState';
 
 export class MainMenu extends Phaser.Scene {
     constructor() {
@@ -36,10 +34,10 @@ export class MainMenu extends Phaser.Scene {
         const hasSave = SaveSystem.listSlots().some((s) => !s.empty);
 
         createButton(this, this.scale.width / 2, 330, 'Nueva Partida', () => {
-            // El jugador NO elige caso: la agencia asigna el que sigue.
-            gameState.resetCareer();
-            CaseManager.startNextCaseInSequence();
-            this.scene.start(SCENE_KEYS.REPORT);
+            // Primero se identifica el detective (NameEntryScene); recién
+            // ahí arranca la carrera y llega el primer caso — el jugador
+            // NO elige caso, la agencia asigna el que sigue.
+            this.scene.start(SCENE_KEYS.NAME_ENTRY);
         });
 
         createButton(this, this.scale.width / 2, 400, hasSave ? 'Continuar' : 'Continuar (sin partidas guardadas)', () => {

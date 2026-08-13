@@ -41,6 +41,9 @@ def run():
             page.wait_for_timeout(pause)
 
         click(512, 330)  # Nueva Partida
+        page.wait_for_timeout(300)
+        page.keyboard.type("Fierro")  # NameEntryScene (FASE 21)
+        page.keyboard.press("Enter")
         page.wait_for_timeout(400)
         click(512, 708)  # Ir a la escena del hecho
         page.wait_for_timeout(400)

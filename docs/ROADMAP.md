@@ -522,6 +522,65 @@ panel de contenido en tres lugares separados.
       a punta revisando capturas del estado real del juego en cada paso,
       no solo "sin errores de consola".
 
+## FASE 21 — Auditoría + reconstrucción visual/jugable (spec de 80 secciones)
+
+El usuario entregó una especificación extremadamente detallada pidiendo
+una reconstrucción más profunda todavía: gramática de interfaz clásica
+completa (identificación del detective, mapa gráfico, transporte como
+mecánica, MIDI real, animaciones, transiciones, cursor propio, etc.),
+con instrucción explícita de auditar primero y avanzar sin pedir
+confirmación en cada paso. Es un pedido de escala multi-sesión — este
+punch list existe para que cualquiera (yo mismo en una sesión futura, u
+otro colaborador) sepa exactamente qué sigue sin tener que releer las 80
+secciones originales.
+
+- [x] `docs/VISUAL_AUDIT.md` y `docs/GAMEPLAY_AUDIT.md`: auditoría real
+      (jugando la app, no leyendo código) comparando contra el pedido.
+- [x] `NameEntryScene`: identidad del detective — input por teclado real,
+      persistido (`gameState.detectiveName` + `SaveSystem`), mostrado en
+      Reporte/Expediente/Inteligencia Criminal/Final.
+- [x] Confianza de pistas visible en `CaseFileScene`
+      ("CONFIANZA: ALTA/MEDIA/BAJA", derivado de `Clue.confiabilidad`).
+- [x] Bug real encontrado en la auditoría: `ReportScene` con panel de
+      color hardcodeado, no `COLORS.PANEL` — corregido.
+
+### Pendiente, en orden de impacto (no implementado todavía)
+
+- [ ] **Mapa gráfico de viaje** — hoy "viajar" es una línea de texto en
+      el menú numerado ("Viajar a San Telmo"), sin representación visual
+      del territorio (nodos/líneas). Es la brecha visual más grande que
+      queda. Requiere una escena/panel nuevo que dibuje el grafo de
+      `data/zoneConnections.ts`.
+- [ ] Nombre del detective integrado en las LÍNEAS de diálogo de los NPCs
+      (hoy solo aparece en pantallas "de sistema": reporte, expediente,
+      inteligencia criminal, final) — requiere tocar los árboles de
+      diálogo de los 3 casos fijos + `dialogueTemplates.ts` del generador.
+- [ ] Arte de zona faltante: 17 de 21 zonas no tienen fondo ilustrado
+      propio (panel de arte negro sin imagen). Mismo pipeline de
+      `tools/generate_art.py` (FASE 19), solo falta correrlo para el
+      resto de las zonas.
+- [ ] Retratos de NPC faltantes: 12 de 28 NPCs sin retrato propio, mismo
+      pipeline.
+- [ ] Mecánica de transporte específico (ej. "subió al colectivo 21") como
+      capa de deducción adicional sobre el viaje ya existente — mecánica
+      NUEVA pedida, no una regresión de algo que ya existía.
+- [ ] MIDI real (`title.mid`, `investigation.mid`, `chase.mid`, etc.) en
+      vez de síntesis simple por osciladores — requiere decidir cómo
+      reproducir MIDI en navegador (librería tipo `midi-player-js` +
+      soundfont, o pre-renderizar a audio manteniendo la estética).
+- [ ] Salón de la Fama (historial de detectives/rangos/casos resueltos).
+- [ ] Dificultad progresiva por rango en `CaseGenerator` (rutas más
+      largas, pistas más ambiguas, más sospechosos a rango alto).
+- [ ] Controles de teclado (ENTER/ESC/atajos de letra) más allá del
+      backtick de debug y el Enter de `NameEntryScene`.
+- [ ] Animaciones/parpadeo ambiental en portraits y fondos (hoy 100%
+      estático) y transiciones entre escenas (hoy `scene.start()` corta
+      seco, sin wipe/flicker).
+- [ ] Cursor propio de videojuego (hoy es el cursor del navegador con
+      `useHandCursor`).
+- [ ] Preferencias de audio/velocidad de texto persistidas (hoy
+      `AudioManager` tiene volumen pero no se guarda en `SaveSystem`).
+
 ## Deuda de contenido conocida (no bloqueante)
 
 - `DialogueEngine.buildFallbackTree` sigue existiendo (y sigue siendo

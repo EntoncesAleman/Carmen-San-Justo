@@ -39,6 +39,13 @@ export class CrimeComputerScene extends Phaser.Scene {
                 color: '#4caf7d',
             })
             .setOrigin(0.5);
+        this.add
+            .text(this.scale.width / 2, 100, `DETECTIVE: ${gameState.detectiveName || '—'}`, {
+                fontFamily: FONTS.MONO,
+                fontSize: '13px',
+                color: '#2f6b2f',
+            })
+            .setOrigin(0.5);
 
         if (!def) {
             this.add.text(this.scale.width / 2, 140, 'NO HAY EXPEDIENTE ACTIVO', { fontFamily: FONTS.MONO, fontSize: '16px', color: '#4caf7d' }).setOrigin(0.5);

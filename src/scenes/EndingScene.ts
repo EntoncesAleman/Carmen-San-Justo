@@ -48,11 +48,12 @@ export class EndingScene extends Phaser.Scene {
             .setOrigin(0.5);
 
         this.add
-            .text(this.scale.width / 2, 400, `CASOS RESUELTOS: ${gameState.casosResueltos}   |   RANGO: ${rank.titulo.toUpperCase()}`, {
-                fontFamily: FONTS.MONO,
-                fontSize: '15px',
-                color: COLORS_CSS.SUCCESS,
-            })
+            .text(
+                this.scale.width / 2,
+                400,
+                `DETECTIVE ${gameState.detectiveName || '—'}   |   CASOS RESUELTOS: ${gameState.casosResueltos}   |   RANGO: ${rank.titulo.toUpperCase()}`,
+                { fontFamily: FONTS.MONO, fontSize: '15px', color: COLORS_CSS.SUCCESS },
+            )
             .setOrigin(0.5);
 
         createButton(this, this.scale.width / 2, 480, 'Siguiente caso', () => {

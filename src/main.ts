@@ -5,6 +5,7 @@ import { audioManager } from './audio/AudioManager';
 import { Boot } from './scenes/Boot';
 import { Preloader } from './scenes/Preloader';
 import { MainMenu } from './scenes/MainMenu';
+import { NameEntryScene } from './scenes/NameEntryScene';
 import { LoadGameScene } from './scenes/LoadGameScene';
 import { ReportScene } from './scenes/ReportScene';
 import { CityMapScene } from './scenes/CityMapScene';
@@ -27,6 +28,7 @@ const config: Phaser.Types.Core.GameConfig = {
         Boot,
         Preloader,
         MainMenu,
+        NameEntryScene,
         LoadGameScene,
         ReportScene,
         CityMapScene,
