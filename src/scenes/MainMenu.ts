@@ -44,7 +44,9 @@ export class MainMenu extends Phaser.Scene {
             if (hasSave) this.scene.start(SCENE_KEYS.LOAD_GAME);
         });
 
-        createButton(this, this.scale.width / 2, 470, 'Créditos', () => this.showCredits());
+        createButton(this, this.scale.width / 2, 470, 'Salón de la Fama', () => this.scene.start(SCENE_KEYS.HALL_OF_FAME));
+
+        createButton(this, this.scale.width / 2, 540, 'Créditos', () => this.showCredits());
 
         this.renderProtagonistPortrait();
     }

@@ -1,6 +1,7 @@
 import * as Phaser from 'phaser';
 import { COLORS } from '../core/Constants';
 import { audioManager } from '../audio/AudioManager';
+import { CURSOR_POINTER } from './cursor';
 
 export interface ButtonOptions {
     width?: number;
@@ -36,7 +37,7 @@ export function createButton(
     const container = scene.add.container(x, y, [bg, text]);
     container.setSize(width, height);
 
-    bg.setInteractive({ useHandCursor: true });
+    bg.setInteractive({ cursor: CURSOR_POINTER });
     bg.on('pointerover', () => bg.setFillStyle(0x33394b));
     bg.on('pointerout', () => bg.setFillStyle(COLORS.PANEL));
     bg.on('pointerdown', () => {

@@ -17,6 +17,7 @@ export class SuspectBoardScene extends Phaser.Scene {
 
     create() {
         this.cameras.main.setBackgroundColor(COLORS_CSS.BG_DARK);
+        this.input.keyboard?.once('keydown-ESC', () => this.scene.start(SCENE_KEYS.CITY_MAP));
         const def = CaseManager.getCurrentCase();
 
         // OJO: cualquier texto con centro vertical dentro de la franja 0-40

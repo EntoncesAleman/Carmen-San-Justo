@@ -63,4 +63,31 @@ describe('CaseGenerator', () => {
             assertIdentikitSolvableAndNotTrivial(caso);
         }
     });
+
+    it('la dificultad escala con casosResueltos: rutas más largas y menos confiables a mayor rango, siempre ganable', () => {
+        // Todos los tiers de dificultad (ver difficultyTier() en
+        // CaseGenerator.ts) tienen que seguir produciendo casos íntegros y
+        // ganables — subir la dificultad no puede romper la garantía de
+        // "se puede ganar jugando perfecto" que ya cubre assertCaseIntegrity.
+        for (const casosResueltos of [0, 1, 2, 3, 4, 5, 6, 9]) {
+            for (let seed = 0; seed < 40; seed++) {
+                const caso = CaseGenerator.generate(seed, mulberry32(seed * 31 + casosResueltos), casosResueltos);
+                assertCaseIntegrity(caso, zoneIds, npcIds);
+            }
+        }
+
+        const rutaLargoPromedio = (casosResueltos: number) => {
+            let total = 0;
+            const trials = 60;
+            for (let seed = 0; seed < trials; seed++) {
+                total += CaseGenerator.generate(seed, mulberry32(seed * 17 + casosResueltos), casosResueltos).ruta.length;
+            }
+            return total / trials;
+        };
+
+        assert.ok(
+            rutaLargoPromedio(6) > rutaLargoPromedio(0),
+            'un detective con más casos resueltos debería recibir, en promedio, rutas más largas',
+        );
+    });
 });

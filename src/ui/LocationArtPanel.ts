@@ -5,6 +5,7 @@ import { getZone } from '../data/zones';
 import { getLocationByZone } from '../data/locations';
 import { getBackgroundKey } from '../data/portraits';
 import { FRAME } from './frameLayout';
+import { CURSOR_POINTER } from './cursor';
 
 // Panel arriba de la columna izquierda: arte de la zona actual (grande,
 // calca el "gráfico de la ciudad" del formato clásico — ver
@@ -42,7 +43,7 @@ export function renderLocationArtPanel(scene: Phaser.Scene, onEnter?: () => void
         .setOrigin(0, 0);
 
     if (onEnter) {
-        panel.setInteractive({ useHandCursor: true });
+        panel.setInteractive({ cursor: CURSOR_POINTER });
         panel.on('pointerdown', onEnter);
     }
 }

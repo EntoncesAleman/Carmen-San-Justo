@@ -1,11 +1,13 @@
 import * as Phaser from 'phaser';
 import '@fontsource/vt323';
-import { GAME } from './core/Constants';
+import { GAME, SCENE_KEYS } from './core/Constants';
+import { applyDetectiveCursor } from './ui/cursor';
 import { audioManager } from './audio/AudioManager';
 import { Boot } from './scenes/Boot';
 import { Preloader } from './scenes/Preloader';
 import { MainMenu } from './scenes/MainMenu';
 import { NameEntryScene } from './scenes/NameEntryScene';
+import { HallOfFameScene } from './scenes/HallOfFameScene';
 import { LoadGameScene } from './scenes/LoadGameScene';
 import { ReportScene } from './scenes/ReportScene';
 import { CityMapScene } from './scenes/CityMapScene';
@@ -30,6 +32,7 @@ const config: Phaser.Types.Core.GameConfig = {
         Preloader,
         MainMenu,
         NameEntryScene,
+        HallOfFameScene,
         LoadGameScene,
         ReportScene,
         CityMapScene,
@@ -45,7 +48,25 @@ const config: Phaser.Types.Core.GameConfig = {
     ],
 };
 
+// Escenas que se lanzan como overlay sobre otra ya visible (HUD, panel de
+// debug) en vez de reemplazarla — encadenarles un fade-in las haría
+// parpadear cada vez que se abren, así que quedan afuera del efecto.
+const OVERLAY_SCENE_KEYS = new Set<string>([SCENE_KEYS.HUD, SCENE_KEYS.DEBUG]);
+
 document.addEventListener('DOMContentLoaded', () => {
     audioManager.init();
-    new Phaser.Game(config);
+    const game = new Phaser.Game(config);
+    game.events.once(Phaser.Core.Events.READY, () => {
+        applyDetectiveCursor(game.canvas);
+        // Transición suave al entrar a cada escena en vez del corte seco
+        // de scene.start() — no se anima la salida (rompería el timing de
+        // los tests e2e que hacen click apenas cambia de escena), pero la
+        // entrada con fundido desde negro ya corta el salto brusco.
+        game.scene.scenes.forEach((scene) => {
+            if (OVERLAY_SCENE_KEYS.has(scene.sys.settings.key)) return;
+            scene.events.on(Phaser.Scenes.Events.CREATE, () => {
+                scene.cameras.main.fadeIn(180, 5, 5, 5);
+            });
+        });
+    });
 });

@@ -1,5 +1,6 @@
 import * as Phaser from 'phaser';
 import { audioManager } from '../audio/AudioManager';
+import { PreferencesStore } from '../core/Preferences';
 
 // Texto que aparece carácter por carácter (aventura clásica de terminal),
 // con sonido sutil cada pocos caracteres, salteable con `skip()`. No
@@ -18,7 +19,12 @@ export class TypewriterText {
         this.scene = scene;
         this.textObj = textObj;
         this.fullText = fullText;
-        this.msPerChar = msPerChar;
+        // La preferencia de velocidad (ver core/Preferences.ts, ciclable
+        // desde el HUD) escala el ritmo base que pide cada escena en vez
+        // de reemplazarlo — así una escena puede seguir pidiendo un tipeo
+        // más lento o más rápido que el resto y la preferencia del
+        // jugador se sigue respetando sobre esa base.
+        this.msPerChar = Math.max(2, Math.round(msPerChar * PreferencesStore.textSpeedMultiplier()));
         this.textObj.setText('');
     }
 

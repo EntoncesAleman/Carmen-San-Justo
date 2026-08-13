@@ -8,13 +8,14 @@ import { CaseManager } from '../systems/CaseManager';
 import { createButton } from '../ui/Button';
 import { SaveSystem } from '../core/SaveSystem';
 import { audioManager } from '../audio/AudioManager';
+import { PreferencesStore } from '../core/Preferences';
 
 // Overlay persistente durante el gameplay (mapa/locación). Se lanza en
 // paralelo, nunca reemplaza a la escena activa.
 export class HUDScene extends Phaser.Scene {
     private infoText!: Phaser.GameObjects.Text;
     private saveMenuContainer?: Phaser.GameObjects.Container;
-    private muteButton?: Phaser.GameObjects.Container;
+    private prefsMenuContainer?: Phaser.GameObjects.Container;
 
     constructor() {
         super(SCENE_KEYS.HUD);
@@ -30,10 +31,15 @@ export class HUDScene extends Phaser.Scene {
         });
 
         createButton(this, this.scale.width - 90, 20, 'Guardar', () => this.toggleSaveMenu(), { width: 130, height: 32, fontSize: '13px' });
-        this.renderMuteButton();
+        createButton(this, this.scale.width - 230, 20, 'Preferencias', () => this.togglePrefsMenu(), { width: 130, height: 32, fontSize: '13px' });
 
         if (DEBUG.ENABLED) {
-            this.add.text(this.scale.width - 320, 8, 'debug: tecla `', {
+            // Debajo de infoText, no a la derecha: infoText es de largo
+            // variable (nombre de zona, título de caso) y puede crecer
+            // hasta invadir el costado derecho donde viven los botones —
+            // una segunda línea angosta abajo es más segura que una
+            // posición fija a la derecha.
+            this.add.text(16, 26, 'debug: tecla `', {
                 fontFamily: '"VT323", monospace',
                 fontSize: '11px',
                 color: '#555c6e',
@@ -76,20 +82,53 @@ export class HUDScene extends Phaser.Scene {
         );
     }
 
-    private renderMuteButton() {
-        this.muteButton?.destroy();
-        const label = audioManager.isMuted() ? '🔇' : '🔊';
-        this.muteButton = createButton(
+    // Mute y velocidad de texto viven en un solo panel (mismo patrón que
+    // "Guardar en...") en vez de ser botones sueltos en la barra: la barra
+    // superior ya está apretada entre infoText (largo variable) y Guardar,
+    // y agregar más botones fijos ahí es frágil (ver nota junto al hint de
+    // debug más arriba).
+    private togglePrefsMenu() {
+        if (this.prefsMenuContainer) {
+            this.prefsMenuContainer.destroy();
+            this.prefsMenuContainer = undefined;
+            return;
+        }
+        this.renderPrefsMenu();
+    }
+
+    private renderPrefsMenu() {
+        this.prefsMenuContainer?.destroy();
+
+        const textSpeedLabels: Record<string, string> = { lenta: 'Texto: lento', normal: 'Texto: normal', rapida: 'Texto: rápido' };
+
+        const bg = this.add.rectangle(this.scale.width - 200, 130, 260, 130, COLORS.PANEL, 0.98).setStrokeStyle(2, COLORS.ACCENT);
+        const title = this.add
+            .text(this.scale.width - 200, 80, 'Preferencias', { fontFamily: '"VT323", monospace', fontSize: '13px', color: COLORS_CSS.TEXT })
+            .setOrigin(0.5);
+        const muteBtn = createButton(
             this,
-            this.scale.width - 194,
-            20,
-            label,
+            this.scale.width - 200,
+            115,
+            audioManager.isMuted() ? 'Sonido: mudo' : 'Sonido: activo',
             () => {
                 audioManager.toggleMuted();
-                this.renderMuteButton();
+                this.renderPrefsMenu();
             },
-            { width: 56, height: 28, fontSize: '15px' },
+            { width: 200, height: 32, fontSize: '13px' },
         );
+        const speedBtn = createButton(
+            this,
+            this.scale.width - 200,
+            155,
+            textSpeedLabels[PreferencesStore.get().textSpeed],
+            () => {
+                PreferencesStore.cycleTextSpeed();
+                this.renderPrefsMenu();
+            },
+            { width: 200, height: 32, fontSize: '13px' },
+        );
+
+        this.prefsMenuContainer = this.add.container(0, 0, [bg, title, muteBtn, speedBtn]);
     }
 
     private toggleSaveMenu() {

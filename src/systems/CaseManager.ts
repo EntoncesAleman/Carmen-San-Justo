@@ -66,7 +66,7 @@ export class CaseManager {
             this.startCase(CASES[gameState.casoIndex].id);
             return;
         }
-        const generated = CaseGenerator.generate(gameState.casoIndex);
+        const generated = CaseGenerator.generate(gameState.casoIndex, Math.random, gameState.casosResueltos);
         this.registerGeneratedCase(generated);
         this.startCase(generated.id);
     }

@@ -3,6 +3,8 @@ import { COLORS, COLORS_CSS, SCENE_KEYS } from '../core/Constants';
 import { gameState } from '../core/GameState';
 import { CaseManager } from '../systems/CaseManager';
 import { audioManager } from '../audio/AudioManager';
+import { HallOfFame } from '../core/HallOfFame';
+import { getRankForCasosResueltos } from '../data/ranks';
 
 const MAX_LENGTH = 18;
 const VALID_CHAR = /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]$/;
@@ -135,6 +137,20 @@ export class NameEntryScene extends Phaser.Scene {
 
     private confirm(name: string) {
         audioManager.playSfx('ui_click');
+
+        // Si había un detective anterior con algún caso resuelto, queda
+        // archivado en el Salón de la Fama antes de arrancar la carrera
+        // nueva (ver core/HallOfFame.ts) — resetCareer() más abajo borra
+        // casosResueltos, así que esto tiene que pasar ANTES.
+        if (gameState.detectiveName && gameState.casosResueltos > 0) {
+            HallOfFame.record({
+                name: gameState.detectiveName,
+                casosResueltos: gameState.casosResueltos,
+                rankTitulo: getRankForCasosResueltos(gameState.casosResueltos).titulo,
+                date: new Date().toISOString(),
+            });
+        }
+
         gameState.resetCareer();
         gameState.detectiveName = name.toUpperCase();
         CaseManager.startNextCaseInSequence();

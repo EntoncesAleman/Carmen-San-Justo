@@ -10,6 +10,7 @@ import { audioManager } from '../audio/AudioManager';
 import { getPortraitKey } from '../data/portraits';
 import { TypewriterText } from '../ui/TypewriterText';
 import { FRAME } from '../ui/frameLayout';
+import { CURSOR_POINTER } from '../ui/cursor';
 
 export interface DialogueSceneData {
     npcId: string;
@@ -127,9 +128,20 @@ export class DialogueScene extends Phaser.Scene {
         const typewriter = new TypewriterText(this, npcLineText, withDetectiveName(node.npcLine), 14);
         typewriter.start(showOptions);
 
-        const skipZone = this.add.zone(bubble.x, bubble.y, bubble.width, bubble.height).setOrigin(0, 0).setInteractive({ useHandCursor: true });
+        const skipZone = this.add.zone(bubble.x, bubble.y, bubble.width, bubble.height).setOrigin(0, 0).setInteractive({ cursor: CURSOR_POINTER });
         skipZone.on('pointerdown', () => typewriter.skip());
         this.contentContainer.add(skipZone);
+
+        // ENTER también saltea el tipeo, como "PRESIONE ENTER PARA
+        // CONTINUAR" del formato clásico — se re-registra en cada nodo
+        // (removeAllListeners primero) para no acumular listeners viejos.
+        // Con varias opciones a elegir no hay un "ENTER = continuar" único
+        // sin ambigüedad, así que una vez terminado el tipeo ENTER no hace
+        // nada más (hay que clickear/tocar un número).
+        this.input.keyboard?.removeAllListeners('keydown-ENTER');
+        this.input.keyboard?.on('keydown-ENTER', () => {
+            if (!typewriter.isDone) typewriter.skip();
+        });
     }
 
     private renderOptionRow(label: string, y: number, onClick: () => void): { container: Phaser.GameObjects.Container; height: number } {
@@ -147,7 +159,7 @@ export class DialogueScene extends Phaser.Scene {
         const label2 = this.add
             .text(10, height / 2, label, { fontFamily: FONTS.MONO, fontSize: '15px', color: COLORS_CSS.TEXT, wordWrap: { width: width - 20 } })
             .setOrigin(0, 0.5);
-        bg.setInteractive({ useHandCursor: true });
+        bg.setInteractive({ cursor: CURSOR_POINTER });
         bg.on('pointerover', () => label2.setColor(COLORS_CSS.ACCENT));
         bg.on('pointerout', () => label2.setColor(COLORS_CSS.TEXT));
         bg.on('pointerdown', () => {
@@ -201,9 +213,22 @@ export class DialogueScene extends Phaser.Scene {
         const typewriter = new TypewriterText(this, text, withDetectiveName(`${npc?.apodo ?? ''}: "${opt.responseLine}"`), 14);
         typewriter.start(showContinue);
 
-        const skipZone = this.add.zone(bubble.x, bubble.y, bubble.width, bubble.height).setOrigin(0, 0).setInteractive({ useHandCursor: true });
+        const skipZone = this.add.zone(bubble.x, bubble.y, bubble.width, bubble.height).setOrigin(0, 0).setInteractive({ cursor: CURSOR_POINTER });
         skipZone.on('pointerdown', () => typewriter.skip());
         this.contentContainer.add(skipZone);
+
+        // Acá sí hay una única salida ("Continuar") sin ambigüedad, así que
+        // ENTER hace las dos cosas: saltea el tipeo si todavía está
+        // corriendo, o confirma "Continuar" si ya terminó.
+        this.input.keyboard?.removeAllListeners('keydown-ENTER');
+        this.input.keyboard?.on('keydown-ENTER', () => {
+            if (!typewriter.isDone) {
+                typewriter.skip();
+                return;
+            }
+            this.currentNodeId = opt.next;
+            this.renderNode();
+        });
     }
 
     private finishDialogue() {

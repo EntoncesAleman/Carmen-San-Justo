@@ -1,5 +1,6 @@
 import { AUDIO } from '../core/Constants';
 import { EventBus, Events } from '../core/EventBus';
+import { PreferencesStore } from '../core/Preferences';
 import { AMBIENT_TRACKS, DEFAULT_SFX_GAIN, MUSIC_TRACKS, SFX, AmbientId, MusicTrackId, SfxId } from './tracks';
 
 // Sistema de audio modular con placeholders sintetizados (Web Audio API).
@@ -19,7 +20,10 @@ class AudioManager {
     private currentTrackTimer: ReturnType<typeof setInterval> | null = null;
     private currentAmbientId: AmbientId | null = null;
     private currentAmbientTimer: ReturnType<typeof setInterval> | null = null;
-    private muted = !AUDIO.ENABLED_BY_DEFAULT;
+    // El default de Preferences (ver core/Preferences.ts) ya coincide con
+    // AUDIO.ENABLED_BY_DEFAULT la primera vez que se abre el juego; de ahí
+    // en más, lo que persiste ahí gana por sobre la constante.
+    private muted = PreferencesStore.get().muted;
     private unlockListenersAttached = false;
 
     // Se llama una sola vez, típicamente desde Boot.
@@ -66,6 +70,7 @@ class AudioManager {
 
     setMuted(muted: boolean): void {
         this.muted = muted;
+        PreferencesStore.set({ muted });
         if (this.masterGain) {
             this.masterGain.gain.value = muted ? 0 : AUDIO.MASTER_VOLUME;
         }

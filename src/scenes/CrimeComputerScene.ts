@@ -30,6 +30,7 @@ export class CrimeComputerScene extends Phaser.Scene {
 
     create() {
         this.cameras.main.setBackgroundColor('#050705');
+        this.input.keyboard?.once('keydown-ESC', () => this.scene.start(SCENE_KEYS.CITY_MAP));
         const def = CaseManager.getCurrentCase();
 
         this.add

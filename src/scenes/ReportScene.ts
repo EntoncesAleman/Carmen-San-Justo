@@ -6,6 +6,7 @@ import { getZone } from '../data/zones';
 import { getRankForCasosResueltos } from '../data/ranks';
 import { gameState } from '../core/GameState';
 import { audioManager } from '../audio/AudioManager';
+import { CURSOR_POINTER } from '../ui/cursor';
 import { TypewriterText } from '../ui/TypewriterText';
 import { stopAllGameplayScenesExcept } from '../ui/sceneCleanup';
 
@@ -68,7 +69,7 @@ export class ReportScene extends Phaser.Scene {
         });
         const typewriter = new TypewriterText(this, descripcionText, def?.descripcion ?? '', 12);
         typewriter.start();
-        const skipZone = this.add.zone(left, y, 800, 100).setOrigin(0, 0).setInteractive({ useHandCursor: true });
+        const skipZone = this.add.zone(left, y, 800, 100).setOrigin(0, 0).setInteractive({ cursor: CURSOR_POINTER });
         skipZone.on('pointerdown', () => typewriter.skip());
 
         createButton(this, this.scale.width / 2, this.scale.height - 60, 'Ir a la escena del hecho', () => {

@@ -20,6 +20,31 @@ import { calibrateDeadlineMinutos } from './timeEstimate';
 
 const ATTRIBUTE_KEYS: SuspectAttributeKey[] = ['cabello', 'ojos', 'vehiculo', 'profesion', 'hobby', 'comida'];
 
+interface DifficultyTier {
+    rutaLengthRange: [number, number];
+    buffer: number;
+    confiabilidadPenalty: number;
+}
+
+// Escala con `casosResueltos` (el mismo contador que decide el rango en
+// data/ranks.ts) en vez de con `generationIndex`: si el jugador pierde
+// casos, la dificultad no debe seguir subiendo solo porque pasó el
+// tiempo. Tres perillas suben juntas con el rango: rutas más largas
+// (más viajes hasta el destino real), menos margen de tiempo sobre el
+// óptimo (BUFFER, ver timeEstimate.ts) y pistas menos confiables (fuerza
+// a cruzar más testimonios en vez de confiar en el primero que aparece).
+function difficultyTier(casosResueltos: number): DifficultyTier {
+    if (casosResueltos >= 5) return { rutaLengthRange: [4, 6], buffer: 1.15, confiabilidadPenalty: 20 };
+    if (casosResueltos >= 4) return { rutaLengthRange: [4, 5], buffer: 1.2, confiabilidadPenalty: 15 };
+    if (casosResueltos >= 2) return { rutaLengthRange: [3, 5], buffer: 1.3, confiabilidadPenalty: 8 };
+    return { rutaLengthRange: [3, 4], buffer: 1.4, confiabilidadPenalty: 0 };
+}
+
+function withPenalty(min: number, max: number, penalty: number, rng: Rng): number {
+    const floor = 15; // mismo piso que separa "BAJA confianza" en el expediente (ver CaseFileScene)
+    return randomInt(Math.max(floor, min - penalty), Math.max(floor + 5, max - penalty), rng);
+}
+
 // Arma un CaseDefinition nuevo combinando piezas reutilizables: un
 // operativo al azar (con sus atributos fijos de identikit), una ruta al
 // azar por el mapa, informantes al azar dando cada pista, un sospechoso
@@ -34,7 +59,8 @@ const ATTRIBUTE_KEYS: SuspectAttributeKey[] = ['cabello', 'ojos', 'vehiculo', 'p
 // mundo, mismos personajes, pero nunca la misma ruta ni el mismo caco dos
 // veces seguidas (ver docs/GAME_DESIGN.md → "Generador de casos").
 export class CaseGenerator {
-    static generate(generationIndex: number, rng: Rng = Math.random): CaseDefinition {
+    static generate(generationIndex: number, rng: Rng = Math.random, casosResueltos: number = 0): CaseDefinition {
+        const tier = difficultyTier(casosResueltos);
         const operativoId = pick(OPERATIVE_NPC_IDS, rng);
         const operativo = getNpc(operativoId);
         const perfil = getSuspect(operativoId);
@@ -57,7 +83,7 @@ export class CaseGenerator {
         // Solo la parada final puede ser una zona "vacía" de NPCs estáticos
         // (mismo patrón que Tigre/San Martín en los casos fijos).
         const populatedZoneIds = new Set(INFORMANT_NPC_IDS.map((id) => getNpc(id)!.zoneId));
-        const rutaLength = randomInt(3, 4, rng);
+        const rutaLength = randomInt(tier.rutaLengthRange[0], tier.rutaLengthRange[1], rng);
 
         const buildRuta = (largo: number): string[] | null => {
             for (const inicio of shuffle([...populatedZoneIds], rng)) {
@@ -79,7 +105,7 @@ export class CaseGenerator {
             return null;
         };
 
-        const ruta = buildRuta(rutaLength) ?? buildRuta(3) ?? buildRuta(2);
+        const ruta = buildRuta(rutaLength) ?? buildRuta(Math.max(3, rutaLength - 1)) ?? buildRuta(3) ?? buildRuta(2);
         if (!ruta) {
             throw new Error('CaseGenerator: no se pudo armar una ruta conectada — revisar data/zoneConnections.ts');
         }
@@ -122,7 +148,7 @@ export class CaseGenerator {
                 npcId: informanteId,
                 categoria: 'geografica',
                 relevancia: 'alta',
-                confiabilidad: randomInt(55, 80, rng),
+                confiabilidad: withPenalty(55, 80, tier.confiabilidadPenalty, rng),
                 destinosPosibles: [ruta[i + 1]],
                 esFalsa: false,
             });
@@ -143,7 +169,7 @@ export class CaseGenerator {
                 npcId: informanteId,
                 categoria: 'visual',
                 relevancia: 'baja',
-                confiabilidad: randomInt(45, 70, rng),
+                confiabilidad: withPenalty(45, 70, tier.confiabilidadPenalty, rng),
                 destinosPosibles: [],
                 esFalsa: false,
                 revealsAttribute: { key, value: valor },
@@ -161,7 +187,7 @@ export class CaseGenerator {
             ubicacionZoneId: ruta[0],
             categoria: 'visual',
             relevancia: 'baja',
-            confiabilidad: randomInt(50, 75, rng),
+            confiabilidad: withPenalty(50, 75, tier.confiabilidadPenalty, rng),
             destinosPosibles: [],
             esFalsa: false,
             revealsAttribute: { key: atributoExplorar, value: perfil.atributos[atributoExplorar] },
@@ -224,7 +250,7 @@ export class CaseGenerator {
         // cayendo cada informante de atributo (pueden quedar lejos de la
         // ruta principal), así que un valor fijo o le sobraba tiempo a los
         // casos fáciles o le faltaba a los difíciles (ver timeEstimate.ts).
-        const deadlineMinutos = calibrateDeadlineMinutos({ zonaInicial: ruta[0], destinoCorrectoZoneId, clues });
+        const deadlineMinutos = calibrateDeadlineMinutos({ zonaInicial: ruta[0], destinoCorrectoZoneId, clues }, tier.buffer);
 
         return {
             id,

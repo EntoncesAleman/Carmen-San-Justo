@@ -109,6 +109,7 @@ export const SCENE_KEYS = {
     PRELOADER: 'Preloader',
     MAIN_MENU: 'MainMenu',
     NAME_ENTRY: 'NameEntryScene',
+    HALL_OF_FAME: 'HallOfFameScene',
     LOAD_GAME: 'LoadGame',
     REPORT: 'ReportScene',
     CITY_MAP: 'CityMap',

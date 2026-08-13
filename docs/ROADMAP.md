@@ -561,14 +561,64 @@ secciones originales.
       sustitución, sin tocar el contenido de los casos. Verificado en
       navegador: NPCs saludan por el nombre real ingresado.
 
+- [x] **Salón de la Fama**: `core/HallOfFame.ts` + `HallOfFameScene` —
+      cuando arranca una carrera nueva y el detective anterior resolvió al
+      menos un caso, se archiva nombre/rango final/casos resueltos en un
+      registro propio (no se pisa al guardar). Accesible desde `MainMenu`.
+- [x] **Controles de teclado**: ESC vuelve al mapa desde Pizarrón/
+      Expediente/Inteligencia Criminal/Mapa gráfico. ENTER en diálogo
+      saltea el tipeo, y en la pantalla de respuesta (salida única sin
+      ambigüedad) también confirma "Continuar".
+- [x] **Arte faltante**: 17 zonas + 14 NPCs sin ilustración propia
+      (identificados en la auditoría) — todas las entradas agregadas a
+      `tools/generate_art.py`/`data/portraits.ts`, generadas con el mismo
+      pipeline de pixel art de FASE 19. Las 21 zonas y los 30 NPCs con
+      retrato ya tienen arte propio. Los 4 scripts de e2e re-corridos de
+      punta a punta contra el batch completo: cero errores de consola
+      (antes de esto, faltaban assets y Phaser lo reportaba como error de
+      carga por cada key todavía sin archivo).
+- [x] **Dificultad progresiva por rango**: `difficultyTier()` en
+      `CaseGenerator.ts`, keyed a `gameState.casosResueltos` (mismo
+      contador que decide el rango, no `generationIndex` — así perder
+      casos no sigue subiendo la dificultad). Sube junto: ruta más larga
+      (`rutaLengthRange`), menos margen de tiempo sobre el óptimo
+      (`buffer`, antes fijo en 1.4 — ver `timeEstimate.ts`) y pistas menos
+      confiables (`confiabilidadPenalty`, resta sobre los rangos de
+      `confiabilidad` de cada pista real). Los 4 tiers siguen garantizando
+      "ganable jugando perfecto" (mismo invariante de siempre,
+      `assertCaseIntegrity`) — cubierto con fuzzing dedicado en
+      `CaseGenerator.test.ts` sobre los 4 tiers. Deliberadamente no se
+      tocó "más sospechosos a rango alto": `falsoSospechosoId` es singular
+      en `CaseDefinition` hoy — soportar más de un sospechoso falso real
+      es un cambio de contrato (tipo + `SuspectBoardScene` +
+      `dialogueTemplates`), no una perilla más en el generador.
+- [x] **Cursor propio**: `ui/cursor.ts`, lupa dibujada a mano en SVG
+      (paleta ámbar/casi-negro del juego, no un asset de terceros) —
+      reemplaza el cursor de flecha por defecto (`applyDetectiveCursor`,
+      seteado una vez en `main.ts`) y el cursor de mano nativo en hover
+      (`useHandCursor: true` → `cursor: CURSOR_POINTER` en los 8 lugares
+      que lo usaban).
+- [x] **Transición de entrada entre escenas**: cada escena (menos HUD y
+      Debug, que son overlays) hace fade-in desde negro al crearse —
+      hookeado una sola vez en `main.ts` sobre `Phaser.Scenes.Events.CREATE`,
+      sin tocar los ~15 archivos de escena. Deliberadamente NO se animó
+      la salida (fade-out antes de `scene.start()`): sincronizarlo bien
+      hubiera significado tocar cada uno de los `scene.start()` del
+      código y arriesgar el timing de los tests e2e, que ya rompieron dos
+      veces este ciclo por asunciones de coordenadas/tiempos frágiles.
+- [x] **Preferencias persistidas**: `core/Preferences.ts` (localStorage,
+      separado de los 3 slots — mismo criterio que `HallOfFame.ts`: mute y
+      velocidad de texto son del navegador, no de la carrera). Mute
+      (`AudioManager`) y velocidad de tipeo (`TypewriterText`, multiplica
+      el `msPerChar` que pide cada escena en vez de reemplazarlo) leen y
+      escriben ahí. UI: un solo botón "Preferencias" en el HUD que abre un
+      panel — no dos botones sueltos en la barra superior, que ya está
+      apretada entre el texto de estado (largo variable) y "Guardar" (se
+      probó así primero, con overlap real confirmado por screenshot, y se
+      corrigió antes de commitear).
+
 ### Pendiente, en orden de impacto (no implementado todavía)
 
-- [ ] Arte de zona faltante: 17 de 21 zonas no tienen fondo ilustrado
-      propio (panel de arte negro sin imagen). Mismo pipeline de
-      `tools/generate_art.py` (FASE 19), solo falta correrlo para el
-      resto de las zonas.
-- [ ] Retratos de NPC faltantes: 12 de 28 NPCs sin retrato propio, mismo
-      pipeline.
 - [ ] Mecánica de transporte específico (ej. "subió al colectivo 21") como
       capa de deducción adicional sobre el viaje ya existente — mecánica
       NUEVA pedida, no una regresión de algo que ya existía.
@@ -576,18 +626,12 @@ secciones originales.
       vez de síntesis simple por osciladores — requiere decidir cómo
       reproducir MIDI en navegador (librería tipo `midi-player-js` +
       soundfont, o pre-renderizar a audio manteniendo la estética).
-- [ ] Salón de la Fama (historial de detectives/rangos/casos resueltos).
-- [ ] Dificultad progresiva por rango en `CaseGenerator` (rutas más
-      largas, pistas más ambiguas, más sospechosos a rango alto).
-- [ ] Controles de teclado (ENTER/ESC/atajos de letra) más allá del
-      backtick de debug y el Enter de `NameEntryScene`.
 - [ ] Animaciones/parpadeo ambiental en portraits y fondos (hoy 100%
-      estático) y transiciones entre escenas (hoy `scene.start()` corta
-      seco, sin wipe/flicker).
-- [ ] Cursor propio de videojuego (hoy es el cursor del navegador con
-      `useHandCursor`).
-- [ ] Preferencias de audio/velocidad de texto persistidas (hoy
-      `AudioManager` tiene volumen pero no se guarda en `SaveSystem`).
+      estático) — el fade-in de entrada entre escenas ya está (ver
+      arriba), esto es aparte: idle animation sobre el arte ya en pantalla.
+- [ ] Más sospechosos falsos a rango alto (ver nota junto a "dificultad
+      progresiva" arriba — requiere que `CaseDefinition.falsoSospechosoId`
+      deje de ser singular).
 
 ## Deuda de contenido conocida (no bloqueante)
 

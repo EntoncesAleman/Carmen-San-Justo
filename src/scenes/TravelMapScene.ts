@@ -5,6 +5,7 @@ import { getZone, ZONES } from '../data/zones';
 import { getConnections } from '../data/zoneConnections';
 import { getZoneMapPosition } from '../data/zoneMapPositions';
 import { audioManager } from '../audio/AudioManager';
+import { CURSOR_POINTER } from '../ui/cursor';
 
 export interface TravelMapSceneData {
     returnSceneKey: string;
@@ -37,6 +38,7 @@ export class TravelMapScene extends Phaser.Scene {
     create() {
         this.cameras.main.setBackgroundColor(COLORS_CSS.BG_DARK);
         audioManager.playSfx('ui_click');
+        this.input.keyboard?.once('keydown-ESC', () => this.scene.start(this.sceneData.returnSceneKey));
 
         this.add
             .text(this.scale.width / 2, 40, 'MAPA — EL CINTURÓN', { fontFamily: FONTS.MONO, fontSize: '22px', color: COLORS_CSS.ACCENT })
@@ -90,7 +92,7 @@ export class TravelMapScene extends Phaser.Scene {
                 .setOrigin(0.5, 0);
 
             if (isConnected) {
-                node.setInteractive({ useHandCursor: true });
+                node.setInteractive({ cursor: CURSOR_POINTER });
                 node.on('pointerover', () => {
                     node.setFillStyle(COLORS.SUCCESS, 1);
                     label.setColor('#ffffff');
@@ -122,7 +124,7 @@ export class TravelMapScene extends Phaser.Scene {
                 color: COLORS_CSS.ACCENT,
             })
             .setOrigin(0.5)
-            .setInteractive({ useHandCursor: true });
+            .setInteractive({ cursor: CURSOR_POINTER });
         closeBtn.on('pointerover', () => closeBtn.setColor('#ffffff'));
         closeBtn.on('pointerout', () => closeBtn.setColor(COLORS_CSS.ACCENT));
         closeBtn.on('pointerdown', () => {

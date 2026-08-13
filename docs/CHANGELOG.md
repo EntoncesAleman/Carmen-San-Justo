@@ -2,6 +2,55 @@
 
 Formato: fecha, qué se hizo, por qué. Más reciente arriba.
 
+## 2026-08-13 (continuación — FASE 21, ítems 7-10: dificultad progresiva, cursor propio, transición de entrada, preferencias persistidas)
+
+- **Dificultad progresiva por rango** (`CaseGenerator.difficultyTier()`,
+  keyed a `gameState.casosResueltos`): a más casos resueltos, rutas más
+  largas (`rutaLengthRange`), menos margen de tiempo sobre el óptimo
+  (`buffer` variable en vez del `BUFFER` fijo de `timeEstimate.ts`) y
+  pistas menos confiables (`confiabilidadPenalty` sobre `Clue.confiabilidad`).
+  Los 4 tiers siguen garantizando que el caso es ganable jugando perfecto
+  (mismo invariante `assertDeadlineIsWinnable` de siempre) — cubierto con
+  un test de fuzzing dedicado sobre los 4 tiers en `CaseGenerator.test.ts`.
+- **Cursor propio** (`ui/cursor.ts`): lupa en SVG dibujada a mano con la
+  paleta del juego, reemplaza la flecha del navegador y el cursor de mano
+  nativo (`useHandCursor` → `cursor: CURSOR_POINTER` en los 8 lugares que
+  lo usaban).
+- **Transición de entrada entre escenas**: fade-in desde negro al crear
+  cada escena de gameplay, hookeado una sola vez en `main.ts` sobre
+  `Phaser.Scenes.Events.CREATE` (HUD y Debug, que son overlays, quedan
+  afuera). No se animó la salida a propósito — ver ROADMAP.md para el
+  motivo (riesgo de timing en los tests e2e).
+- **Preferencias persistidas** (`core/Preferences.ts`, localStorage
+  separado de los 3 slots): mute y velocidad de tipeo sobreviven a
+  "Nueva Partida" y a cargar cualquier slot. En el HUD, un solo botón
+  "Preferencias" abre un panel con ambos — se probó primero como dos
+  botones sueltos en la barra superior y se encontró overlap real contra
+  el texto de estado (largo variable) por screenshot, así que se
+  consolidó en un panel antes de commitear.
+- Batch de arte de FASE 21 (17 fondos + 14 retratos) terminado y
+  verificado: los 4 scripts de e2e corren sin ningún error de consola
+  ahora que todos los assets referenciados existen en disco.
+
+## 2026-08-13 (continuación — FASE 21, ítems 4-6: Salón de la Fama, controles de teclado, arte faltante)
+
+- **Salón de la Fama** (`core/HallOfFame.ts`, `HallOfFameScene`): cuando el
+  jugador arranca una carrera nueva (`NameEntryScene`) y el detective
+  anterior había resuelto al menos un caso, se archiva su nombre, rango
+  final y casos resueltos en un registro separado de los slots de
+  guardado (no se pisa al guardar una partida nueva). Accesible desde
+  `MainMenu` → "Salón de la Fama", ordenado por casos resueltos.
+- **Controles de teclado**: ESC vuelve al mapa desde Pizarrón/Expediente/
+  Inteligencia Criminal/Mapa gráfico (antes solo tenían botón). ENTER en
+  diálogo saltea el tipeo en curso, y en la pantalla de respuesta
+  (`showResponse`, una sola salida sin ambigüedad) también confirma
+  "Continuar" una vez terminado de tipear.
+- **Arte faltante** (17 zonas + 14 NPCs sin ilustración propia,
+  identificado en la auditoría): agregadas todas las entradas restantes a
+  `tools/generate_art.py` y `data/portraits.ts`, corridas con el mismo
+  pipeline de pixel art algorítmico de FASE 19. Ahora las 21 zonas y los
+  30 NPCs con retrato tienen arte propio.
+
 ## 2026-08-13 (continuación — FASE 21, ítem 3: nombre del detective en las líneas de diálogo)
 
 Los 3 casos fijos y las plantillas del generador ya tenían un nombre de

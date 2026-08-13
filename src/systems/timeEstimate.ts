@@ -61,11 +61,18 @@ export function estimateOptimalMinutos(caso: Pick<CaseDefinition, 'zonaInicial' 
 // Cuánto margen le damos al jugador por arriba del óptimo: suficiente para
 // alguna vuelta de más, seguir la pista falsa antes de descartarla o
 // esperar una vez, pero no tanto como para volver a sentirse "sin límite"
-// (ver el reclamo original: "viajo para todos lados sin perder").
+// (ver el reclamo original: "viajo para todos lados sin perder"). Es el
+// default para los 3 casos fijos y para un jugador recién llegado; los
+// casos generados lo achican a medida que sube de rango (ver
+// difficultyTier() en CaseGenerator.ts) — mismo piso de "se puede ganar
+// jugando perfecto" (BUFFER > 1), pero cada vez con menos margen de error.
 const BUFFER = 1.4;
 
-export function calibrateDeadlineMinutos(caso: Pick<CaseDefinition, 'zonaInicial' | 'destinoCorrectoZoneId' | 'clues'>): number {
+export function calibrateDeadlineMinutos(
+    caso: Pick<CaseDefinition, 'zonaInicial' | 'destinoCorrectoZoneId' | 'clues'>,
+    buffer: number = BUFFER,
+): number {
     const optimo = estimateOptimalMinutos(caso);
-    const conMargen = Math.ceil((optimo * BUFFER) / 15) * 15;
+    const conMargen = Math.ceil((optimo * buffer) / 15) * 15;
     return Math.min(1200, Math.max(480, conMargen));
 }

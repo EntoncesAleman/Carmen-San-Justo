@@ -2,6 +2,7 @@ import * as Phaser from 'phaser';
 import { COLORS, COLORS_CSS, FONTS } from '../core/Constants';
 import { audioManager } from '../audio/AudioManager';
 import { FRAME } from './frameLayout';
+import { CURSOR_POINTER } from './cursor';
 
 export interface ActionMenuItem {
     label: string;
@@ -53,7 +54,7 @@ export function renderActionMenu(scene: Phaser.Scene, items: ActionMenuItem[], t
                 color: baseColor,
                 wordWrap: { width: FRAME.rightWidth - 32 },
             })
-            .setInteractive({ useHandCursor: true });
+            .setInteractive({ cursor: CURSOR_POINTER });
 
         // "locked" es solo estilo (atenuado, sin hover dorado) — el click
         // SIGUE andando: una acción bloqueada tiene que poder explicar por

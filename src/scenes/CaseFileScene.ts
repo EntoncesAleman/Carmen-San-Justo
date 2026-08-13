@@ -13,6 +13,7 @@ export class CaseFileScene extends Phaser.Scene {
 
     create() {
         this.cameras.main.setBackgroundColor(COLORS_CSS.BG_DARK);
+        this.input.keyboard?.once('keydown-ESC', () => this.scene.start(SCENE_KEYS.CITY_MAP));
         const def = CaseManager.getCurrentCase();
 
         this.add
