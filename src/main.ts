@@ -9,6 +9,7 @@ import { NameEntryScene } from './scenes/NameEntryScene';
 import { LoadGameScene } from './scenes/LoadGameScene';
 import { ReportScene } from './scenes/ReportScene';
 import { CityMapScene } from './scenes/CityMapScene';
+import { TravelMapScene } from './scenes/TravelMapScene';
 import { LocationScene } from './scenes/LocationScene';
 import { DialogueScene } from './scenes/DialogueScene';
 import { SuspectBoardScene } from './scenes/SuspectBoardScene';
@@ -32,6 +33,7 @@ const config: Phaser.Types.Core.GameConfig = {
         LoadGameScene,
         ReportScene,
         CityMapScene,
+        TravelMapScene,
         LocationScene,
         DialogueScene,
         SuspectBoardScene,

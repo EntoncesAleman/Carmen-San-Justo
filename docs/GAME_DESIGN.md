@@ -226,6 +226,22 @@ sus vecinas), `CityMapScene` agrega "Quedarme e investigar acá" como
 primer ítem del menú, para entrar a `LocationScene` sin viajar y sin
 costo de tiempo.
 
+### Mapa gráfico de viaje
+
+Pedido explícito (FASE 21): "viajar" no podía ser solo una línea de texto
+en el menú ("Viajar a San Telmo") — tenía que sentirse como un mapa de
+verdad. `TravelMapScene` dibuja las 21 zonas como nodos (posiciones
+hand-authored en `data/zoneMapPositions.ts`, siguiendo a grandes rasgos
+la geografía real del AMBA — norte arriba, sur abajo, el río a la
+derecha) conectados por líneas según `zoneConnections.ts`. La zona actual
+se resalta en ámbar, sus conexiones directas en verde y son clickeables
+(disparan la misma función `travelTo` que ya usa el menú de texto — mismo
+costo de tiempo, mismo respeto por el grafo), el resto queda atenuado
+solo para dar contexto geográfico. Se abre con "Ver el mapa" desde el
+menú de acciones de `CityMapScene`/`LocationScene`; es una forma
+ALTERNATIVA de disparar el viaje, no reemplaza la lista de texto (que
+sigue existiendo para quien prefiera no usar el mapa).
+
 ### Deadline calibrado, no fijo
 
 Con la red de conexiones, el costo real de resolver un caso depende de

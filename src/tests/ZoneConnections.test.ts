@@ -2,6 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { ZONES } from '../data/zones';
 import { ZONE_CONNECTIONS, getConnections } from '../data/zoneConnections';
+import { getZoneMapPosition } from '../data/zoneMapPositions';
 import { CASES } from '../data/cases';
 
 const zoneIds = new Set(ZONES.map((z) => z.id));
@@ -41,6 +42,10 @@ describe('ZoneConnections', () => {
             });
         }
         ZONES.forEach((z) => assert.ok(visited.has(z.id), `${z.id} no es alcanzable desde ${start} — el grafo está partido en dos`));
+    });
+
+    it('toda zona tiene una posición definida para el mapa gráfico de viaje (TravelMapScene)', () => {
+        ZONES.forEach((z) => assert.ok(getZoneMapPosition(z.id), `${z.id} no tiene posición en zoneMapPositions.ts — no se dibujaría en el mapa`));
     });
 
     CASES.forEach((caso) => {

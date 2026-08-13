@@ -112,6 +112,7 @@ export const SCENE_KEYS = {
     LOAD_GAME: 'LoadGame',
     REPORT: 'ReportScene',
     CITY_MAP: 'CityMap',
+    TRAVEL_MAP: 'TravelMapScene',
     LOCATION: 'LocationScene',
     DIALOGUE: 'DialogueScene',
     SUSPECT_BOARD: 'SuspectBoardScene',

@@ -2,6 +2,30 @@
 
 Formato: fecha, qué se hizo, por qué. Más reciente arriba.
 
+## 2026-08-13 (continuación — FASE 21, ítem 2: mapa gráfico de viaje)
+
+Pedido: "viajar" no podía seguir siendo solo una línea de texto en el
+menú — tenía que sentirse como un mapa de verdad, dibujado.
+
+- `data/zoneMapPositions.ts` (nuevo): posición (x,y) de cada una de las 21
+  zonas, hand-authored siguiendo a grandes rasgos la geografía real del
+  AMBA (norte arriba, sur abajo, el río a la derecha) — no a escala, es
+  esquemático como un mapa de subte, pensado para que las líneas de
+  conexión no se crucen demasiado.
+- `TravelMapScene` (nuevo): dibuja los 21 nodos + las líneas de
+  `zoneConnections.ts`, zona actual en ámbar, conexiones directas en
+  verde y clickeables (mismo `travelTo` que ya usaba el menú de texto —
+  mismo costo de tiempo), el resto atenuado solo para contexto. Se abre
+  con "Ver el mapa" desde `CityMapScene`/`LocationScene`, alternativa al
+  menú de texto, no lo reemplaza.
+- Nuevo test de integridad: toda zona tiene una posición definida (si se
+  agrega una zona nueva sin posición, el test lo detecta en vez de
+  descubrirse jugando).
+- Los 2 scripts de `tools/e2e_*.py` que dependían de índices exactos del
+  menú de acciones (`e2e_smoke_test.py`, `e2e_caso3_test.py`) actualizados
+  — insertar "Ver el mapa" corrió un lugar a todo lo que venía después en
+  CityMapScene y LocationScene.
+
 ## 2026-08-13 (continuación — FASE 21: auditoría + identidad del detective)
 
 El usuario entregó una especificación extremadamente detallada (80

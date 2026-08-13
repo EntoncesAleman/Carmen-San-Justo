@@ -36,6 +36,14 @@ export class CityMapScene extends Phaser.Scene {
 
         const items: ActionMenuItem[] = [
             { label: 'Quedarme e investigar acá', onClick: () => this.scene.start(SCENE_KEYS.LOCATION) },
+            {
+                label: 'Ver el mapa',
+                onClick: () =>
+                    this.scene.start(SCENE_KEYS.TRAVEL_MAP, {
+                        returnSceneKey: SCENE_KEYS.CITY_MAP,
+                        onTravel: (zoneId: string) => this.travelTo(zoneId),
+                    }),
+            },
         ];
         getConnections(gameState.currentZoneId).forEach((zoneId) => {
             const destino = getZone(zoneId);

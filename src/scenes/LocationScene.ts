@@ -100,6 +100,14 @@ export class LocationScene extends Phaser.Scene {
         });
 
         items.push({ label: 'Explorar', onClick: () => this.explore() });
+        items.push({
+            label: 'Ver el mapa',
+            onClick: () =>
+                this.scene.start(SCENE_KEYS.TRAVEL_MAP, {
+                    returnSceneKey: SCENE_KEYS.LOCATION,
+                    onTravel: (zoneId: string) => this.travelTo(zoneId),
+                }),
+        });
 
         getConnections(gameState.currentZoneId).forEach((zoneId) => {
             const destino = getZone(zoneId);

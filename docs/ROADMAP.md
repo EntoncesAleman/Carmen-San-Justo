@@ -543,14 +543,19 @@ secciones originales.
       ("CONFIANZA: ALTA/MEDIA/BAJA", derivado de `Clue.confiabilidad`).
 - [x] Bug real encontrado en la auditoría: `ReportScene` con panel de
       color hardcodeado, no `COLORS.PANEL` — corregido.
+- [x] **Mapa gráfico de viaje**: `TravelMapScene` nueva, dibuja las 21
+      zonas como nodos (`data/zoneMapPositions.ts`, geografía real del
+      AMBA a grandes rasgos) conectados por líneas
+      (`data/zoneConnections.ts`), zona actual en ámbar, conexiones
+      directas en verde y clickeables (mismo `travelTo` de siempre — mismo
+      costo de tiempo). Se abre con "Ver el mapa" desde el menú de
+      acciones, alternativa a la lista de texto, no la reemplaza. Insertar
+      este ítem corrió los índices de todo lo que venía después en
+      CityMapScene/LocationScene — 2 scripts de `tools/e2e_*.py`
+      actualizados y reverificados de punta a punta.
 
 ### Pendiente, en orden de impacto (no implementado todavía)
 
-- [ ] **Mapa gráfico de viaje** — hoy "viajar" es una línea de texto en
-      el menú numerado ("Viajar a San Telmo"), sin representación visual
-      del territorio (nodos/líneas). Es la brecha visual más grande que
-      queda. Requiere una escena/panel nuevo que dibuje el grafo de
-      `data/zoneConnections.ts`.
 - [ ] Nombre del detective integrado en las LÍNEAS de diálogo de los NPCs
       (hoy solo aparece en pantallas "de sistema": reporte, expediente,
       inteligencia criminal, final) — requiere tocar los árboles de

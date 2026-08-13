@@ -31,11 +31,15 @@ IMPORTANTE — cosas que ya rompieron este script antes y por qué:
      DebugScene/EndingScene NO forman parte de ese frame y siguen con
      coordenadas propias hardcodeadas acá.
   3. El ÍNDICE de cada ítem del menú numerado depende de CUÁNTOS ítems lo
-     preceden (NPCs de la locación, si hay "Explorar", cuántas conexiones
-     tiene la zona) — no es fijo entre escenas. Cada paso de este script
-     comenta explícitamente qué índice corresponde a qué acción y por qué,
-     basado en `src/data/locations.ts` (npcIds por lugar) y
-     `src/data/zoneConnections.ts` (conexiones por zona).
+     preceden (NPCs de la locación, si hay "Explorar", "Ver el mapa",
+     cuántas conexiones tiene la zona) — no es fijo entre escenas. Cada
+     paso de este script comenta explícitamente qué índice corresponde a
+     qué acción y por qué, basado en `src/data/locations.ts` (npcIds por
+     lugar) y `src/data/zoneConnections.ts` (conexiones por zona). Desde
+     FASE 21, CityMapScene tiene "Ver el mapa" como ítem 1 (después de
+     "Quedarme") y LocationScene lo tiene justo después de "Explorar" —
+     TODO lo que sigue (viajar/pizarrón/expediente/inteligencia) se corre
+     un lugar respecto de antes.
   4. El overlay de DebugScene NO bloquea los clicks hacia la escena de
      abajo (limitación de Phaser con escenas paralelas) — cerrarlo
      SIEMPRE con la tecla backtick, nunca clickeando su botón "Cerrar".
@@ -124,9 +128,8 @@ def run():
         click(*dialogue_option(0))  # Continuar
         page.wait_for_timeout(500)
 
-        # LocationScene(terminal_sur): items=[Simón,Beba,Explorar,4 viajar] -> Expediente no está acá,
-        # hay que ir por Pizarrón(7)/Inteligencia(9); para el expediente: item 8
-        click(*action_menu_item(8))  # Expediente
+        # LocationScene(terminal_sur): items=[Simón(0),Beba(1),Explorar(2),Ver el mapa(3),4 viajar(4-7),Pizarrón(8),Expediente(9),Inteligencia(10)]
+        click(*action_menu_item(9))  # Expediente
         page.wait_for_timeout(300)
         page.screenshot(path="/tmp/smoke_04_expediente.png")
         page.close()
@@ -154,8 +157,8 @@ def run():
         click(*dialogue_option(0))
         page.wait_for_timeout(500)
 
-        # Pizarrón: items=[Simón(0),Beba(1),Explorar(2),4 viajar(3-6)] -> Pizarrón = 7
-        click(*action_menu_item(7))
+        # Pizarrón: items=[Simón(0),Beba(1),Explorar(2),Ver el mapa(3),4 viajar(4-7)] -> Pizarrón = 8
+        click(*action_menu_item(8))
         page.wait_for_timeout(400)
         # El Pizarrón solo ofrece zonas señaladas por pistas YA CONSEGUIDAS
         # (ver SuspectBoardScene.ts / fix del exploit de fuerza bruta): con 1
@@ -178,8 +181,8 @@ def run():
         click(*dialogue_option(0))
         page.wait_for_timeout(500)
 
-        # LocationScene(oeste_profundo): items=[Cacho(0),Explorar(1),5 viajar(2-6)] -> Pizarrón = 7
-        click(*action_menu_item(7))
+        # LocationScene(oeste_profundo): items=[Cacho(0),Explorar(1),Ver el mapa(2),5 viajar(3-7)] -> Pizarrón = 8
+        click(*action_menu_item(8))
         page.wait_for_timeout(400)
         # Ahora 2 pistas reales colectadas -> 2 opciones: oeste_profundo (de
         # Simón, ya recorrida) en col0, el_delta (de Cacho, la nueva) en
@@ -192,20 +195,20 @@ def run():
         page.screenshot(path="/tmp/smoke_07_el_delta_locked.png")  # sospechoso visible pero bloqueado
 
         # LocationScene(el_delta), 0 npcIds propios + sospechoso bloqueado:
-        # items=[sospechoso bloqueado(0),Explorar(1),3 viajar(2-4)]. Ruta a
+        # items=[sospechoso bloqueado(0),Explorar(1),Ver el mapa(2),3 viajar(3-5)]. Ruta a
         # Parque Obrero (no conectado directo): el_delta -> barranca_norte
         # -> costa_alta -> parque_obrero. Conexiones el_delta=[km_20,
         # barranca_norte,oeste_profundo] -> barranca_norte es la 2da -> item
-        # index = 2(offset) + 1 = 3.
-        click(*action_menu_item(3))
-        page.wait_for_timeout(400)
-        # LocationScene(barranca_norte), 0 npcIds: items=[Explorar(0),3 viajar(1-3)].
-        # Conexiones=[costa_alta,terminal_norte,el_delta] -> costa_alta es la 1ra -> item 1.
-        click(*action_menu_item(1))
-        page.wait_for_timeout(400)
-        # LocationScene(costa_alta), npcIds=[yamila_cospito]: items=[Yamila(0),Explorar(1),4 viajar(2-5)].
-        # Conexiones=[palo_alto,barranca_norte,parque_obrero,la_cervecera] -> parque_obrero es la 3ra -> item 2+2=4.
+        # index = 3(offset) + 1 = 4.
         click(*action_menu_item(4))
+        page.wait_for_timeout(400)
+        # LocationScene(barranca_norte), 0 npcIds: items=[Explorar(0),Ver el mapa(1),3 viajar(2-4)].
+        # Conexiones=[costa_alta,terminal_norte,el_delta] -> costa_alta es la 1ra -> item 2.
+        click(*action_menu_item(2))
+        page.wait_for_timeout(400)
+        # LocationScene(costa_alta), npcIds=[yamila_cospito]: items=[Yamila(0),Explorar(1),Ver el mapa(2),4 viajar(3-6)].
+        # Conexiones=[palo_alto,barranca_norte,parque_obrero,la_cervecera] -> parque_obrero es la 3ra -> item 3+2=5.
+        click(*action_menu_item(5))
         page.wait_for_timeout(400)
         page.screenshot(path="/tmp/smoke_07b_parque_obrero.png")
 
@@ -219,8 +222,8 @@ def run():
         click(*dialogue_option(0))
         page.wait_for_timeout(500)
 
-        # LocationScene(parque_obrero): items=[Pipo(0),Palomas(1),Explorar(2),4 viajar(3-6),Pizarrón(7),Expediente(8),Inteligencia(9)]
-        click(*action_menu_item(9))  # Sistema de Inteligencia Criminal
+        # LocationScene(parque_obrero): items=[Pipo(0),Palomas(1),Explorar(2),Ver el mapa(3),4 viajar(4-7),Pizarrón(8),Expediente(9),Inteligencia(10)]
+        click(*action_menu_item(10))  # Sistema de Inteligencia Criminal
         page.wait_for_timeout(500)
         page.screenshot(path="/tmp/smoke_08_crime_computer.png")
         click(512, 610)  # CALCULAR (por si el auto-cálculo no alcanzó a pintar; escena propia, sin cambios)
@@ -229,18 +232,18 @@ def run():
         click(512, 668)  # EMITIR ORDEN DE CAPTURA (CrimeComputerScene, sin cambios) -> vuelve a CityMap(parque_obrero)
         page.wait_for_timeout(400)
 
-        # CityMapScene(parque_obrero): items=[Quedarme(0),4 viajar(1-4)]. Ruta a
+        # CityMapScene(parque_obrero): items=[Quedarme(0),Ver el mapa(1),4 viajar(2-5)]. Ruta a
         # El Delta: parque_obrero -> costa_alta -> barranca_norte -> el_delta.
-        # Conexiones parque_obrero=[barrio_fabrica,villa_flor,el_cruce,costa_alta] -> costa_alta es la 4ta -> item 1+3=4.
+        # Conexiones parque_obrero=[barrio_fabrica,villa_flor,el_cruce,costa_alta] -> costa_alta es la 4ta -> item 2+3=5.
+        click(*action_menu_item(5))
+        page.wait_for_timeout(400)
+        # LocationScene(costa_alta): items=[Yamila(0),Explorar(1),Ver el mapa(2),4 viajar(3-6)].
+        # Conexiones=[palo_alto,barranca_norte,parque_obrero,la_cervecera] -> barranca_norte es la 2da -> item 3+1=4.
         click(*action_menu_item(4))
         page.wait_for_timeout(400)
-        # LocationScene(costa_alta): items=[Yamila(0),Explorar(1),4 viajar(2-5)].
-        # Conexiones=[palo_alto,barranca_norte,parque_obrero,la_cervecera] -> barranca_norte es la 2da -> item 2+1=3.
-        click(*action_menu_item(3))
-        page.wait_for_timeout(400)
-        # LocationScene(barranca_norte): items=[Explorar(0),3 viajar(1-3)].
-        # Conexiones=[costa_alta,terminal_norte,el_delta] -> el_delta es la 3ra -> item 1+2=3.
-        click(*action_menu_item(3))
+        # LocationScene(barranca_norte): items=[Explorar(0),Ver el mapa(1),3 viajar(2-4)].
+        # Conexiones=[costa_alta,terminal_norte,el_delta] -> el_delta es la 3ra -> item 2+2=4.
+        click(*action_menu_item(4))
         page.wait_for_timeout(500)
         page.screenshot(path="/tmp/smoke_10_el_delta_unlocked.png")
 
