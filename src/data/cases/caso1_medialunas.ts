@@ -161,7 +161,11 @@ export const caso1Medialunas: CaseDefinition = {
     fechaHoraDelHecho: 'Esta madrugada, cerca de las 03:00, en Terminal Sur',
     sospechosoId: 'el_ingeniero_contreras',
     zonaInicial: 'terminal_sur',
-    deadlineMinutos: 720,
+    // Calibrado contra la red de conexiones entre zonas: el óptimo real
+    // para juntar todas las pistas y llegar al destino correcto es ~745
+    // minutos (ver src/systems/timeEstimate.ts) — 720 lo hacía imposible
+    // de ganar incluso jugando perfecto.
+    deadlineMinutos: 1050,
     clues,
     cluesRequeridasParaResolver: ['clue_kiosco_medialunas', 'clue_libro_guardia', 'clue_tango_lancha', 'clue_remise_pampa'],
     ruta: ['terminal_sur', 'oeste_profundo', 'el_delta'],

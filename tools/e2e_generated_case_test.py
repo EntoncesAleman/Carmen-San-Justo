@@ -11,13 +11,20 @@ esta corrida.
 
 Coordenadas de CityMap/Location/Dialogue centralizadas en
 tools/frame_coords.py (pantalla dividida, ver src/ui/frameLayout.ts).
+
+Desde la red de conexiones entre zonas (ver data/zoneConnections.ts), el
+panel de destinos ya no lista las 21 zonas del mundo siempre en el mismo
+orden — lista solo las conectadas a la zona actual, que en un caso
+generado es aleatoria. Por eso ya no se puede asumir "tal zona siempre
+está en la fila 0"; en cambio se usa `enter_current_location()` para
+entrar directo a la zona inicial de ESTA corrida, sea cual sea.
 """
 
 import sys
 import os
 
 sys.path.insert(0, os.path.dirname(__file__))
-from frame_coords import destination_list_zone, location_npc_row, dialogue_option, dialogue_skip_zone
+from frame_coords import enter_current_location, location_npc_row, dialogue_option, dialogue_skip_zone
 
 from playwright.sync_api import sync_playwright
 
@@ -77,10 +84,8 @@ def run():
         page.wait_for_timeout(700)
         page.screenshot(path="/tmp/gen_02_citymap.png")
 
-        # Cualquier fila de la lista de destinos navega a LocationScene
-        # (manzana_fria siempre está en la fila 0, sin importar cuál sea la
-        # zona inicial de esta corrida en particular).
-        click(*destination_list_zone('manzana_fria'))
+        # Entrar a la zona inicial de esta corrida (aleatoria) sin viajar.
+        click(*enter_current_location())
         page.wait_for_timeout(500)
         page.screenshot(path="/tmp/gen_03_first_location.png")
 

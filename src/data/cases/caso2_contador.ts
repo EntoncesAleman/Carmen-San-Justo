@@ -111,7 +111,9 @@ export const caso2Contador: CaseDefinition = {
     fechaHoraDelHecho: 'Anoche, en algún momento entre la parrilla de Pipo y el amanecer',
     sospechosoId: 'chiche_molina',
     zonaInicial: 'parque_obrero',
-    deadlineMinutos: 720,
+    // Calibrado contra la red de conexiones entre zonas — ver
+    // src/systems/timeEstimate.ts y el mismo comentario en caso1_medialunas.
+    deadlineMinutos: 1020,
     clues,
     cluesRequeridasParaResolver: ['clue_pipo_faltante', 'clue_llamada_cervecera', 'clue_transferencia_yamila', 'clue_auto_egidio'],
     ruta: ['parque_obrero', 'costa_alta', 'la_cervecera'],

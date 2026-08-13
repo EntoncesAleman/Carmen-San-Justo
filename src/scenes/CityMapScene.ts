@@ -26,7 +26,7 @@ export class CityMapScene extends Phaser.Scene {
         audioManager.playMusic(gameState.deadlineWarningEmitted ? 'peligro' : 'investigacion');
 
         renderDestinationListPanel(this, (zoneId) => this.travelTo(zoneId));
-        renderLocationArtPanel(this);
+        renderLocationArtPanel(this, () => this.scene.start(SCENE_KEYS.LOCATION));
         this.renderStatusPanel();
 
         createIconToolbar(this, [

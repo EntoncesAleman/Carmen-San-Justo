@@ -3,6 +3,8 @@ import { gameState } from '../../core/GameState';
 import { CaseDefinition } from '../../data/types';
 import { CrimeComputerSystem } from '../../systems/CrimeComputerSystem';
 import { getSuspect } from '../../data/suspects';
+import { getConnections } from '../../data/zoneConnections';
+import { estimateOptimalMinutos } from '../../systems/timeEstimate';
 
 // Invariantes que CUALQUIER CaseDefinition tiene que cumplir, sea escrito
 // a mano o armado por CaseGenerator — reutilizado por
@@ -22,6 +24,12 @@ export function assertCaseIntegrity(caso: CaseDefinition, zoneIds: Set<string>, 
     assert.equal(caso.ruta[0], caso.zonaInicial, `${caso.id}: la ruta debería empezar en zonaInicial`);
     assert.equal(caso.ruta[caso.ruta.length - 1], caso.destinoCorrectoZoneId, `${caso.id}: la ruta debería terminar en destinoCorrectoZoneId`);
     assert.equal(new Set(caso.ruta).size, caso.ruta.length, `${caso.id}: la ruta repite alguna zona`);
+    for (let i = 0; i < caso.ruta.length - 1; i++) {
+        assert.ok(
+            getConnections(caso.ruta[i]).includes(caso.ruta[i + 1]),
+            `${caso.id}: ${caso.ruta[i]} no conecta directamente con ${caso.ruta[i + 1]} — la ruta no se podría recorrer con el mapa de conexiones`,
+        );
+    }
 
     caso.clues.forEach((c) => assert.ok(zoneIds.has(c.ubicacionZoneId), `${caso.id}: ${c.id} referencia una zona inexistente ${c.ubicacionZoneId}`));
     caso.clues
@@ -63,6 +71,12 @@ export function assertCaseIntegrity(caso: CaseDefinition, zoneIds: Set<string>, 
     const conteoPorNpc = new Map<string, number>();
     caso.dialogueTrees.forEach((t) => conteoPorNpc.set(t.npcId, (conteoPorNpc.get(t.npcId) ?? 0) + 1));
     conteoPorNpc.forEach((count, npcId) => assert.equal(count, 1, `${caso.id}: ${npcId} tiene ${count} árboles de diálogo, debería tener 1`));
+
+    const optimo = estimateOptimalMinutos(caso);
+    assert.ok(
+        caso.deadlineMinutos >= optimo,
+        `${caso.id}: deadlineMinutos (${caso.deadlineMinutos}) es menor al óptimo teórico (${optimo}) — el caso sería imposible de ganar ni jugando perfecto`,
+    );
 
     const idsFinales = new Set(caso.finales.map((f) => f.id));
     ['resuelto_correcto', 'banda_escapa', 'sospechoso_equivocado', 'escandalo', 'final_absurdo', 'final_secreto', 'final_perfecto'].forEach((id) =>

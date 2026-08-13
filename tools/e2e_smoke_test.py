@@ -38,13 +38,30 @@ IMPORTANTE — cosas que ya rompieron este script antes y por qué:
      en paralelo con HUDScene se renderiza corrupto (glitch de compositing
      entre cámaras de Phaser). Si algo nuevo se ve mal, comparar con una
      captura antes de asumir "funciona".
+  5. Desde la red de conexiones entre zonas (ver data/zoneConnections.ts),
+     el panel de destinos ya NO lista las 21 zonas del mundo: solo lista
+     las CONECTADAS a la zona en la que estás parado. Un "viaje" a una
+     zona no adyacente necesita varios clicks seguidos (uno por salto) —
+     usar el helper `travel()` de acá abajo, que resuelve el camino más
+     corto con `frame_coords.shortest_path`. Y ya no existe el truco de
+     "clickear tu propia zona en la lista" para entrar gratis a la
+     locación: eso ahora es `enter_current_location()` (clickear el panel
+     de arte).
 """
 
 import sys
 import os
 
 sys.path.insert(0, os.path.dirname(__file__))
-from frame_coords import toolbar_button, destination_list_zone, location_npc_row, dialogue_option, dialogue_skip_zone
+from frame_coords import (
+    toolbar_button,
+    destination_list_zone,
+    enter_current_location,
+    shortest_path,
+    location_npc_row,
+    dialogue_option,
+    dialogue_skip_zone,
+)
 
 from playwright.sync_api import sync_playwright
 
@@ -77,6 +94,18 @@ def run():
             click(*dialogue_skip_zone())
             page.wait_for_timeout(200)
 
+        def travel(click, page, current_zone, target_zone):
+            """Viaja de `current_zone` a `target_zone` haciendo un click
+            por cada salto real del camino más corto (ver shortest_path).
+            Devuelve `target_zone` para poder reasignar la variable de
+            zona actual en el llamador."""
+            zone = current_zone
+            for next_zone in shortest_path(current_zone, target_zone):
+                click(*destination_list_zone(zone, next_zone))
+                page.wait_for_timeout(400)
+                zone = next_zone
+            return zone
+
         def start_new_game(page, click):
             """MainMenu -> Nueva Partida -> ReportScene (SIN selección de caso)."""
             click(512, 330)
@@ -105,7 +134,7 @@ def run():
         go_to_crime_scene(page, click)
         page.screenshot(path="/tmp/smoke_02_citymap.png")
 
-        click(*destination_list_zone('terminal_sur'))  # zona actual, viaje gratis
+        click(*enter_current_location())  # entrar a Terminal Sur sin viajar (gratis)
         page.wait_for_timeout(400)
         click(*location_npc_row(0))  # Hablar con Don Simón
         page.wait_for_timeout(300)
@@ -132,9 +161,10 @@ def run():
         click = canvas_click(page)
         start_new_game(page, click)
         go_to_crime_scene(page, click)
+        zone = 'terminal_sur'  # zonaInicial de caso1_medialunas
 
         # Terminal Sur -> Simón (da clue_kiosco_medialunas, hop1 = oeste_profundo)
-        click(*destination_list_zone('terminal_sur'))
+        click(*enter_current_location())
         page.wait_for_timeout(400)
         click(*location_npc_row(0))
         page.wait_for_timeout(300)
@@ -154,6 +184,7 @@ def run():
         page.screenshot(path="/tmp/smoke_05_hop1_result.png")
         click(512, 384)  # cerrar overlay -> teleporta a oeste_profundo
         page.wait_for_timeout(500)
+        zone = 'oeste_profundo'
 
         # Oeste Profundo -> Cacho -> "mostrar evidencia" da clue_remise_pampa (hop2 = el_delta)
         click(*location_npc_row(0))
@@ -173,11 +204,12 @@ def run():
         page.screenshot(path="/tmp/smoke_06_hop2_final_result.png")
         click(512, 384)
         page.wait_for_timeout(500)
+        zone = 'el_delta'
         page.screenshot(path="/tmp/smoke_07_el_delta_locked.png")  # sospechoso visible pero bloqueado
 
         # Viajar a Parque Obrero -> Hombre de las Palomas (2do NPC del lugar) -> hobby
-        click(*destination_list_zone('parque_obrero'))
-        page.wait_for_timeout(500)
+        zone = travel(click, page, zone, 'parque_obrero')
+        page.wait_for_timeout(200)
         click(*location_npc_row(1))
         page.wait_for_timeout(300)
         skip_typewriter(click, page)
@@ -196,7 +228,7 @@ def run():
         click(512, 668)  # EMITIR ORDEN DE CAPTURA (scale.height - 100)
         page.wait_for_timeout(400)
 
-        click(*destination_list_zone('el_delta'))
+        zone = travel(click, page, zone, 'el_delta')
         page.wait_for_timeout(500)
         page.screenshot(path="/tmp/smoke_10_el_delta_unlocked.png")
         click(*location_npc_row(0))  # Confrontar (único NPC visible ahora)

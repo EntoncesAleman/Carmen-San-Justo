@@ -9,7 +9,7 @@ import sys
 import os
 
 sys.path.insert(0, os.path.dirname(__file__))
-from frame_coords import toolbar_button, destination_list_zone, dialogue_option, dialogue_skip_zone
+from frame_coords import toolbar_button, enter_current_location, dialogue_option, dialogue_skip_zone
 
 from playwright.sync_api import sync_playwright
 
@@ -50,7 +50,7 @@ def run():
         click(*dialogue_option(1))  # rechazar sobre
         page.wait_for_timeout(700)
 
-        click(*destination_list_zone('terminal_sur'))  # zona actual, viaje gratis
+        click(*enter_current_location())  # entrar a Terminal Sur sin viajar (gratis)
         page.wait_for_timeout(500)
         page.screenshot(path="/tmp/explore_00_before.png")
         click(*toolbar_button(0, 4))  # Explorar (1er ícono en LocationScene)

@@ -2,6 +2,53 @@
 
 Formato: fecha, qué se hizo, por qué. Más reciente arriba.
 
+## 2026-08-13 (continuación — red de conexiones entre zonas + deadline calibrado)
+
+Reclamo del jugador: "viajo para todos lados sin perder" — pese al reloj
+de deadline ya existente, el mapa mostraba SIEMPRE las 21 zonas del mundo
+como destino posible desde cualquier lado, así que no había límite real de
+movimiento. Pedido explícito de fidelidad visual/mecánica con el "ver
+conexiones" del Carmen Sandiego clásico (ciudades de referencia: Atenas
+solo conecta con 4 ciudades, no con las 30 del mapa).
+
+- `src/data/zoneConnections.ts`: grafo de adyacencia fijo y simétrico
+  entre las 21 zonas, verificado conexo completo y compatible con la
+  `ruta` de los 3 casos fijos (`src/tests/ZoneConnections.test.ts`, 8
+  tests nuevos).
+- `ui/DestinationListPanel.ts` reescrito: el título es la zona ACTUAL, la
+  lista de abajo son solo sus conexiones directas (antes: grilla fija de
+  las 21 zonas siempre). `ui/LocationArtPanel.ts` ganó un `onEnter`
+  opcional — como la zona actual ya no está en la lista, clickear el arte
+  de la zona en `CityMapScene` es la nueva forma de entrar a
+  `LocationScene` sin viajar (gratis, sin costo de tiempo).
+- `CaseGenerator` arma la `ruta` como un camino real sobre el grafo
+  (random walk con reintentos, no zonas sueltas sin relación entre sí).
+- **Bug real encontrado por simulación, no por juego manual**: calibrar el
+  costo óptimo de cada caso (`src/systems/timeEstimate.ts`,
+  `estimateOptimalMinutos` con BFS + heurística de vecino más cercano)
+  reveló que, con la red de conexiones, los 3 casos fijos necesitaban
+  725-745 minutos incluso jugando perfecto — contra un `deadlineMinutos`
+  fijo de 720. Eran, literalmente, imposibles de ganar. Recalibrados a
+  1050/1020/1035 (óptimo + 40% de margen). `CaseGenerator` calcula el
+  deadline de cada caso generado dinámicamente con la misma fórmula
+  (`calibrateDeadlineMinutos`) en vez de un valor fijo, porque el costo
+  real varía según dónde caigan los informantes de atributo. Nueva
+  invariante permanente en `tests/helpers/caseInvariants.ts`:
+  `deadlineMinutos >= estimateOptimalMinutos(caso)` para todo caso, fijo o
+  generado (incluidos los 300 del fuzzing) — un caso imposible de ganar es
+  ahora un fallo de test, no algo que se descubre jugando.
+- Los 4 scripts de Playwright reescritos: un "viaje" a una zona no
+  adyacente ahora necesita un click por salto real (helper `travel()` +
+  `frame_coords.shortest_path`, BFS sobre el mismo grafo), y el viejo
+  truco de "clickear tu propia zona en la lista" para entrar gratis pasó a
+  ser `enter_current_location()`. Bug de coordenadas encontrado en el
+  proceso: el primer intento de `destination_list_zone` calculaba un click
+  80px a la derecha del borde del texto, que quedaba AFUERA del hitbox
+  para nombres cortos ("Km 20", "Costa Alta") — el click no pegaba en nada
+  y el viaje se quedaba trabado en silencio (sin error de consola).
+  Corregido con un offset chico (+15px) verificado contra el nombre de
+  zona más corto.
+
 ## 2026-08-13 (continuación — FASE 17, pantalla dividida)
 
 Pedido explícito tras ver el juego deployado: la fidelidad visual con

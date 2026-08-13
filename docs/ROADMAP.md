@@ -412,6 +412,51 @@ en `docs/GAME_DESIGN.md` → "Pantalla dividida".
       (no solo "sin errores de consola" — el bug de arriba no generaba
       ningún error, solo contenido visual incorrecto).
 
+## FASE 18 — Red de conexiones entre zonas + deadline calibrado
+
+Reclamo directo del jugador: "viajo para todos lados sin perder". El
+reloj de deadline ya existía (FASE 5) y era mecánicamente fiel al
+original, pero el mapa mostraba SIEMPRE las 21 zonas del mundo como
+destino posible desde cualquier lado — sin el límite de "conexiones" del
+formato clásico, no había una razón real para planificar el recorrido.
+
+- [x] `src/data/zoneConnections.ts`: grafo de adyacencia fijo y simétrico
+      entre las 21 zonas (si A conecta con B, B conecta con A), verificado
+      conexo completo y compatible con la `ruta` de los 3 casos fijos
+      (`src/tests/ZoneConnections.test.ts`, 8 tests nuevos).
+- [x] `ui/DestinationListPanel.ts` reescrito: título = zona actual, lista =
+      solo sus conexiones directas (antes: grilla fija de las 21 zonas
+      siempre, en 3 columnas). `ui/LocationArtPanel.ts` ganó un `onEnter`
+      opcional para poder entrar a la zona actual sin viajar (clickear el
+      arte), ya que dejó de estar en la lista de destinos.
+- [x] `CaseGenerator` arma la `ruta` como un camino real sobre el grafo
+      (random walk con reintentos y longitudes de respaldo), no zonas
+      sueltas sin relación entre sí.
+- [x] **Bug real encontrado por simulación antes de tocar el deadline**:
+      `src/systems/timeEstimate.ts` (`estimateOptimalMinutos`, BFS +
+      heurística de vecino más cercano) mostró que, con la red de
+      conexiones, los 3 casos fijos necesitaban 725-745 minutos incluso
+      jugando perfecto — contra un `deadlineMinutos` fijo de 720. Eran
+      imposibles de ganar. Recalibrados a mano (1050/1020/1035). Los casos
+      generados usan `calibrateDeadlineMinutos` en vez de un valor fijo,
+      porque el costo real varía según dónde caigan los informantes de
+      atributo. Invariante nueva y permanente en
+      `tests/helpers/caseInvariants.ts`: `deadlineMinutos >=
+      estimateOptimalMinutos(caso)` para todo caso, fijo o generado
+      (incluidos los 300 del fuzzing).
+- [x] Los 4 scripts de Playwright reescritos: viajar a una zona no
+      adyacente necesita un click por salto real (`travel()` +
+      `frame_coords.shortest_path`, BFS sobre el mismo grafo). Segundo bug
+      real encontrado en el proceso: el primer cálculo de coordenadas de
+      `destination_list_zone` clickeaba 80px a la derecha del borde del
+      texto — afuera del hitbox para nombres cortos ("Km 20"), el viaje
+      quedaba trabado en silencio sin ningún error de consola. Corregido
+      con un offset chico, verificado contra el nombre más corto de la
+      lista.
+- [x] Verificado en navegador (Playwright + captura revisada a mano): los
+      3 casos fijos y un caso generado, incluyendo el recorrido multi-salto
+      completo hasta la captura y el final.
+
 ## Deuda de contenido conocida (no bloqueante)
 
 - `DialogueEngine.buildFallbackTree` sigue existiendo (y sigue siendo

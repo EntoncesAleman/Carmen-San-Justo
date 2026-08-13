@@ -157,12 +157,17 @@ mundo:
   atributos fijos de identikit y escena de confrontación) en vez de
   inventar personajes sin cara. Narrativamente: no siempre manda "Los
   Administradores" al mismo tipo al mismo trabajo.
-- **Ruta**: un camino al azar por el mapa de 21 zonas. Las paradas
-  intermedias (todas menos la última) se eligen solo entre zonas que
-  tienen al menos un informante viviendo ahí — si no, nadie podría darte
-  la pista de por dónde sigue el caco. La parada final y el destino falso
-  pueden ser cualquier zona, incluidas las que no tienen NPCs estáticos
-  (mismo patrón que "El Delta"/"Km 20" en los casos fijos).
+- **Ruta**: un camino al azar por el mapa de 21 zonas, pero solo sobre
+  zonas DIRECTAMENTE CONECTADAS entre sí (ver "Red de conexiones entre
+  zonas" más abajo) — no cualquier combinación de 21 zonas, un camino real
+  y recorrible por el mapa. Las paradas intermedias (todas menos la
+  última) se eligen solo entre zonas que tienen al menos un informante
+  viviendo ahí — si no, nadie podría darte la pista de por dónde sigue el
+  caco. La parada final puede ser cualquier zona, incluidas las que no
+  tienen NPCs estáticos (mismo patrón que "El Delta"/"Km 20" en los casos
+  fijos). Si no encuentra un camino conectado con la longitud preferida
+  (3-4 paradas), reintenta con longitudes más cortas antes de fallar —
+  ver `CaseGenerator.buildRuta`.
 - **Informantes**: `data/generator/informants.ts` (19 NPCs civiles, ni
   operativos ni señuelos ni el jefe) — se les asigna al azar quién da la
   pista de la próxima parada y quién revela cada uno de los 6 atributos
@@ -185,8 +190,66 @@ para poder reconstruirlos al cargar.
 
 Verificado con fuzzing (300 casos generados con seeds distintos, ver
 `src/tests/CaseGenerator.test.ts`) contra las mismas invariantes de
-integridad y de "ninguna pista sola resuelve el identikit" que los casos
+integridad, de "ninguna pista sola resuelve el identikit" y de "la ruta es
+un camino conectado y se puede ganar antes del deadline" que los casos
 fijos — no es una demo, tiene la misma vara de calidad.
+
+## Red de conexiones entre zonas
+
+Reclamo del jugador: "viajo para todos lados sin perder" — el mapa
+mostraba SIEMPRE las 21 zonas del mundo como destino posible desde
+cualquier lado, así que en la práctica no había límite real de movimiento
+más allá del reloj. Eso también rompía la fidelidad visual al formato
+clásico: en Carmen Sandiego original, desde cada ciudad solo se ve una
+lista corta de ciudades CONECTADAS ("ver conexiones"), no el mapa entero.
+
+`src/data/zoneConnections.ts` define un grafo de adyacencia fijo y
+simétrico entre las 21 zonas (si A conecta con B, B conecta con A — como
+una red de trenes, no calles de un solo sentido), verificado conexo
+completo (cualquier zona es alcanzable desde cualquier otra) y compatible
+con las `ruta` de los 3 casos fijos (ver `src/tests/ZoneConnections.test.ts`).
+`ui/DestinationListPanel.ts` usa este grafo: el título del panel es la zona
+ACTUAL y la lista de abajo son solo sus conexiones directas — igual que la
+pantalla de "ver conexiones" clásica.
+
+Efecto en el gameplay: los informantes de atributo del identikit (elegidos
+al azar entre 19 NPCs, en cualquier zona) ya no están todos "a un click" —
+llegar hasta ellos puede necesitar varios saltos reales por el grafo, y
+cada salto cuesta `TIME_COSTS.VIAJAR_MINUTOS` (45 min) contra el deadline
+del caso. Recorrer un caso de punta a punta jugando perfecto (sin errores,
+sin pistas falsas) ya no es gratis: hay una tensión real entre explorar
+todo y llegar a tiempo.
+
+Como el panel de destinos ya no lista la zona en la que estás parado (solo
+sus vecinas), `ui/LocationArtPanel.ts` ganó un `onEnter` opcional: en
+`CityMapScene`, clickear el arte de la zona actual entra directo a
+`LocationScene` sin viajar y sin costo de tiempo — reemplaza al viejo
+truco de "clickear tu propia zona en la lista".
+
+### Deadline calibrado, no fijo
+
+Con la red de conexiones, el costo real de resolver un caso depende de
+DÓNDE caen sus informantes respecto de la ruta principal — un
+`deadlineMinutos` fijo (720 para todos) le sobraba tiempo a algunos casos y
+directamente hacía IMPOSIBLE ganar otros incluso jugando perfecto (los 3
+casos fijos necesitaban 725-745 min óptimos contra un deadline de 720).
+`src/systems/timeEstimate.ts` resuelve esto:
+
+- `estimateOptimalMinutos(caso)`: cuánto necesita, como mínimo, un jugador
+  perfecto — heurística de vecino más cercano (tipo "vendedor viajante")
+  sobre las zonas con informante, más diálogo y exploración, usando BFS
+  sobre el grafo de conexiones para la distancia entre zonas.
+- `calibrateDeadlineMinutos(caso)`: ese óptimo con un margen del 40%
+  (suficiente para alguna vuelta de más, seguir la pista falsa antes de
+  descartarla, o esperar una vez — sin volver a sentirse "sin límite"),
+  redondeado a múltiplos de 15 minutos.
+
+`CaseGenerator` calcula el deadline de cada caso generado dinámicamente con
+`calibrateDeadlineMinutos`. Los 3 casos fijos tienen su `deadlineMinutos`
+recalculado a mano con la misma fórmula (1050 / 1020 / 1035). La invariante
+`deadlineMinutos >= estimateOptimalMinutos(caso)` se verifica en
+`tests/helpers/caseInvariants.ts` para TODO caso, fijo o generado (incluidos
+los 300 del fuzzing) — un caso imposible de ganar es, directamente, un bug.
 
 ## Pantalla dividida
 
@@ -203,6 +266,8 @@ contenido, no tres pantallas distintas):
 
 - **Arriba a la izquierda**: lista de destinos (`ui/DestinationListPanel.ts`)
   — SIEMPRE visible, sin importar en qué escena de las tres se esté. El
+  título es la zona ACTUAL y la lista son solo sus zonas CONECTADAS (ver
+  "Red de conexiones entre zonas" más abajo), no las 21 zonas del mundo. El
   jugador puede viajar directamente desde ahí, no hace falta "volver al
   mapa" primero.
 - **Abajo a la izquierda**: arte de la zona actual

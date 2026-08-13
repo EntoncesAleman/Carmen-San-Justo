@@ -135,7 +135,9 @@ export const caso3Trofeo: CaseDefinition = {
     fechaHoraDelHecho: 'Anoche, después del asado de festejo, cerca de las 23:30',
     sospechosoId: 'bocha_ferreyra',
     zonaInicial: 'feria_usados',
-    deadlineMinutos: 720,
+    // Calibrado contra la red de conexiones entre zonas — ver
+    // src/systems/timeEstimate.ts y el mismo comentario en caso1_medialunas.
+    deadlineMinutos: 1035,
     clues,
     cluesRequeridasParaResolver: ['clue_colectivo_21', 'clue_salerno_antiguedades', 'clue_petrocelli_tango_trofeo', 'clue_naza_truco'],
     ruta: ['feria_usados', 'palo_alto', 'casco_antiguo'],

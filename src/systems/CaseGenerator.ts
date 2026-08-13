@@ -1,5 +1,6 @@
 import { CaseDefinition, Clue, DialogueTree, SuspectAttributeKey } from '../data/types';
 import { ZONES, getZone } from '../data/zones';
+import { getConnections } from '../data/zoneConnections';
 import { getNpc } from '../data/npcs';
 import { getSuspect } from '../data/suspects';
 import { OPERATIVE_NPC_IDS } from '../data/generator/operatives';
@@ -15,6 +16,7 @@ import {
     ClueAssignment,
 } from '../data/generator/dialogueTemplates';
 import { Rng, pick, pickN, randomInt, shuffle } from './rng';
+import { calibrateDeadlineMinutos } from './timeEstimate';
 
 const ATTRIBUTE_KEYS: SuspectAttributeKey[] = ['cabello', 'ojos', 'vehiculo', 'profesion', 'hobby', 'comida'];
 
@@ -46,25 +48,51 @@ export class CaseGenerator {
 
         const flavor = pick(CRIME_FLAVORS, rng);
 
-        // --- Ruta: los tramos que no son la parada final necesitan tener
-        // al menos un informante viviendo ahí (si no, nadie podría darte
-        // la pista de por dónde sigue el caco). La parada final y el
-        // destino falso pueden ser cualquier zona, incluidas las "vacías"
-        // de NPCs estáticos (mismo patrón que El Delta/Km 20 en los casos
-        // fijos).
-        const populatedZoneIds = [...new Set(INFORMANT_NPC_IDS.map((id) => getNpc(id)!.zoneId))];
+        // --- Ruta: un camino real sobre el grafo de conexiones (ver
+        // data/zoneConnections.ts) — cada salto tiene que ser a una zona
+        // directamente conectada, igual que la pantalla de "ver
+        // conexiones" del formato clásico. Los tramos que no son la parada
+        // final además necesitan tener al menos un informante viviendo ahí
+        // (si no, nadie podría darte la pista de por dónde sigue el caco).
+        // Solo la parada final puede ser una zona "vacía" de NPCs estáticos
+        // (mismo patrón que El Delta/Km 20 en los casos fijos).
+        const populatedZoneIds = new Set(INFORMANT_NPC_IDS.map((id) => getNpc(id)!.zoneId));
         const rutaLength = randomInt(3, 4, rng);
-        const rutaZonasIntermedias = shuffle(populatedZoneIds, rng).slice(0, rutaLength - 1);
 
-        const zonasUsadas = new Set(rutaZonasIntermedias);
-        const zonasRestantes = shuffle(
-            ZONES.map((z) => z.id).filter((id) => !zonasUsadas.has(id)),
+        const buildRuta = (largo: number): string[] | null => {
+            for (const inicio of shuffle([...populatedZoneIds], rng)) {
+                const camino = [inicio];
+                const visitados = new Set(camino);
+                while (camino.length < largo) {
+                    const esUltimoSalto = camino.length === largo - 1;
+                    const actual = camino[camino.length - 1];
+                    const candidatos = shuffle(
+                        getConnections(actual).filter((z) => !visitados.has(z) && (esUltimoSalto || populatedZoneIds.has(z))),
+                        rng,
+                    );
+                    if (candidatos.length === 0) break;
+                    camino.push(candidatos[0]);
+                    visitados.add(candidatos[0]);
+                }
+                if (camino.length === largo) return camino;
+            }
+            return null;
+        };
+
+        const ruta = buildRuta(rutaLength) ?? buildRuta(3) ?? buildRuta(2);
+        if (!ruta) {
+            throw new Error('CaseGenerator: no se pudo armar una ruta conectada — revisar data/zoneConnections.ts');
+        }
+
+        const destinoCorrectoZoneId = ruta[ruta.length - 1];
+        const zonasUsadas = new Set(ruta);
+        const zonasFalsasCandidatas = shuffle(
+            (getConnections(destinoCorrectoZoneId).filter((id) => !zonasUsadas.has(id)).length > 0
+                ? getConnections(destinoCorrectoZoneId).filter((id) => !zonasUsadas.has(id))
+                : ZONES.map((z) => z.id).filter((id) => !zonasUsadas.has(id))),
             rng,
         );
-        const destinoCorrectoZoneId = zonasRestantes[0];
-        const destinoFalsoZoneId = zonasRestantes[1];
-
-        const ruta = [...rutaZonasIntermedias, destinoCorrectoZoneId];
+        const destinoFalsoZoneId = zonasFalsasCandidatas[0];
 
         // --- Asignación de informantes: uno por salto de ruta (da la
         // pista de la próxima parada) + uno por atributo del identikit
@@ -190,6 +218,14 @@ export class CaseGenerator {
 
         const id = `generado_${generationIndex}`;
 
+        // El deadline se calcula en base a esta ruta y estos informantes
+        // puntuales — no es un número fijo. Con la red de conexiones entre
+        // zonas, cuánto cuesta resolver un caso depende de dónde termina
+        // cayendo cada informante de atributo (pueden quedar lejos de la
+        // ruta principal), así que un valor fijo o le sobraba tiempo a los
+        // casos fáciles o le faltaba a los difíciles (ver timeEstimate.ts).
+        const deadlineMinutos = calibrateDeadlineMinutos({ zonaInicial: ruta[0], destinoCorrectoZoneId, clues });
+
         return {
             id,
             titulo: flavor.titulo,
@@ -199,7 +235,7 @@ export class CaseGenerator {
             fechaHoraDelHecho: flavor.fechaHoraDelHecho,
             sospechosoId: operativoId,
             zonaInicial: ruta[0],
-            deadlineMinutos: 720,
+            deadlineMinutos,
             clues,
             cluesRequeridasParaResolver,
             ruta,

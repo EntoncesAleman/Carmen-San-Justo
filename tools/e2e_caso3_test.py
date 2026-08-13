@@ -9,13 +9,20 @@ Coordenadas de CityMap/Location/Dialogue centralizadas en
 tools/frame_coords.py (pantalla dividida, ver src/ui/frameLayout.ts).
 SuspectBoardScene/CrimeComputerScene/DebugScene no forman parte de ese
 frame y siguen con coordenadas propias hardcodeadas acá.
+
+Desde la red de conexiones entre zonas (ver data/zoneConnections.ts), el
+panel de destinos solo lista zonas CONECTADAS a la actual — un viaje a una
+zona no adyacente necesita varios clicks (uno por salto), ver `travel()`
+más abajo. Y para "entrar" a la zona en la que ya estás parado sin viajar
+se usa `enter_current_location()` (clickear el panel de arte), ya no
+clickear tu propia zona en la lista.
 """
 
 import sys
 import os
 
 sys.path.insert(0, os.path.dirname(__file__))
-from frame_coords import toolbar_button, destination_list_zone, location_npc_row, dialogue_option, dialogue_skip_zone
+from frame_coords import toolbar_button, destination_list_zone, enter_current_location, shortest_path, location_npc_row, dialogue_option, dialogue_skip_zone
 
 from playwright.sync_api import sync_playwright
 
@@ -44,6 +51,14 @@ def run():
         def skip(pause=200):
             click(*dialogue_skip_zone())
             page.wait_for_timeout(pause)
+
+        def travel(current_zone, target_zone):
+            zone = current_zone
+            for next_zone in shortest_path(current_zone, target_zone):
+                click(*destination_list_zone(zone, next_zone))
+                page.wait_for_timeout(400)
+                zone = next_zone
+            return zone
 
         # MainMenu -> Nueva Partida -> ReportScene (caso1) -> briefing -> CityMap
         click(512, 330)
@@ -77,8 +92,10 @@ def run():
         page.wait_for_timeout(700)
         page.screenshot(path="/tmp/caso3_03_citymap_feria_usados.png")
 
+        zone = 'feria_usados'  # zonaInicial de caso3_trofeo
+
         # feria_usados (zona actual) -> hablar con Toto -> pista colectivo 21
-        click(*destination_list_zone('feria_usados'))
+        click(*enter_current_location())
         page.wait_for_timeout(400)
         page.screenshot(path="/tmp/caso3_04_concesionaria.png")
         click(*location_npc_row(0))
@@ -99,6 +116,7 @@ def run():
         page.screenshot(path="/tmp/caso3_06_hop1_result.png")
         click(512, 384)
         page.wait_for_timeout(500)
+        zone = 'palo_alto'
         page.screenshot(path="/tmp/caso3_07_palo_alto.png")
 
         # palo_alto -> Salerno -> clue hop2
@@ -119,6 +137,7 @@ def run():
         page.screenshot(path="/tmp/caso3_08_hop2_final_result.png")
         click(512, 384)
         page.wait_for_timeout(500)
+        zone = 'casco_antiguo'
         page.screenshot(path="/tmp/caso3_09_casco_antiguo_locked.png")
 
         # casco_antiguo -> Petrocelli -> clue vehiculo (Combi Volkswagen)
@@ -132,8 +151,9 @@ def run():
         page.wait_for_timeout(500)
 
         # Viajar a villa_quieta -> Walter (2do NPC del lugar) -> clue ojos
-        click(*destination_list_zone('villa_quieta'))
-        page.wait_for_timeout(500)
+        # (no es conexión directa de casco_antiguo: pasa por palo_alto)
+        zone = travel(zone, 'villa_quieta')
+        page.wait_for_timeout(200)
         page.screenshot(path="/tmp/caso3_10_villa_quieta.png")
         click(*location_npc_row(1))  # 2do NPC del lugar (marta_yulis, walter_chiodi)
         page.wait_for_timeout(300)
@@ -151,9 +171,9 @@ def run():
         click(512, 668)  # EMITIR ORDEN DE CAPTURA (CrimeComputerScene, sin cambios)
         page.wait_for_timeout(400)
 
-        # Viajar a casco_antiguo y confrontar
-        click(*destination_list_zone('casco_antiguo'))
-        page.wait_for_timeout(500)
+        # Viajar a casco_antiguo y confrontar (pasa por palo_alto de nuevo)
+        zone = travel(zone, 'casco_antiguo')
+        page.wait_for_timeout(200)
         page.screenshot(path="/tmp/caso3_12_casco_antiguo_unlocked.png")
         click(*location_npc_row(1))  # 2do NPC visible (petrocelli + el sospechoso especial)
         page.wait_for_timeout(300)

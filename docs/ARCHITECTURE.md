@@ -73,6 +73,14 @@ de pantalla dividida (`ui/frameLayout.ts` + `DestinationListPanel.ts` +
 `CaseFileScene`/`EndingScene` no forman parte de ese frame, mantienen su
 propio layout centrado de siempre.
 
+`DestinationListPanel` solo lista las zonas conectadas a la actual
+(`data/zoneConnections.ts`, grafo de adyacencia fijo entre las 21 zonas) —
+no viaje libre a cualquier zona del mundo. Como la zona actual ya no
+aparece en esa lista, `LocationArtPanel` acepta un `onEnter` opcional que
+`CityMapScene` usa para entrar a `LocationScene` sin viajar (clickear el
+arte de la zona). Ver `docs/GAME_DESIGN.md` → "Red de conexiones entre
+zonas".
+
 `CaseSelectScene`/`CaseIntroScene` (selección manual de misión) fueron
 eliminadas a propósito: el jugador nunca elige qué caso investigar, ver
 `docs/GAME_DESIGN.md` → Loop principal.

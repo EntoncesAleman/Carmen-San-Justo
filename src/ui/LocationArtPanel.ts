@@ -9,13 +9,21 @@ import { FRAME } from './frameLayout';
 // Panel abajo-izquierda del frame: arte de la zona actual. Mismo panel en
 // CityMapScene (mientras se elige a dónde ir) y en LocationScene (una vez
 // ahí) — es la misma "ventana al lugar", no dos cosas distintas.
-export function renderLocationArtPanel(scene: Phaser.Scene): void {
+//
+// `onEnter`, si se pasa, hace clickeable el panel para "entrar" al lugar
+// donde ya estás parado sin viajar (gratis, sin costo de tiempo) — desde
+// que DestinationListPanel solo lista zonas CONECTADAS (ver
+// data/zoneConnections.ts) la zona actual ya no aparece en esa lista, así
+// que esta es la única forma de pasar de CityMapScene a LocationScene sin
+// moverte. Solo CityMapScene lo usa; en LocationScene/DialogueScene ya
+// estás ahí, no hace falta.
+export function renderLocationArtPanel(scene: Phaser.Scene, onEnter?: () => void): void {
     const top = FRAME.artTop;
     const height = FRAME.contentBottom - top;
     const zone = getZone(gameState.currentZoneId);
     const location = getLocationByZone(gameState.currentZoneId);
 
-    scene.add.rectangle(FRAME.leftX, top, FRAME.leftWidth, height, 0x000000, 1).setOrigin(0, 0).setStrokeStyle(2, COLORS.ACCENT);
+    const panel = scene.add.rectangle(FRAME.leftX, top, FRAME.leftWidth, height, 0x000000, 1).setOrigin(0, 0).setStrokeStyle(2, COLORS.ACCENT);
 
     const bgKey = location ? getBackgroundKey(location.id) : undefined;
     if (bgKey && scene.textures.exists(bgKey)) {
@@ -32,4 +40,9 @@ export function renderLocationArtPanel(scene: Phaser.Scene): void {
             padding: { x: 4, y: 2 },
         })
         .setOrigin(0, 0);
+
+    if (onEnter) {
+        panel.setInteractive({ useHandCursor: true });
+        panel.on('pointerdown', onEnter);
+    }
 }
