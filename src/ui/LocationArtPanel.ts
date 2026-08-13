@@ -6,6 +6,7 @@ import { getLocationByZone } from '../data/locations';
 import { getBackgroundKey } from '../data/portraits';
 import { FRAME } from './frameLayout';
 import { CURSOR_POINTER } from './cursor';
+import { TimeSystem } from '../core/TimeSystem';
 
 // Panel arriba de la columna izquierda: arte de la zona actual (grande,
 // calca el "gráfico de la ciudad" del formato clásico — ver
@@ -32,15 +33,18 @@ export function renderLocationArtPanel(scene: Phaser.Scene, onEnter?: () => void
         img.setDisplaySize(FRAME.leftWidth - 4, height - 4);
     }
 
-    scene.add
-        .text(FRAME.leftX + 10, top + height - 26, zone?.nombre ?? '—', {
-            fontFamily: FONTS.MONO,
-            fontSize: '15px',
-            color: COLORS_CSS.ACCENT,
-            backgroundColor: '#000000cc',
-            padding: { x: 4, y: 2 },
-        })
-        .setOrigin(0, 0);
+    // Cajita "Zona / Día, Hora" flotando sobre la esquina superior
+    // izquierda del arte — pedido explícito de fidelidad visual: en el
+    // formato clásico esa combinación vive en su propio recuadro separado
+    // de todo lo demás, apoyado sobre la ilustración, no perdida en una
+    // barra de stats junto con reputación/pistas (eso lo sigue mostrando
+    // el HUD aparte, esto es puramente la "placa" de identificación de la
+    // escena).
+    const badgeW = 210;
+    const badgeH = 44;
+    const badge = scene.add.rectangle(FRAME.leftX + 10, top + 10, badgeW, badgeH, 0x000000, 0.82).setOrigin(0, 0).setStrokeStyle(2, COLORS.ACCENT);
+    scene.add.text(badge.x + 8, badge.y + 5, zone?.nombre ?? '—', { fontFamily: FONTS.MONO, fontSize: '16px', color: COLORS_CSS.ACCENT }).setOrigin(0, 0);
+    scene.add.text(badge.x + 8, badge.y + 24, TimeSystem.formatClock(), { fontFamily: FONTS.MONO, fontSize: '13px', color: COLORS_CSS.TEXT }).setOrigin(0, 0);
 
     if (onEnter) {
         panel.setInteractive({ cursor: CURSOR_POINTER });

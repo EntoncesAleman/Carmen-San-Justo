@@ -684,6 +684,46 @@ propios, no assets ajenos). Verificado con captura + zoom pixel a pixel
 (las scanlines se ven claramente sobre las imágenes, invisibles sobre
 negro puro por diseño) y con los 4 scripts de e2e de punta a punta.
 
+## FASE 23 — Capturas de referencia reales del usuario
+
+El usuario mandó capturas de pantalla reales del juego de referencia (DOS/
+EGA, ediciones en español y portugués) en vez de descripción — mucho más
+preciso que investigar de memoria. Se extrajeron 3 patrones concretos y se
+implementaron con datos 100% propios:
+
+- [x] **Ficha de sospechoso ("warrant card")** (`ui/WarrantCardPanel.ts`):
+      carpeta color papel (no el terminal negro/verde de siempre) con
+      solapa tipo carpeta arriba, hojas apiladas atrás, foto del sospechoso
+      y campos etiquetados (PELO, OJOS, OCUPACIÓN, HOBBY, VEHÍCULO, COMIDA
+      PREFERIDA) tomados de `SuspectProfile` — mismo dato que ya mostraba
+      `CrimeComputerScene` en texto plano, ahora con el formato exacto de
+      la referencia. Se abre con "VER FICHA DEL SOSPECHOSO" cuando queda
+      exactamente 1 sospechoso coincidente; se cierra con el botón
+      "[cerrar]", clickeando afuera, o ESC. Bug real encontrado y
+      corregido en el momento: las etiquetas de los campos no se veían
+      porque quedaban fuera del `Container` (profundidad por defecto,
+      tapadas por la carpeta) — ahora sí se agregan al contenedor.
+- [x] **Mapa con silueta + rutas punteadas** (`TravelMapScene.ts`
+      reescrita): antes era un grafo abstracto (círculos + líneas rectas)
+      flotando en negro; ahora hay una silueta de "tierra" de fondo, una
+      franja de "río" al este (coherente con la geografía real del AMBA
+      que ya inspira las posiciones de zona), marcadores tipo pin
+      (rombos) en vez de círculos de nodo, y las conexiones se dibujan
+      punteadas (`drawDashedLine`, sin helper nativo de Phaser para esto)
+      — mucho más cerca del mapa mundial con líneas de vuelo punteadas de
+      la referencia que del diagrama de subte que había antes.
+- [x] **Cajita "Zona / Día, Hora"** (`ui/LocationArtPanel.ts`): recuadro
+      propio con borde, apoyado sobre la esquina superior izquierda de la
+      ilustración de la zona — calca la composición "Budapest / Lunes,
+      9h00" de la referencia. Reemplazó la etiqueta de solo-nombre que
+      había antes ahí (redundante una vez que existe esta placa).
+
+No se copió ningún nombre, personaje ni texto de la referencia — los tres
+patrones son de FORMATO/composición (una carpeta de papel con foto+campos,
+un mapa con silueta y rutas punteadas, una placa de ubicación), servidos
+con datos 100% del juego propio. Verificado con capturas + los 4 scripts
+de e2e de punta a punta, cero errores de consola.
+
 ### Pendiente, en orden de impacto (no implementado todavía)
 
 - [ ] Animaciones/parpadeo ambiental en portraits y fondos (hoy 100%

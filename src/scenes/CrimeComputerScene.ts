@@ -6,6 +6,8 @@ import { gameState } from '../core/GameState';
 import { createButton } from '../ui/Button';
 import { audioManager } from '../audio/AudioManager';
 import { SuspectAttributeKey } from '../data/types';
+import { getPortraitKey } from '../data/portraits';
+import { renderWarrantCard } from '../ui/WarrantCardPanel';
 
 const ATTRIBUTE_LABELS: Record<SuspectAttributeKey, string> = {
     cabello: 'CABELLO',
@@ -23,6 +25,8 @@ const ATTRIBUTE_LABELS: Record<SuspectAttributeKey, string> = {
 export class CrimeComputerScene extends Phaser.Scene {
     private resultText!: Phaser.GameObjects.Text;
     private ordenBtn?: Phaser.GameObjects.Container;
+    private fichaBtn?: Phaser.GameObjects.Container;
+    private fichaCard?: Phaser.GameObjects.Container;
 
     constructor() {
         super(SCENE_KEYS.CRIME_COMPUTER);
@@ -30,7 +34,14 @@ export class CrimeComputerScene extends Phaser.Scene {
 
     create() {
         this.cameras.main.setBackgroundColor('#050705');
-        this.input.keyboard?.once('keydown-ESC', () => this.scene.start(SCENE_KEYS.CITY_MAP));
+        this.input.keyboard?.on('keydown-ESC', () => {
+            if (this.fichaCard) {
+                this.fichaCard.destroy();
+                this.fichaCard = undefined;
+                return;
+            }
+            this.scene.start(SCENE_KEYS.CITY_MAP);
+        });
         const def = CaseManager.getCurrentCase();
 
         this.add
@@ -91,6 +102,16 @@ export class CrimeComputerScene extends Phaser.Scene {
 
         this.ordenBtn?.destroy();
         this.ordenBtn = undefined;
+        this.fichaBtn?.destroy();
+        this.fichaBtn = undefined;
+
+        if (matches.length === 1) {
+            this.fichaBtn = createButton(this, this.scale.width / 2, 500, 'VER FICHA DEL SOSPECHOSO', () => this.abrirFicha(), {
+                width: 320,
+                height: 40,
+                fontSize: '14px',
+            });
+        }
 
         if (CrimeComputerSystem.canEmitirOrden(def) && !gameState.ordenCapturaEmitida) {
             this.ordenBtn = createButton(
@@ -108,5 +129,25 @@ export class CrimeComputerScene extends Phaser.Scene {
         } else if (gameState.ordenCapturaEmitida) {
             this.add.text(this.scale.width / 2, this.scale.height - 100, 'ORDEN DE CAPTURA YA EMITIDA', { fontFamily: FONTS.MONO, fontSize: '14px', color: COLORS_CSS.ACCENT }).setOrigin(0.5);
         }
+    }
+
+    private abrirFicha() {
+        const def = CaseManager.getCurrentCase();
+        if (!def) return;
+        const matches = CrimeComputerSystem.getMatchingSuspects(def);
+        if (matches.length !== 1) return;
+        const suspect = matches[0];
+
+        audioManager.playSfx('ui_click');
+        this.fichaCard?.destroy();
+        this.fichaCard = renderWarrantCard(this, {
+            nombreClave: suspect.nombreClave,
+            known: CrimeComputerSystem.getKnownAttributes(def),
+            portraitKey: getPortraitKey(suspect.id),
+            onClose: () => {
+                this.fichaCard?.destroy();
+                this.fichaCard = undefined;
+            },
+        });
     }
 }
