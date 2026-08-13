@@ -31,16 +31,21 @@ const ATTRIBUTE_PHRASES: Record<SuspectAttributeKey, ((apodo: string, valor: str
     ],
 };
 
-const ROUTE_PHRASES: ((apodo: string, proximaZona: string) => string)[] = [
-    (apodo, zona) => `${apodo} lo vio subir a un colectivo con destino a ${zona}.`,
+// El medio de transporte específico (ver data/transportLines.ts) es
+// opcional a propósito: la pista falsa reusa este mismo pool de frases
+// pero nunca tiene un tramo real de la ruta, así que no siempre hay un
+// `transporte` para mencionar.
+const ROUTE_PHRASES: ((apodo: string, proximaZona: string, transporte?: string) => string)[] = [
+    (apodo, zona, transporte) => (transporte ? `${apodo} lo vio subir al ${transporte} con destino a ${zona}.` : `${apodo} lo vio subir a un colectivo con destino a ${zona}.`),
     (apodo, zona) => `Según ${apodo}, el tipo mencionó que iba para ${zona} antes de irse.`,
-    (apodo, zona) => `${apodo} jura haberlo visto tomar un remise rumbo a ${zona}.`,
+    (apodo, zona, transporte) => (transporte ? `${apodo} jura haberlo visto tomar el ${transporte} rumbo a ${zona}.` : `${apodo} jura haberlo visto tomar un remise rumbo a ${zona}.`),
 ];
 
 export interface ClueAssignment {
     clueId: string;
     kind: 'route' | 'attribute';
     proximaZonaNombre?: string;
+    transporte?: string;
     attributeKey?: SuspectAttributeKey;
     attributeValue?: string;
 }
@@ -54,7 +59,7 @@ export function buildInformantTree(npcId: string, apodo: string, assignments: Cl
     const options: DialogueOption[] = assignments.map((a, i) => {
         const line =
             a.kind === 'route'
-                ? pick(ROUTE_PHRASES, rng)(apodo, a.proximaZonaNombre!)
+                ? pick(ROUTE_PHRASES, rng)(apodo, a.proximaZonaNombre!, a.transporte)
                 : pick(ATTRIBUTE_PHRASES[a.attributeKey!], rng)(apodo, a.attributeValue!);
         return {
             id: `preguntar_${i}`,

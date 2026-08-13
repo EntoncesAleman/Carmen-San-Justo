@@ -1,6 +1,7 @@
 import { CaseDefinition, Clue, DialogueTree, SuspectAttributeKey } from '../data/types';
 import { ZONES, getZone } from '../data/zones';
 import { getConnections } from '../data/zoneConnections';
+import { getTransportLine } from '../data/transportLines';
 import { getNpc } from '../data/npcs';
 import { getSuspect } from '../data/suspects';
 import { OPERATIVE_NPC_IDS } from '../data/generator/operatives';
@@ -153,7 +154,8 @@ export class CaseGenerator {
                 esFalsa: false,
             });
             cluesRequeridasParaResolver.push(clueId);
-            addAssignment(informanteId, { clueId, kind: 'route', proximaZonaNombre: proximaZona.nombre });
+            const transporte = getTransportLine(zonaActual, ruta[i + 1]).nombre;
+            addAssignment(informanteId, { clueId, kind: 'route', proximaZonaNombre: proximaZona.nombre, transporte });
         }
 
         const atributoInformantes = pickN(INFORMANT_NPC_IDS, ATTRIBUTE_KEYS.length, rng);

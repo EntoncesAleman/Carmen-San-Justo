@@ -617,11 +617,21 @@ secciones originales.
       probó así primero, con overlap real confirmado por screenshot, y se
       corrigió antes de commitear).
 
+- [x] **Medio de transporte específico**: `data/transportLines.ts` —
+      determinístico por PAR de zonas (no por caso/seed: el mismo tramo
+      siempre el mismo colectivo/tren/lancha, como pasaría en la
+      realidad), así que no depende de `ZONE_CONNECTIONS` y nunca queda
+      desactualizado si el grafo cambia. Las pistas de ruta de los casos
+      GENERADOS ahora dicen, por ejemplo, "lo vio subir al colectivo 60
+      con destino a Parque Patricios" en vez de "un colectivo" genérico
+      (`ROUTE_PHRASES` en `dialogueTemplates.ts`). Deliberadamente NO se
+      tocaron los 3 casos fijos (esas líneas están escritas a mano, no
+      generadas por plantilla) ni se lo convirtió en un dato que haya que
+      cruzar para resolver el caso — es sabor/inmersión sobre el viaje que
+      ya existía, no un sistema de transporte nuevo con su propia UI.
+
 ### Pendiente, en orden de impacto (no implementado todavía)
 
-- [ ] Mecánica de transporte específico (ej. "subió al colectivo 21") como
-      capa de deducción adicional sobre el viaje ya existente — mecánica
-      NUEVA pedida, no una regresión de algo que ya existía.
 - [ ] MIDI real (`title.mid`, `investigation.mid`, `chase.mid`, etc.) en
       vez de síntesis simple por osciladores — requiere decidir cómo
       reproducir MIDI en navegador (librería tipo `midi-player-js` +
