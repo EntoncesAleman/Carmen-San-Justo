@@ -654,6 +654,36 @@ secciones originales.
       ningún error de consola; los 4 scripts de e2e siguen pasando limpios
       con la dependencia de red real de por medio.
 
+## FASE 22 — Insistencia del usuario en fidelidad visual ("no acepto un no")
+
+El usuario volvió a plantear el reclamo de FASE 19 con más fuerza: la
+estructura (paneles, menú numerado, tipografía) ya calca el formato
+clásico desde FASE 20, pero visualmente todavía se sentía como una app
+plana, no como estar mirando un monitor de terminal viejo. Sin pedir
+confirmación, se identificó y cerró esa brecha concreta:
+
+- [x] **Marco de terminal + scanlines** (`ui/crtOverlay.ts`): bisel doble
+      (línea gruesa por fuera, fina por dentro con margen) alrededor de
+      TODA la pantalla, más una textura de líneas de barrido sutil encima
+      de todo — la "textura de estar mirando un monitor de fósforo viejo"
+      que la sola paleta negro/ámbar no daba. Un solo hook en `main.ts`
+      (mismo patrón que el fade-in y el cursor), no toca cada escena.
+      HUD/Debug quedan afuera (son overlays, duplicarían el marco). Nota:
+      en las escenas de gameplay el borde superior del marco queda tapado
+      por la barra del HUD — no es un bug, el HUD ya funciona como el
+      borde superior del "chrome" de terminal.
+- [x] **Pantalla de título rediseñada** (`MainMenu.ts`): título más grande
+      con doble línea arriba/abajo (mismo recurso que `ReportScene`),
+      subtítulo tipo placa entre guiones, y un prompt "TERMINAL LISTA"
+      parpadeando abajo — la convención de attract-screen que le faltaba
+      para leerse como pantalla de arranque y no como un menú suelto.
+
+No se copió ningún logo, personaje ni texto de Broderbund/HBO — es la
+MISMA lógica de siempre (fidelidad de género vía chrome/paleta/tipografía
+propios, no assets ajenos). Verificado con captura + zoom pixel a pixel
+(las scanlines se ven claramente sobre las imágenes, invisibles sobre
+negro puro por diseño) y con los 4 scripts de e2e de punta a punta.
+
 ### Pendiente, en orden de impacto (no implementado todavía)
 
 - [ ] Animaciones/parpadeo ambiental en portraits y fondos (hoy 100%

@@ -4,6 +4,7 @@ import { createButton } from '../ui/Button';
 import { SaveSystem } from '../core/SaveSystem';
 import { audioManager } from '../audio/AudioManager';
 import { PROTAGONIST_PORTRAIT_KEY } from '../data/portraits';
+import { addTerminalDivider } from '../ui/TerminalDivider';
 
 export class MainMenu extends Phaser.Scene {
     constructor() {
@@ -15,21 +16,37 @@ export class MainMenu extends Phaser.Scene {
         audioManager.stopAmbient();
         audioManager.playMusic('menu');
 
+        // Pantalla de título "de verdad" en vez de un texto suelto: doble
+        // línea arriba y abajo del nombre (mismo recurso que ReportScene),
+        // credencial/subtítulo tipo placa policial, y un prompt parpadeante
+        // abajo — la convención visual de attract-screen de terminal vieja
+        // que separa "pantalla de arranque" de "menú plano".
+        addTerminalDivider(this, 78, 700);
         this.add
-            .text(this.scale.width / 2, 150, 'EL ÚLTIMO PROCEDIMIENTO', {
+            .text(this.scale.width / 2, 130, 'EL ÚLTIMO PROCEDIMIENTO', {
                 fontFamily: '"VT323", monospace',
-                fontSize: '38px',
+                fontSize: '46px',
                 color: COLORS_CSS.ACCENT,
             })
             .setOrigin(0.5);
+        addTerminalDivider(this, 172, 700);
 
         this.add
-            .text(this.scale.width / 2, 195, 'Un caso de la Policía de El Cinturón', {
+            .text(this.scale.width / 2, 200, '— UN CASO DE LA POLICÍA DE EL CINTURÓN —', {
                 fontFamily: '"VT323", monospace',
                 fontSize: '16px',
                 color: COLORS_CSS.TEXT,
             })
             .setOrigin(0.5);
+
+        const prompt = this.add
+            .text(this.scale.width / 2, this.scale.height - 30, 'TERMINAL LISTA', {
+                fontFamily: '"VT323", monospace',
+                fontSize: '14px',
+                color: COLORS_CSS.ACCENT,
+            })
+            .setOrigin(0.5);
+        this.tweens.add({ targets: prompt, alpha: { from: 1, to: 0.25 }, duration: 900, yoyo: true, repeat: -1 });
 
         const hasSave = SaveSystem.listSlots().some((s) => !s.empty);
 

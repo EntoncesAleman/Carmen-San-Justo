@@ -2,6 +2,7 @@ import * as Phaser from 'phaser';
 import '@fontsource/vt323';
 import { GAME, SCENE_KEYS } from './core/Constants';
 import { applyDetectiveCursor } from './ui/cursor';
+import { applyCrtOverlay } from './ui/crtOverlay';
 import { audioManager } from './audio/AudioManager';
 import { Boot } from './scenes/Boot';
 import { Preloader } from './scenes/Preloader';
@@ -66,6 +67,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (OVERLAY_SCENE_KEYS.has(scene.sys.settings.key)) return;
             scene.events.on(Phaser.Scenes.Events.CREATE, () => {
                 scene.cameras.main.fadeIn(180, 5, 5, 5);
+                // Bisel + scanlines: la textura de "estás mirando un
+                // monitor de terminal" que la sola estructura de paneles
+                // no daba (ver ui/crtOverlay.ts).
+                applyCrtOverlay(scene);
             });
         });
     });
