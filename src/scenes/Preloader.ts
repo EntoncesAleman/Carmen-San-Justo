@@ -16,7 +16,7 @@ export class Preloader extends Phaser.Scene {
         this.cameras.main.setBackgroundColor(COLORS_CSS.BG_DARK);
         const label = this.add
             .text(this.scale.width / 2, this.scale.height / 2, 'Cargando...', {
-                fontFamily: 'Georgia, serif',
+                fontFamily: '"VT323", monospace',
                 fontSize: '24px',
                 color: COLORS_CSS.TEXT,
             })
@@ -36,6 +36,13 @@ export class Preloader extends Phaser.Scene {
     }
 
     create() {
-        this.scene.start(SCENE_KEYS.MAIN_MENU);
+        // Esperar a que el navegador termine de bajar VT323 antes de pasar
+        // al menú — pedir una fuente que todavía no está lista hace que
+        // Phaser caiga a un fallback con glifos rotos (bug real, visto
+        // antes con "Courier New" en Chromium headless). document.fonts.ready
+        // resuelve enseguida si la fuente ya está en caché.
+        Promise.race([document.fonts.ready, new Promise((resolve) => setTimeout(resolve, 1500))]).then(() => {
+            this.scene.start(SCENE_KEYS.MAIN_MENU);
+        });
     }
 }

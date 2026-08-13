@@ -4,12 +4,17 @@
 export const GAME = {
     WIDTH: 1024,
     HEIGHT: 768,
-    BACKGROUND_COLOR: '#1b1f2a',
+    BACKGROUND_COLOR: '#050505',
 };
 
+// Negro casi puro + ámbar, como un monitor de fósforo de terminal policial
+// de PC de principios de los 90 — no un panel plano de UI moderna. El
+// panel y el fondo general se distinguen solo por el borde (`ACCENT`), no
+// por un cambio de tono suave, para que cada ventana se sienta como una
+// ventana de verdad (chrome de sistema operativo viejo), no una card.
 export const COLORS = {
-    BG_DARK: 0x1b1f2a,
-    PANEL: 0x262b3a,
+    BG_DARK: 0x050505,
+    PANEL: 0x0a0a0a,
     ACCENT: 0xe8b84b,
     ALERT: 0xc0392b,
     SUCCESS: 0x4caf7d,
@@ -17,8 +22,8 @@ export const COLORS = {
 };
 
 export const COLORS_CSS = {
-    BG_DARK: '#1b1f2a',
-    PANEL: '#262b3a',
+    BG_DARK: '#050505',
+    PANEL: '#0a0a0a',
     ACCENT: '#e8b84b',
     ALERT: '#c0392b',
     SUCCESS: '#4caf7d',
@@ -70,15 +75,21 @@ export const DEBUG = {
     TOGGLE_KEY: 'BACKTICK',
 };
 
+// VT323 (Google Fonts, licencia OFL, self-hosted vía @fontsource/vt323 —
+// sin llamadas a un CDN externo) es una tipografía de terminal/VGA
+// genérica, no asociada a ningún juego puntual: es el tipo de fuente
+// bitmap de PC de principios de los 90 que define visualmente el género de
+// "aventura de investigación retro", sin copiar el diseño de letra de
+// ningún juego específico. Se usa en TODA la interfaz — menú, HUD,
+// diálogos, pantallas de computadora — para que se sienta como un único
+// sistema, no una mezcla de fuente moderna + fuente retro solo en algunas
+// pantallas. `Preloader` espera a que el navegador termine de cargar el
+// archivo de fuente antes de mostrar el menú (`document.fonts.ready`) para
+// evitar el bug ya visto una vez: pedir un nombre de fuente no instalado
+// hace que Phaser caiga a un fallback con glifos rotos en Chromium.
 export const FONTS = {
-    SERIF: 'Georgia, serif',
-    // Usada en pantallas "de computadora"/terminal (Crime Computer, Reporte,
-    // Expediente) para reforzar la estética retro policial pedida en el
-    // diseño — ver docs/CARMEN_AR_AUDIT.md. "monospace" genérico a
-    // propósito: un nombre de fuente específico (ej. "Courier New") que no
-    // esté instalado hace que Phaser caiga a un fallback con glifos rotos
-    // en algunos entornos (visto en Chromium headless).
-    MONO: 'monospace',
+    SERIF: '"VT323", monospace',
+    MONO: '"VT323", monospace',
 };
 
 export const AUDIO = {

@@ -145,7 +145,7 @@ export const NPCS: NPC[] = [
         id: 'camionero_catering', nombre: 'Néstor Ayala', apodo: 'El de la Camioneta Blanca', edadAproximada: 39,
         personalidad: 'Camionero de una empresa de catering, ajeno por completo al caso.', apariencia: 'Uniforme de la empresa, gorra con logo desteñido.',
         vozConceptual: 'Confundido, cada vez más indignado.', relacionProtagonista: 'Ninguna; está en el lugar equivocado en el momento equivocado.',
-        zoneId: 'km_20', infoQueConoce: 'Nada del caso. Reparte facturas para un evento en Km 20.', infoQueOculta: 'Nada; simplemente no tiene nada que ver.',
+        zoneId: 'km_20', infoQueConoce: 'Nada del caso. Reparte facturas para un evento en San Martín.', infoQueOculta: 'Nada; simplemente no tiene nada que ver.',
         puedeMentir: false,
     },
     // NPCs del Caso 2 ("El Contador Que Faltaba"). chiche_molina ya existe

@@ -2,6 +2,45 @@
 
 Formato: fecha, qué se hizo, por qué. Más reciente arriba.
 
+## 2026-08-13 (continuación — FASE 19: identidad visual retro real + AMBA real)
+
+Pedido explícito y enfático del usuario: el parecido visual con el género
+de aventura de investigación retro tenía que ser fuerte de verdad
+("visualmente tiene que ser igual... si no, no se retrotrae al juego"),
+sin copiar diseño de personajes, logos ni texto de ninguna obra existente.
+Auditando la pantalla dividida de FASE 17 se confirmó el problema real: la
+tipografía "MONO" era literalmente `monospace` genérico (el font-family
+por defecto del navegador, ninguna fuente pixelada de verdad) y el
+HUD/menú usaban `Georgia, serif` — nada en la interfaz tenía look de
+terminal retro pese a que el LAYOUT ya era correcto.
+
+- **Tipografía real**: `@fontsource/vt323` (Google Fonts, licencia OFL,
+  self-hosted — sin CDN externo en runtime) reemplaza `monospace` y
+  `Georgia, serif` en TODA la interfaz. `Preloader` espera
+  `document.fonts.ready` antes de mostrar el menú.
+- **Paleta más oscura y de más contraste**: `BG_DARK`/`PANEL` bajan a casi
+  negro puro (`#050505`/`#0a0a0a`), cada ventana se distingue por su borde
+  ámbar, no por un tono de fondo distinto — más "monitor de fósforo de
+  terminal policial" que "panel plano de UI moderna".
+- **Arte regenerado como pixel art de verdad, no solo "estilizado"**:
+  pedirle a Pollinations "pixel art" como palabra de estilo no funciona —
+  probado, sigue devolviendo semi-fotorrealismo. Solución: pedir una
+  ilustración plana de alto contraste y colores saturados (eso sí lo
+  respeta) y forzar el look de pixel art DESPUÉS, algorítmicamente
+  (`pixelate()` en `tools/generate_art.py`: downscale a bloques de
+  8-10px + cuantización de paleta a ~24-32 colores + reescalado con
+  `NEAREST`, sin antialiasing). Los 16 retratos y 4 fondos existentes se
+  regeneraron con este pipeline nuevo.
+- **Lugares reales del AMBA**: hasta ahora cada zona tenía un `id` interno
+  ("casco_antiguo") Y un `nombre` mostrado ficcionalizado ("El Casco
+  Antiguo"), con la inspiración real solo documentada aparte
+  (`inspiracionConceptual: 'San Telmo'`). Pedido explícito: "los lugares
+  de AMBA/CABA tienen que ser reales" — `nombre` ahora ES el barrio/partido
+  real directamente (San Telmo, Palermo, Constitución, Liniers, Tigre...),
+  `id` no cambia (nada más lo referencia), `inspiracionConceptual` se
+  eliminó del tipo `Zone` por redundante. Actualizado también en
+  `docs/WORLD.md`, `docs/CHARACTERS.md` y `docs/STORY.md`.
+
 ## 2026-08-13 (continuación — red de conexiones entre zonas + deadline calibrado)
 
 Reclamo del jugador: "viajo para todos lados sin perder" — pese al reloj

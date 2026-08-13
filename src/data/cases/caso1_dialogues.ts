@@ -11,7 +11,7 @@ export const briefingDialogue: DialogueTree = {
     nodes: {
         start: {
             npcLine:
-                'Bracamonte te tira el caso arriba del escritorio sin mirarte a los ojos: "Se nos perdió Contreras en medio del operativo de Terminal Sur. Si aparece muerto, es un escándalo. Si aparece vivo y hablando, es peor. Lo quiero resuelto, discreto y rápido."',
+                'Bracamonte te tira el caso arriba del escritorio sin mirarte a los ojos: "Se nos perdió Contreras en medio del operativo de Constitución. Si aparece muerto, es un escándalo. Si aparece vivo y hablando, es peor. Lo quiero resuelto, discreto y rápido."',
             options: [
                 { id: 'aceptar', label: '"Entendido."', kind: 'preguntar', next: 'node_extraoficial' },
                 { id: 'preguntar_porque_yo', label: '"¿Por qué yo?"', kind: 'preguntar', next: 'node_porque_vos' },
@@ -192,7 +192,7 @@ export const dialogueTrees: DialogueTree[] = [
                         next: 'end',
                         givesClueId: 'clue_camioneta_blanca',
                         effects: { confianza: 5 },
-                        responseLine: 'Una camioneta blanca, sin patente visible, saliendo de Terminal Sur pasada la medianoche. No era policía. No era de la banda. Era ALGO MÁS.',
+                        responseLine: 'Una camioneta blanca, sin patente visible, saliendo de Constitución pasada la medianoche. No era policía. No era de la banda. Era ALGO MÁS.',
                     },
                     { id: 'burlarse', label: 'Te reís de la teoría.', kind: 'bromear', next: 'end', effects: { confianza: -5 }, responseLine: 'Reíte, reíte. Ya vas a ver.' },
                 ],
@@ -285,7 +285,7 @@ export const dialogueTrees: DialogueTree[] = [
                         next: 'end',
                         givesClueId: 'clue_acertijo_palomas',
                         effects: { confianza: 5 },
-                        responseLine: 'Una paloma volvió tres veces al mismo techo, en Villa Quieta. Eso no es normal. Ni para paloma ni para gente.',
+                        responseLine: 'Una paloma volvió tres veces al mismo techo, en Villa Devoto. Eso no es normal. Ni para paloma ni para gente.',
                     },
                     {
                         id: 'bromear_palomas',
@@ -294,7 +294,7 @@ export const dialogueTrees: DialogueTree[] = [
                         next: 'end',
                         givesClueId: 'clue_acertijo_palomas',
                         effects: { confianza: 8 },
-                        responseLine: 'Se ríe, contento de que alguien le crea, y suelta el mismo dato sobre el techo de Villa Quieta.',
+                        responseLine: 'Se ríe, contento de que alguien le crea, y suelta el mismo dato sobre el techo de Villa Devoto.',
                     },
                     { id: 'retirarse', label: 'Te vas.', kind: 'retirarse', next: 'end' },
                 ],
@@ -449,7 +449,7 @@ export const dialogueTrees: DialogueTree[] = [
                         kind: 'ofrecerFavor',
                         next: 'end',
                         effects: { confianza: 10, corrupcion: 2 },
-                        responseLine: 'Trato clásico. ¿Qué necesitás? — te tira un dato suelto sobre movimientos raros de plata en una inmobiliaria de Palo Alto.',
+                        responseLine: 'Trato clásico. ¿Qué necesitás? — te tira un dato suelto sobre movimientos raros de plata en una inmobiliaria de Palermo.',
                     },
                     {
                         id: 'preguntar_yamila',
@@ -515,7 +515,7 @@ export const dialogueTrees: DialogueTree[] = [
                         kind: 'ofrecerFavor',
                         next: 'end',
                         effects: { confianza: 8, corrupcion: 1 },
-                        responseLine: 'Ahora sí hablamos — te cuenta un rumor sin confirmar sobre plata que se mueve por Palo Alto.',
+                        responseLine: 'Ahora sí hablamos — te cuenta un rumor sin confirmar sobre plata que se mueve por Palermo.',
                     },
                     { id: 'retirarse', label: 'Te vas.', kind: 'retirarse', next: 'end' },
                 ],
@@ -536,7 +536,7 @@ export const dialogueTrees: DialogueTree[] = [
                         next: 'end',
                         givesClueId: 'clue_camaras_palomas',
                         effects: { confianza: 4 },
-                        responseLine: 'Las palomas no mienten porque no son palomas: son cámaras. Y las cámaras vieron todo en Km 20, se lo aseguro.',
+                        responseLine: 'Las palomas no mienten porque no son palomas: son cámaras. Y las cámaras vieron todo en San Martín, se lo aseguro.',
                     },
                     {
                         id: 'bromear_walter',
@@ -545,7 +545,7 @@ export const dialogueTrees: DialogueTree[] = [
                         next: 'end',
                         givesClueId: 'clue_camaras_palomas',
                         effects: { confianza: 9 },
-                        responseLine: 'Encantado de que alguien le crea. Repite lo de Km 20 con más convicción todavía.',
+                        responseLine: 'Encantado de que alguien le crea. Repite lo de San Martín con más convicción todavía.',
                     },
                     { id: 'retirarse', label: 'Te vas.', kind: 'retirarse', next: 'end' },
                 ],
@@ -676,7 +676,7 @@ export const falsoSospechosoDialogue: DialogueTree = {
     nodes: {
         start: {
             npcLine:
-                'Un camionero descarga cajas de facturas frente al galpón. "¿Puedo ayudarlo, oficial? Tengo que llegar a un cumpleaños de 15 en Villa Quieta."',
+                'Un camionero descarga cajas de facturas frente al galpón. "¿Puedo ayudarlo, oficial? Tengo que llegar a un cumpleaños de 15 en Villa Devoto."',
             options: [
                 {
                     id: 'arrestar_camionero',

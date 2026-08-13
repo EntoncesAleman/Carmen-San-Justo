@@ -85,7 +85,7 @@ export const dialogueTrees: DialogueTree[] = [
                         next: 'end',
                         givesClueId: 'clue_llamada_cervecera',
                         effects: { confianza: 4 },
-                        responseLine: 'Interceptamos un llamado suyo a la línea interna de la fábrica La Cervecera, la madrugada que desapareció. No sé qué hacía ahí a esa hora.',
+                        responseLine: 'Interceptamos un llamado suyo a la línea interna de la fábrica Quilmes, la madrugada que desapareció. No sé qué hacía ahí a esa hora.',
                     },
                     {
                         id: 'ofrecer_favor_sagasti2',
@@ -94,7 +94,7 @@ export const dialogueTrees: DialogueTree[] = [
                         next: 'end',
                         givesClueId: 'clue_llamada_cervecera',
                         effects: { confianza: 9 },
-                        responseLine: 'Trato hecho, otra vez. Ese llamado a La Cervecera es lo único sólido que tenemos.',
+                        responseLine: 'Trato hecho, otra vez. Ese llamado a Quilmes es lo único sólido que tenemos.',
                     },
                     {
                         id: 'intimidar_sagasti2',
@@ -153,7 +153,7 @@ export const dialogueTrees: DialogueTree[] = [
                         next: 'end',
                         givesClueId: 'clue_transferencia_yamila',
                         effects: { confianza: 8, corrupcion: 2 },
-                        responseLine: 'Tarda dos minutos: hay una transferencia a un depósito en garantía a nombre de "C. Molina", hecha desde una IP de La Cervecera. Prolijo, para lo prolijo que es esconder plata.',
+                        responseLine: 'Tarda dos minutos: hay una transferencia a un depósito en garantía a nombre de "C. Molina", hecha desde una IP de Quilmes. Prolijo, para lo prolijo que es esconder plata.',
                     },
                     {
                         id: 'preguntar_yamila2',
@@ -182,7 +182,7 @@ export const dialogueTrees: DialogueTree[] = [
                         next: 'end',
                         givesClueId: 'clue_auto_egidio',
                         effects: { confianza: 6 },
-                        responseLine: 'Su auto entró a La Cervecera dos noches seguidas, después de hora. Una fábrica que se supone cerrada de noche, oficial.',
+                        responseLine: 'Su auto entró a Quilmes dos noches seguidas, después de hora. Una fábrica que se supone cerrada de noche, oficial.',
                     },
                     {
                         id: 'insistir_egidio2',
@@ -235,7 +235,7 @@ export const confrontacionDialogue: DialogueTree = {
     nodes: {
         start: {
             npcLine:
-                'Encontrás a Molina entre cajas vacías en La Cervecera, calculadora en mano. "No robé nada. Encontré el faltante, eso es todo. Y me dio miedo lo que iba a pasar si lo decía en voz alta."',
+                'Encontrás a Molina entre cajas vacías en Quilmes, calculadora en mano. "No robé nada. Encontré el faltante, eso es todo. Y me dio miedo lo que iba a pasar si lo decía en voz alta."',
             options: [
                 {
                     id: 'arrestar',

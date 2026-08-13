@@ -10,8 +10,8 @@
 // (ver CaseGenerator.ts). Las zonas SIN informante (la_ribera, la_feria,
 // barrio_fabrica, la_cervecera, km_20, el_delta, barranca_norte) solo se
 // usan como parada FINAL o como destino falso, nunca como parada
-// intermedia — mismo patrón que ya usaban los 3 casos fijos (El Delta y
-// Km 20 están vacíos de NPCs estáticos a propósito).
+// intermedia — mismo patrón que ya usaban los 3 casos fijos (Tigre y
+// San Martín están vacíos de NPCs estáticos a propósito).
 export const INFORMANT_NPC_IDS: readonly string[] = [
     'aldo_reissig',
     'marina_ithurbide',

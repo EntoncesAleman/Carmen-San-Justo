@@ -2,21 +2,43 @@
 
 ## Dirección
 
-2D/ilustración estilizada, caricaturesca, urbana, exagerada. Colores
-fuertes, iluminación dramática, personajes expresivos, fondos con detalle
-ambiental. No se copia el estilo visual exacto de ninguna franquicia
-existente.
+Pixel art 16-bit, alto contraste, colores saturados — la estética de
+juego de PC/consola de principios de los 90 (aventura de investigación
+tipo terminal policial), NO ilustración digital moderna suave. Pedido
+explícito del usuario: el parecido visual con el género tiene que ser
+fuerte ("visualmente tiene que ser igual... si no, no se retrotrae al
+juego"), pero sin copiar diseño de personajes, logos ni texto de ninguna
+obra existente — arte, nombres y contenido 100% propios, con la tipografía
+y la técnica de un juego de esa época.
 
 ## Paleta
 
-- Fondo noche/investigación: `#1b1f2a` (azul muy oscuro)
-- Acento principal (UI, resaltados, luz de sodio): `#e8b84b` (amarillo
-  mostaza) — se volvió también la firma visual del arte generado (luz
-  cálida de farol callejero contra fondos azul noche)
+Negro casi puro + ámbar, como un monitor de fósforo de terminal policial
+de PC vieja — no un panel plano de UI moderna (ver FASE 18/19 en
+CHANGELOG). Cada ventana se distingue por su BORDE, no por un tono de
+fondo distinto.
+
+- Fondo general y de paneles: `#050505` / `#0a0a0a` (negro casi puro)
+- Acento principal (bordes de ventana, UI, resaltados, luz de sodio):
+  `#e8b84b` (ámbar) — también la firma visual del arte generado (luz
+  cálida de farol callejero contra fondos oscuros)
 - Alerta / sospecha / tiempo crítico: `#c0392b`
 - Confianza / éxito: `#4caf7d`
 - Texto principal: `#f2ede3` (hueso)
-- Paneles: `#262b3a` sobre fondo `#1b1f2a`
+
+## Tipografía
+
+`VT323` (Google Fonts, licencia OFL, self-hosted vía `@fontsource/vt323`
+— sin llamadas a un CDN externo en runtime). Es una tipografía de
+terminal/VGA genérica, de dominio del género, no asociada a ningún juego
+puntual — el tipo de fuente bitmap de PC de principios de los 90 que
+define visualmente la "aventura de investigación retro" sin copiar el
+diseño de letra de nada específico. Se usa en TODA la interfaz (antes:
+`monospace` genérico + `Georgia, serif` en menú/HUD — una mezcla que no
+se sentía retro en ningún lado). `Preloader` espera a
+`document.fonts.ready` antes de mostrar el menú, para evitar el bug real
+ya visto una vez (pedir una fuente no cargada todavía hace que Phaser
+caiga a un fallback con glifos rotos en Chromium headless).
 
 ## Proporciones y perspectiva
 
@@ -29,36 +51,32 @@ existente.
 - Mapa: esquemático, no realista — nodos conectados por líneas de viaje (sin
   arte definitivo todavía, ver TODO_ASSET).
 
-## Arte generado (FASE 8 — primer lote, 2026-08-12)
+## Arte generado
 
 Higgsfield (herramienta originalmente evaluada) requiere plan pago y
 rechazó la generación real (el `get_cost` no lo advertía, pero el envío sí
 lo bloqueó: `Requires basic plan or higher`). Por indicación del usuario se
 usó **Pollinations.ai** en su lugar — gratuito, sin cuenta ni API key.
 
-Backend real usado por Pollinations al momento de generar: modelo `sana`
-(el parámetro `model=flux` no cambió el resultado — el servicio solo estaba
-sirviendo `sana`). Con prompting fuerte hacia "flat cel shaded / thick
-outlines / stylized caricature" el resultado terminó siendo una ilustración
-3D-caricaturesca con rim light amarillo consistente con la paleta del
-juego — no el "cómic 2D plano" originalmente buscado, pero sí un estilo
-cohesivo, distintivo y usable, mejor que aceptar cualquier resultado al
-azar. Se documenta acá el resultado real, no el objetivo original, para que
-quien retome esto sepa qué esperar del pipeline actual.
+**Pixel art forzado algorítmicamente, no por prompt (FASE 19)**: pedirle
+al modelo "pixel art" como palabra de estilo no funciona — probado varias
+veces, devuelve una ilustración semi-fotorrealista igual, el modelo no
+respeta esa palabra clave. La solución no es pelear con el prompt: se le
+pide una ilustración PLANA, de ALTO CONTRASTE y colores SATURADOS (ahí sí
+responde bien), y el look de pixel art de verdad se aplica DESPUÉS,
+algorítmicamente, con `pixelate()` en `tools/generate_art.py` — downscale
+a baja resolución (bloques de 8-10px), cuantización de paleta a ~24-32
+colores (`Image.quantize`, sin dithering), reescalado de vuelta con
+`NEAREST` (sin antialiasing). Es el mismo truco que usan generadores de
+pixel art reales: la cuantización GARANTIZA el resultado, el texto del
+prompt no. Requiere Pillow (`pip install Pillow`, o usar el intérprete de
+`.venv-e2e` que ya lo tiene si existe).
 
 **Pipeline reproducible**: `tools/generate_art.py` — define el prompt de
 estilo compartido (`STYLE` / `BG_STYLE`) + una lista de personajes/fondos,
-y descarga con `curl` (no usar `urllib` de Python: falla por certificados
-SSL del sistema en macOS). Correr con `python3 tools/generate_art.py`, sin
-dependencias más allá de `curl`.
-
-**Generado en este primer lote** (10 retratos + 3 fondos, en
-`public/assets/characters/` y `public/assets/backgrounds/`):
-
-- Protagonista (Fierro), Bracamonte, Simón Achával, Aldo Reissig, Armando
-  Petrocelli, Nazareno Quiroga, Marina Ithurbide, "El Ingeniero" Contreras,
-  el camionero de catering, Chiche Molina.
-- Fondos: Kiosco de Simón, Muelle La Anguila, Comisaría 0.
+descarga con `curl` (no usar `urllib` de Python: falla por certificados
+SSL del sistema en macOS) y pixela cada imagen al bajarla. Correr con
+`python3 tools/generate_art.py` (necesita `curl` + Pillow).
 
 **Integración** (`src/data/portraits.ts` mapea npcId/locationId → clave de
 textura; `Preloader.ts` los precarga; `DialogueScene`, `MainMenu` y
@@ -70,13 +88,11 @@ imagen todavía, no es un error).
 
 | nombre | tipo | estado | prioridad |
 |---|---|---|---|
-| character_police_main_portrait | retrato | ✅ generado | — |
-| npc_hugo_bracamonte/simon_achaval/aldo_reissig/armando_petrocelli/nazareno_quiroga/marina_ithurbide/el_ingeniero_contreras/camionero_catering/chiche_molina_portrait | retrato | ✅ generados (9) | — |
-| npc_*_portrait — resto del elenco (12 NPCs: Beba, Salaberry, Hombre de las Palomas, Marta, Pipo, Cacho, Sagasti, Media Cuadra, Yamila, Egidio, Manteca, Walter, Salerno, Pescador Aguirre) | retrato | pendiente | alta |
-| location_kiosco_simon/muelle_anguila/comisaria_0_background | fondo | ✅ generados (3) | — |
-| location_*_background — resto de las 19 zonas | fondo | pendiente | media |
+| Los 16 retratos y 4 fondos existentes | retrato/fondo | ✅ regenerados en pixel art (FASE 19) | — |
+| npc_*_portrait — resto del elenco (12 NPCs sin retrato: Beba, Salaberry, Hombre de las Palomas, Marta, Pipo, Cacho, Sagasti, Media Cuadra, Yamila, Egidio, Manteca, Walter, Salerno, Pescador Aguirre) | retrato | pendiente, mismo pipeline pixel art | alta |
+| location_*_background — resto de las 21 zonas (17 sin fondo propio) | fondo | pendiente, mismo pipeline pixel art | alta |
 | gang_*_portrait (8, "Los Administradores") | retrato | pendiente | media |
-| character_police_main_idle/walk (animaciones/expresiones) | sprite | pendiente — Pollinations no genera spritesheets, requiere otro enfoque (frames sueltos + código de animación, o pixel-art manual) | media |
+| character_police_main_idle/walk (animaciones/expresiones) | sprite | pendiente — Pollinations no genera spritesheets, requiere otro enfoque (frames sueltos + código de animación) | media |
 | icon_* (pistas, sospecha, tiempo, reputación) | ícono UI | pendiente | media |
 | menu_background, map_overview | fondo | pendiente | baja |
 

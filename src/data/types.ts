@@ -3,7 +3,6 @@
 export interface Zone {
     id: string;
     nombre: string;
-    inspiracionConceptual: string;
     descripcion: string;
 }
 

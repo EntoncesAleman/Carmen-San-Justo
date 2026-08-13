@@ -1,8 +1,8 @@
 import { CaseDefinition, Clue } from '../types';
 import { briefingDialogue, confrontacionDialogue, dialogueTrees, falsoSospechosoDialogue } from './caso2_dialogues';
 
-// Ruta del caco: Parque Obrero (escena, Lo de Pipo) → Costa Alta (parada
-// intermedia, Molina buscó ayuda técnica) → La Cervecera (parada final).
+// Ruta del caco: Parque Patricios (escena, Lo de Pipo) → Núñez (parada
+// intermedia, Molina buscó ayuda técnica) → Quilmes (parada final).
 const clues: Clue[] = [
     {
         id: 'clue_calculadora_explorar',
@@ -29,7 +29,7 @@ const clues: Clue[] = [
     },
     {
         id: 'clue_transferencia_yamila',
-        descripcion: 'Yamila rastreó una transferencia de Los Administradores a un depósito en garantía a nombre de "C. Molina", desde una IP de La Cervecera.',
+        descripcion: 'Yamila rastreó una transferencia de Los Administradores a un depósito en garantía a nombre de "C. Molina", desde una IP de Quilmes.',
         ubicacionZoneId: 'costa_alta',
         npcId: 'yamila_cospito',
         categoria: 'economica',
@@ -41,7 +41,7 @@ const clues: Clue[] = [
     },
     {
         id: 'clue_llamada_cervecera',
-        descripcion: 'Sagasti interceptó un llamado de Molina a la línea interna de la fábrica La Cervecera, la madrugada de su desaparición.',
+        descripcion: 'Sagasti interceptó un llamado de Molina a la línea interna de la fábrica Quilmes, la madrugada de su desaparición.',
         ubicacionZoneId: 'puente_sur',
         npcId: 'perla_sagasti',
         categoria: 'criminal',
@@ -65,7 +65,7 @@ const clues: Clue[] = [
     },
     {
         id: 'clue_auto_egidio',
-        descripcion: 'Don Egidio anotó el auto de Molina entrando a La Cervecera dos noches seguidas, fuera del horario en que la fábrica debería estar cerrada.',
+        descripcion: 'Don Egidio anotó el auto de Molina entrando a Quilmes dos noches seguidas, fuera del horario en que la fábrica debería estar cerrada.',
         ubicacionZoneId: 'lomas_bajas',
         npcId: 'egidio_paz',
         categoria: 'visual',
@@ -127,7 +127,7 @@ export const caso2Contador: CaseDefinition = {
     finales: [
         { id: 'resuelto_correcto', titulo: 'Caso resuelto', descripcion: 'Entregaste a Molina y el faltante quedó documentado. Bracamonte archiva el expediente sin hacer preguntas de más.' },
         { id: 'banda_escapa', titulo: 'La banda escapa', descripcion: 'Para cuando llegaste a una conclusión, La Directora ya había "reorganizado" los libros. El faltante desaparece con Molina.' },
-        { id: 'sospechoso_equivocado', titulo: 'El sospechoso equivocado', descripcion: 'Arrestaste a un pescador en El Delta. Va a contar esta historia en cada asado durante los próximos diez años.' },
+        { id: 'sospechoso_equivocado', titulo: 'El sospechoso equivocado', descripcion: 'Arrestaste a un pescador en Tigre. Va a contar esta historia en cada asado durante los próximos diez años.' },
         { id: 'escandalo', titulo: 'Escándalo', descripcion: 'Negociaste con Molina y alguien contó todo. Ahora el escándalo tiene tu nombre al lado del de Los Administradores.' },
         { id: 'final_absurdo', titulo: 'Final absurdo', descripcion: 'Entre intimidaciones y contradicciones, el caso se resuelve solo, casi de casualidad. Molina termina explicándote su propio arresto.' },
         { id: 'final_secreto', titulo: 'Los libros verdaderos', descripcion: 'Hablando con todo el barrio, algo no cierra: el "faltante" lo armó el propio Bracamonte para cubrir otra cosa. Todo el caso se reencuadra.' },

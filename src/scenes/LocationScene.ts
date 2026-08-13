@@ -203,8 +203,8 @@ export class LocationScene extends Phaser.Scene {
 
     private showOverlay(message: string) {
         const panel = this.add
-            .rectangle(this.scale.width / 2, this.scale.height / 2, 640, 260, 0x262b3a, 0.98)
-            .setStrokeStyle(2, 0xe8b84b)
+            .rectangle(this.scale.width / 2, this.scale.height / 2, 640, 260, COLORS.PANEL, 0.98)
+            .setStrokeStyle(2, COLORS.ACCENT)
             .setInteractive();
         const text = this.add
             .text(this.scale.width / 2, this.scale.height / 2, `${message}\n\n(click para continuar)`, {

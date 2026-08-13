@@ -14,7 +14,7 @@ export class LoadGameScene extends Phaser.Scene {
         this.cameras.main.setBackgroundColor(COLORS_CSS.BG_DARK);
         this.add
             .text(this.scale.width / 2, 80, 'Cargar Partida', {
-                fontFamily: 'Georgia, serif',
+                fontFamily: '"VT323", monospace',
                 fontSize: '30px',
                 color: COLORS_CSS.ACCENT,
             })

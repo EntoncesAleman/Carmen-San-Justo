@@ -55,7 +55,7 @@ export class CaseGenerator {
         // final además necesitan tener al menos un informante viviendo ahí
         // (si no, nadie podría darte la pista de por dónde sigue el caco).
         // Solo la parada final puede ser una zona "vacía" de NPCs estáticos
-        // (mismo patrón que El Delta/Km 20 en los casos fijos).
+        // (mismo patrón que Tigre/San Martín en los casos fijos).
         const populatedZoneIds = new Set(INFORMANT_NPC_IDS.map((id) => getNpc(id)!.zoneId));
         const rutaLength = randomInt(3, 4, rng);
 

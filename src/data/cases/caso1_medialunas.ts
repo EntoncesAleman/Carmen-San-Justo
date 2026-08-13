@@ -1,9 +1,9 @@
 import { CaseDefinition, Clue } from '../types';
 import { briefingDialogue, confrontacionDialogue, dialogueTrees, falsoSospechosoDialogue } from './caso1_dialogues';
 
-// Ruta del caco: Terminal Sur (escena del hecho) → El Oeste Profundo
-// (parada intermedia, se reconstruye con la pista del kiosco) → El Delta
-// (parada final, se reconstruye con la pista de la remisería). Km 20 es la
+// Ruta del caco: Constitución (escena del hecho) → Morón
+// (parada intermedia, se reconstruye con la pista del kiosco) → Tigre
+// (parada final, se reconstruye con la pista de la remisería). San Martín es la
 // pista falsa de Naza — un desvío, no una parada real.
 const clues: Clue[] = [
     {
@@ -19,7 +19,7 @@ const clues: Clue[] = [
     },
     {
         id: 'clue_kiosco_medialunas',
-        descripcion: 'Contreras compró tres docenas de medialunas la noche del operativo y se subió a un remise de "Central Cacho", con base en El Oeste Profundo.',
+        descripcion: 'Contreras compró tres docenas de medialunas la noche del operativo y se subió a un remise de "Central Cacho", con base en Morón.',
         ubicacionZoneId: 'terminal_sur',
         npcId: 'simon_achaval',
         categoria: 'geografica',
@@ -64,7 +64,7 @@ const clues: Clue[] = [
     },
     {
         id: 'clue_camioneta_blanca',
-        descripcion: 'Naza jura haber visto una camioneta blanca sospechosa saliendo de Terminal Sur pasada la medianoche, rumbo a Km 20.',
+        descripcion: 'Naza jura haber visto una camioneta blanca sospechosa saliendo de Constitución pasada la medianoche, rumbo a San Martín.',
         ubicacionZoneId: 'terminal_norte',
         npcId: 'nazareno_quiroga',
         categoria: 'falsa',
@@ -79,7 +79,7 @@ const clues: Clue[] = [
     // pedidas en el diseño (visual, económica, absurda, contradictoria).
     {
         id: 'clue_acertijo_palomas',
-        descripcion: 'El Hombre de las Palomas vio una paloma volver tres veces al mismo techo, en Villa Quieta, en plena madrugada.',
+        descripcion: 'El Hombre de las Palomas vio una paloma volver tres veces al mismo techo, en Villa Devoto, en plena madrugada.',
         ubicacionZoneId: 'parque_obrero',
         npcId: 'hombre_de_las_palomas',
         categoria: 'absurda',
@@ -91,7 +91,7 @@ const clues: Clue[] = [
     },
     {
         id: 'clue_cuaderno_patentes',
-        descripcion: 'Don Egidio anotó un Peugeot 504 pasando dos veces por semana, siempre a la misma hora, cerca de Terminal Sur.',
+        descripcion: 'Don Egidio anotó un Peugeot 504 pasando dos veces por semana, siempre a la misma hora, cerca de Constitución.',
         ubicacionZoneId: 'lomas_bajas',
         npcId: 'egidio_paz',
         categoria: 'visual',
@@ -103,7 +103,7 @@ const clues: Clue[] = [
     },
     {
         id: 'clue_camaras_palomas',
-        descripcion: 'Walter Chiodi jura que las palomas son cámaras y que "vieron todo" en Km 20 la noche del operativo.',
+        descripcion: 'Walter Chiodi jura que las palomas son cámaras y que "vieron todo" en San Martín la noche del operativo.',
         ubicacionZoneId: 'villa_quieta',
         npcId: 'walter_chiodi',
         categoria: 'contradictoria',
@@ -155,10 +155,10 @@ export const caso1Medialunas: CaseDefinition = {
     id: 'caso1_medialunas',
     titulo: 'El Operativo de las Medialunas',
     descripcion:
-        'Un operativo de rutina en Terminal Sur termina con "El Ingeniero" Contreras desaparecido, información contradictoria por todos lados, y una caja de medialunas que todos mencionan antes que cualquier otra cosa.',
+        'Un operativo de rutina en Constitución termina con "El Ingeniero" Contreras desaparecido, información contradictoria por todos lados, y una caja de medialunas que todos mencionan antes que cualquier otra cosa.',
     objetoRobado: 'El expediente completo del operativo — la única prueba real contra Los Administradores',
     victima: 'La Comisaría 0',
-    fechaHoraDelHecho: 'Esta madrugada, cerca de las 03:00, en Terminal Sur',
+    fechaHoraDelHecho: 'Esta madrugada, cerca de las 03:00, en Constitución',
     sospechosoId: 'el_ingeniero_contreras',
     zonaInicial: 'terminal_sur',
     // Calibrado contra la red de conexiones entre zonas: el óptimo real
@@ -179,7 +179,7 @@ export const caso1Medialunas: CaseDefinition = {
     finales: [
         { id: 'resuelto_correcto', titulo: 'Caso resuelto', descripcion: 'Entregaste a Contreras con las pruebas en regla. Bracamonte no te felicita, pero tampoco te putea. Es una victoria, a su manera.' },
         { id: 'banda_escapa', titulo: 'La banda escapa', descripcion: 'Para cuando llegaste a una conclusión, Los Administradores ya habían movido todo. Contreras es un fantasma otra vez.' },
-        { id: 'sospechoso_equivocado', titulo: 'El sospechoso equivocado', descripcion: 'Arrestaste a un camionero de catering en Km 20. Va a estar bastante tiempo enojado con vos.' },
+        { id: 'sospechoso_equivocado', titulo: 'El sospechoso equivocado', descripcion: 'Arrestaste a un camionero de catering en San Martín. Va a estar bastante tiempo enojado con vos.' },
         { id: 'escandalo', titulo: 'Escándalo', descripcion: 'Negociaste con Contreras y alguien te vio. Naza Quiroga, justo él, escribe la nota de tu vida.' },
         { id: 'final_absurdo', titulo: 'Final absurdo', descripcion: 'Entre intimidaciones y contradicciones, el caso se resuelve casi por accidente. Nadie entiende bien cómo, pero se cerró.' },
         { id: 'final_secreto', titulo: 'El sobrino del comisario', descripcion: 'Hablando con todo el barrio, algo no cierra: Contreras es el sobrino de Bracamonte. Todo el caso se reencuadra.' },

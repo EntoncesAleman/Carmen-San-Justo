@@ -1,4 +1,5 @@
 import * as Phaser from 'phaser';
+import '@fontsource/vt323';
 import { GAME } from './core/Constants';
 import { audioManager } from './audio/AudioManager';
 import { Boot } from './scenes/Boot';

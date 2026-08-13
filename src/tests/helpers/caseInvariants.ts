@@ -31,6 +31,20 @@ export function assertCaseIntegrity(caso: CaseDefinition, zoneIds: Set<string>, 
         );
     }
 
+    // El Pizarrón (SuspectBoardScene) solo deja arriesgar una hipótesis
+    // sobre una zona que alguna pista YA CONSEGUIDA señaló como destino
+    // posible — no cualquiera de las 21 zonas del mundo (bug real
+    // encontrado jugando: se podía reconstruir la ruta entera a fuerza
+    // bruta, gratis, sin haber juntado una sola pista). Esto exige que,
+    // para cada salto real de la ruta, EXISTA al menos una pista real (no
+    // falsa) cuyo `destinosPosibles` lo mencione — si no, ese caso sería
+    // literalmente imposible de resolver por el jugador.
+    for (let i = 0; i < caso.ruta.length - 1; i++) {
+        const siguiente = caso.ruta[i + 1];
+        const hayPista = caso.clues.some((c) => !c.esFalsa && c.destinosPosibles.includes(siguiente));
+        assert.ok(hayPista, `${caso.id}: ningún clue real señala ${siguiente} como destinosPosibles — el salto sería imposible de reconstruir en el Pizarrón`);
+    }
+
     caso.clues.forEach((c) => assert.ok(zoneIds.has(c.ubicacionZoneId), `${caso.id}: ${c.id} referencia una zona inexistente ${c.ubicacionZoneId}`));
     caso.clues
         .filter((c) => c.npcId)

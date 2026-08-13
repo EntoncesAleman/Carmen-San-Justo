@@ -19,7 +19,7 @@ export class MainMenu extends Phaser.Scene {
 
         this.add
             .text(this.scale.width / 2, 150, 'EL ÚLTIMO PROCEDIMIENTO', {
-                fontFamily: 'Georgia, serif',
+                fontFamily: '"VT323", monospace',
                 fontSize: '38px',
                 color: COLORS_CSS.ACCENT,
             })
@@ -27,7 +27,7 @@ export class MainMenu extends Phaser.Scene {
 
         this.add
             .text(this.scale.width / 2, 195, 'Un caso de la Policía de El Cinturón', {
-                fontFamily: 'Georgia, serif',
+                fontFamily: '"VT323", monospace',
                 fontSize: '16px',
                 color: COLORS_CSS.TEXT,
             })
@@ -59,8 +59,8 @@ export class MainMenu extends Phaser.Scene {
 
     private showCredits() {
         const panel = this.add
-            .rectangle(this.scale.width / 2, this.scale.height / 2, 600, 280, 0x262b3a, 0.98)
-            .setStrokeStyle(2, 0xe8b84b)
+            .rectangle(this.scale.width / 2, this.scale.height / 2, 600, 280, COLORS.PANEL, 0.98)
+            .setStrokeStyle(2, COLORS.ACCENT)
             .setInteractive();
 
         const text = this.add
@@ -68,7 +68,7 @@ export class MainMenu extends Phaser.Scene {
                 this.scale.width / 2,
                 this.scale.height / 2,
                 'EL ÚLTIMO PROCEDIMIENTO\n\nJuego de investigación ficticio.\nTodos los personajes, lugares y la organización\ncriminal son inventados y no representan a\npersonas reales.\n\nHecho con Phaser 3 + TypeScript.\n\n(click para cerrar)',
-                { fontFamily: 'Georgia, serif', fontSize: '15px', color: '#f2ede3', align: 'center' },
+                { fontFamily: '"VT323", monospace', fontSize: '15px', color: '#f2ede3', align: 'center' },
             )
             .setOrigin(0.5);
 

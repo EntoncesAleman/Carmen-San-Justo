@@ -2,22 +2,46 @@ import urllib.parse
 import subprocess
 import time
 import os
+from PIL import Image, ImageEnhance
 
 OUT_DIR = "/Users/entonces/proyectos/carmen san a/public/assets"
 
+# El modelo de Pollinations no respeta "pixel art" como palabra de estilo
+# (probado: la devuelve como ilustración semi-fotorrealista igual). En vez
+# de pelear con el prompt, se le pide una ilustración plana, de alto
+# contraste y colores saturados — y el look de pixel art de verdad se
+# fuerza DESPUÉS, algorítmicamente, con `pixelate()` (downscale + cuantizar
+# paleta + reescalar con NEAREST, sin antialiasing). Es el mismo truco que
+# usan generadores de pixel art reales: la cuantización garantiza el
+# resultado, el prompt de texto no.
 STYLE = (
-    "flat cel shaded comic book character illustration, thick bold black outlines, "
-    "stylized cartoon caricature, video game concept art, exaggerated features, "
-    "flat colors no gradients, warm yellow rim light against dark navy blue flat background, "
-    "graphic novel style, centered, plain background, no text, no watermark, no photorealism"
+    "portrait bust, flat cel shaded comic book character illustration, thick bold black outlines, "
+    "stylized cartoon caricature, exaggerated features, bright saturated flat colors, "
+    "simple flat colored background, high contrast, no gradients, no soft shadows, "
+    "centered, no text, no watermark, no photorealism"
 )
 
 BG_STYLE = (
     "flat cel shaded comic book illustration, thick bold black outlines, stylized graphic novel "
-    "environment art, video game background art, flat colors no gradients, warm sodium-vapor "
-    "streetlight glow (mustard yellow) against a dark navy blue night sky, moody saturated colors, "
-    "gritty gritty Buenos Aires urban atmosphere, wide scene, no people, no text, no watermark, no photorealism"
+    "environment art, bright saturated flat colors, high contrast, warm sodium-vapor streetlight "
+    "glow (mustard yellow) against a dark blue night sky, gritty Buenos Aires urban atmosphere, "
+    "wide scene, no people, no gradients, no soft shadows, no text, no watermark, no photorealism"
 )
+
+PORTRAIT_PIXEL = dict(block=8, colors=32, saturation=1.15, contrast=1.15)
+BACKGROUND_PIXEL = dict(block=10, colors=28, saturation=1.3, contrast=1.15)
+
+
+def pixelate(path, block, colors, saturation=1.0, contrast=1.0):
+    img = Image.open(path).convert('RGB')
+    if saturation != 1.0:
+        img = ImageEnhance.Color(img).enhance(saturation)
+    if contrast != 1.0:
+        img = ImageEnhance.Contrast(img).enhance(contrast)
+    w, h = img.size
+    small = img.resize((max(1, w // block), max(1, h // block)), Image.BILINEAR)
+    quant = small.quantize(colors=colors, method=Image.MEDIANCUT, dither=Image.NONE).convert('RGB')
+    quant.resize((w, h), Image.NEAREST).save(path)
 
 CHARACTERS = [
     ("character_police_main_portrait", 47,
@@ -106,6 +130,8 @@ def main():
         url = f"https://image.pollinations.ai/prompt/{urllib.parse.quote(prompt)}?width=768&height=768&nologo=true&seed={seed}"
         path = f"{OUT_DIR}/characters/{name}.png"
         size = download(url, path)
+        if size:
+            pixelate(path, **PORTRAIT_PIXEL)
         print(f"{name}: {size} bytes")
         time.sleep(1)
 
@@ -114,6 +140,8 @@ def main():
         url = f"https://image.pollinations.ai/prompt/{urllib.parse.quote(prompt)}?width=1280&height=720&nologo=true&seed={seed}"
         path = f"{OUT_DIR}/backgrounds/{name}.png"
         size = download(url, path)
+        if size:
+            pixelate(path, **BACKGROUND_PIXEL)
         print(f"{name}: {size} bytes")
         time.sleep(1)
 

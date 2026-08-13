@@ -1,10 +1,10 @@
 import * as Phaser from 'phaser';
-import { COLORS_CSS, FONTS, SCENE_KEYS } from '../core/Constants';
+import { COLORS, COLORS_CSS, FONTS, SCENE_KEYS, TIME_COSTS } from '../core/Constants';
 import { gameState } from '../core/GameState';
 import { CaseManager } from '../systems/CaseManager';
 import { ClueManager } from '../systems/ClueManager';
 import { RouteSystem } from '../systems/RouteSystem';
-import { ZONES, getZone } from '../data/zones';
+import { getZone } from '../data/zones';
 import { createButton } from '../ui/Button';
 import { audioManager } from '../audio/AudioManager';
 
@@ -73,18 +73,38 @@ export class SuspectBoardScene extends Phaser.Scene {
         );
 
         if (!esParadaFinal) {
+            // Solo se puede arriesgar una hipótesis sobre una zona que
+            // alguna pista YA CONSEGUIDA señaló como posible destino
+            // (`Clue.destinosPosibles`) — no cualquiera de las 21 zonas del
+            // mundo. Antes se podía elegir cualquier zona, gratis y sin
+            // límite: se reconstruía la ruta entera a fuerza bruta sin
+            // haber juntado una sola pista real (bug real encontrado por el
+            // usuario jugando). Arriesgar además cuesta tiempo real, como
+            // cualquier viaje (ver submit()) — declarar una hipótesis
+            // implica ir hasta ahí a comprobarla.
+            const opciones = [...new Set(collected.flatMap((c) => c.destinosPosibles))];
             const cols = 5;
             const startX = 130;
             const startY = boardTop + 50;
             const stepX = 175;
             const stepY = 52;
 
-            ZONES.forEach((zone, i) => {
+            if (opciones.length === 0) {
+                this.add.text(60, startY, 'Todavía ninguna pista te señala un destino concreto. Seguí investigando.', {
+                    fontFamily: FONTS.MONO,
+                    fontSize: '12px',
+                    color: '#c0392b',
+                });
+            }
+
+            opciones.forEach((zoneId, i) => {
+                const zone = getZone(zoneId);
+                if (!zone) return;
                 const col = i % cols;
                 const row = Math.floor(i / cols);
                 const x = startX + col * stepX;
                 const y = startY + row * stepY;
-                createButton(this, x, y, zone.nombre, () => this.submit(zone.id), { width: 160, height: 42, fontSize: '11px', fontFamily: FONTS.MONO });
+                createButton(this, x, y, zone.nombre, () => this.submit(zoneId), { width: 160, height: 42, fontSize: '11px', fontFamily: FONTS.MONO });
             });
         }
 
@@ -99,10 +119,20 @@ export class SuspectBoardScene extends Phaser.Scene {
         const def = CaseManager.getCurrentCase();
         if (!def) return;
 
+        // Arriesgar una hipótesis cuesta lo mismo que viajar hasta ahí a
+        // comprobarla (mismo costo que cualquier otro viaje, ver
+        // CityMapScene/LocationScene.travelTo) — si el reloj se agota acá,
+        // se corta directo al final, igual que un viaje normal.
+        const expired = CaseManager.advanceTimeAndCheckDeadline(TIME_COSTS.VIAJAR_MINUTOS);
+        if (expired) {
+            this.scene.start(SCENE_KEYS.ENDING);
+            return;
+        }
+
         const result = RouteSystem.submitGuess(def, zoneId);
 
         this.resultContainer?.destroy();
-        const panel = this.add.rectangle(this.scale.width / 2, this.scale.height / 2, 680, 220, 0x262b3a, 0.98).setStrokeStyle(2, 0xe8b84b).setInteractive();
+        const panel = this.add.rectangle(this.scale.width / 2, this.scale.height / 2, 680, 220, COLORS.PANEL, 0.98).setStrokeStyle(2, COLORS.ACCENT).setInteractive();
 
         let message: string;
         if (result === 'correcto_intermedio') {

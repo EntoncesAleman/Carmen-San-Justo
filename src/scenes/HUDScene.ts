@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { COLORS_CSS, DEBUG, SCENE_KEYS } from '../core/Constants';
+import { COLORS, COLORS_CSS, DEBUG, SCENE_KEYS } from '../core/Constants';
 import { gameState } from '../core/GameState';
 import { TimeSystem } from '../core/TimeSystem';
 import { EventBus, Events } from '../core/EventBus';
@@ -24,7 +24,7 @@ export class HUDScene extends Phaser.Scene {
         this.add.rectangle(this.scale.width / 2, 20, this.scale.width, 40, 0x11141c, 0.92);
 
         this.infoText = this.add.text(16, 8, '', {
-            fontFamily: 'Georgia, serif',
+            fontFamily: '"VT323", monospace',
             fontSize: '13px',
             color: COLORS_CSS.TEXT,
         });
@@ -34,7 +34,7 @@ export class HUDScene extends Phaser.Scene {
 
         if (DEBUG.ENABLED) {
             this.add.text(this.scale.width - 320, 8, 'debug: tecla `', {
-                fontFamily: 'Georgia, serif',
+                fontFamily: '"VT323", monospace',
                 fontSize: '11px',
                 color: '#555c6e',
             });
@@ -99,9 +99,9 @@ export class HUDScene extends Phaser.Scene {
             return;
         }
 
-        const bg = this.add.rectangle(this.scale.width - 200, 120, 260, 170, 0x262b3a, 0.98).setStrokeStyle(2, 0xe8b84b);
+        const bg = this.add.rectangle(this.scale.width - 200, 120, 260, 170, COLORS.PANEL, 0.98).setStrokeStyle(2, COLORS.ACCENT);
         const title = this.add
-            .text(this.scale.width - 200, 60, 'Guardar en...', { fontFamily: 'Georgia, serif', fontSize: '13px', color: COLORS_CSS.TEXT })
+            .text(this.scale.width - 200, 60, 'Guardar en...', { fontFamily: '"VT323", monospace', fontSize: '13px', color: COLORS_CSS.TEXT })
             .setOrigin(0.5);
         const buttons = [0, 1, 2].map((slot) =>
             createButton(

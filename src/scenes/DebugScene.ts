@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { COLORS_CSS, SCENE_KEYS } from '../core/Constants';
+import { COLORS, COLORS_CSS, SCENE_KEYS } from '../core/Constants';
 import { gameState } from '../core/GameState';
 import { CaseManager } from '../systems/CaseManager';
 import { ClueManager } from '../systems/ClueManager';
@@ -19,10 +19,10 @@ export class DebugScene extends Phaser.Scene {
 
     create() {
         this.add.rectangle(this.scale.width / 2, this.scale.height / 2, this.scale.width, this.scale.height, 0x000000, 0.55);
-        const panel = this.add.rectangle(this.scale.width / 2, this.scale.height / 2, 860, 620, 0x1b1f2a, 0.98).setStrokeStyle(2, 0xe8b84b);
+        const panel = this.add.rectangle(this.scale.width / 2, this.scale.height / 2, 860, 620, COLORS.BG_DARK, 0.98).setStrokeStyle(2, COLORS.ACCENT);
         void panel;
 
-        this.add.text(this.scale.width / 2 - 400, 120, 'DEBUG MODE', { fontFamily: 'Georgia, serif', fontSize: '20px', color: COLORS_CSS.ACCENT });
+        this.add.text(this.scale.width / 2 - 400, 120, 'DEBUG MODE', { fontFamily: '"VT323", monospace', fontSize: '20px', color: COLORS_CSS.ACCENT });
 
         const def = CaseManager.getCurrentCase();
         let x = this.scale.width / 2 - 400;

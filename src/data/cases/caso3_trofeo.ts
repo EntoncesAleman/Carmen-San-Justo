@@ -1,7 +1,7 @@
 import { CaseDefinition, Clue } from '../types';
 import { briefingDialogue, confrontacionDialogue, dialogueTrees, falsoSospechosoDialogue } from './caso3_dialogues';
 
-// Ruta del caco: La Feria del Usado / Liniers (escena del hecho) → Palo
+// Ruta del caco: Liniers / Liniers (escena del hecho) → Palo
 // Alto (parada intermedia, el contacto anticuario de Salerno) → El Casco
 // Antiguo (parada final, donde intenta vender la copa). La Feria (Once) es
 // la pista falsa de Manteca — un desvío, no una parada real.
