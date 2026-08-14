@@ -6,20 +6,24 @@ los casos 1 y 2 primero. Reproduce: reporte -> briefing -> ruta de 2 saltos
 atributo (vehiculo + ojos) -> orden de captura -> confrontación -> captura.
 
 Coordenadas centralizadas en tools/frame_coords.py (ver
-src/ui/frameLayout.ts / ui/ActionMenuPanel.ts — FASE 20, menú numerado
-único a la derecha). SuspectBoardScene/CrimeComputerScene/DebugScene no
-forman parte de ese frame y siguen con coordenadas propias hardcodeadas
-acá. El ÍNDICE de cada ítem del menú depende de cuántos ítems lo preceden
-(NPCs de la locación + Explorar antes de los "viajar") — cada paso
-comenta qué índice corresponde a qué acción, basado en
-`src/data/locations.ts` y `src/data/zoneConnections.ts`.
+src/ui/frameLayout.ts / ui/ActionMenuPanel.ts). SuspectBoardScene/
+CrimeComputerScene/DebugScene no forman parte de ese frame y siguen con
+coordenadas propias hardcodeadas acá. El ÍNDICE de cada ítem de la lista
+depende de cuántos ítems lo preceden (NPCs de la locación + Explorar antes
+de los "viajar") — cada paso comenta qué índice corresponde a qué acción,
+basado en `src/data/locations.ts` y `src/data/zoneConnections.ts`.
+
+FASE 24 — "Ver el mapa"/"Pizarrón"/"Expediente"/"Inteligencia Criminal"
+salieron de la lista numerada (ahora es plana, sin números) y viven en la
+barra de íconos al pie de la columna (`icon_toolbar_item(...)`) — ver
+frame_coords.py para el porqué.
 """
 
 import sys
 import os
 
 sys.path.insert(0, os.path.dirname(__file__))
-from frame_coords import action_menu_item, dialogue_option, dialogue_skip_zone
+from frame_coords import action_menu_item, dialogue_option, dialogue_skip_zone, icon_toolbar_item
 
 from playwright.sync_api import sync_playwright
 
@@ -100,8 +104,8 @@ def run():
         click(*dialogue_option(0))
         page.wait_for_timeout(500)
 
-        # LocationScene(feria_usados): items=[Toto(0),Explorar(1),Ver el mapa(2),4 viajar(3-6)] -> Pizarrón = 7
-        click(*action_menu_item(7))
+        # LocationScene(feria_usados): items=[Toto(0),Explorar(1),4 viajar(2-5)] -> Pizarrón = ícono
+        click(*icon_toolbar_item('pizarron'))
         page.wait_for_timeout(400)
         # 1 pista real (destinosPosibles=['palo_alto']) -> 1 sola opción, row0col0.
         # boardTop con 1 pista = 138+20+26=184.
@@ -122,8 +126,8 @@ def run():
         click(*dialogue_option(0))
         page.wait_for_timeout(500)
 
-        # LocationScene(palo_alto): items=[Salerno(0),Salaberry(1),Explorar(2),Ver el mapa(3),5 viajar(4-8)] -> Pizarrón = 9
-        click(*action_menu_item(9))
+        # LocationScene(palo_alto): items=[Salerno(0),Salaberry(1),Explorar(2),5 viajar(3-7)] -> Pizarrón = ícono
+        click(*icon_toolbar_item('pizarron'))
         page.wait_for_timeout(400)
         # 2 pistas reales (palo_alto de Toto ya recorrida + casco_antiguo de Salerno) -> 2 opciones, col1 = casco_antiguo.
         # boardTop con 2 pistas = 138+40+26=204.
@@ -145,11 +149,11 @@ def run():
         page.wait_for_timeout(500)
 
         # Viajar a villa_quieta (no conectada directo desde casco_antiguo, pasa por palo_alto):
-        # LocationScene(casco_antiguo): items=[Petrocelli(0),bloqueado(1),Explorar(2),Ver el mapa(3),4 viajar(4-7: manzana_fria,terminal_sur,la_ribera,palo_alto)] -> palo_alto = 7
-        click(*action_menu_item(7))
-        page.wait_for_timeout(400)
-        # LocationScene(palo_alto): items=[Salerno(0),Salaberry(1),Explorar(2),Ver el mapa(3),5 viajar(4-8: manzana_fria,costa_alta,villa_quieta,feria_usados,casco_antiguo)] -> villa_quieta = 6
+        # LocationScene(casco_antiguo): items=[Petrocelli(0),bloqueado(1),Explorar(2),4 viajar(3-6: manzana_fria,terminal_sur,la_ribera,palo_alto)] -> palo_alto = 6
         click(*action_menu_item(6))
+        page.wait_for_timeout(400)
+        # LocationScene(palo_alto): items=[Salerno(0),Salaberry(1),Explorar(2),5 viajar(3-7: manzana_fria,costa_alta,villa_quieta,feria_usados,casco_antiguo)] -> villa_quieta = 5
+        click(*action_menu_item(5))
         page.wait_for_timeout(400)
         page.screenshot(path="/tmp/caso3_10_villa_quieta.png")
 
@@ -163,18 +167,18 @@ def run():
         click(*dialogue_option(0))
         page.wait_for_timeout(500)
 
-        # LocationScene(villa_quieta): items=[Marta(0),Walter(1),Explorar(2),Ver el mapa(3),4 viajar(4-7),Pizarrón(8),Expediente(9),Inteligencia(10)]
-        click(*action_menu_item(10))
+        # LocationScene(villa_quieta): items=[Marta(0),Walter(1),Explorar(2),4 viajar(3-6)]
+        click(*icon_toolbar_item('crimen'))
         page.wait_for_timeout(500)
         page.screenshot(path="/tmp/caso3_11_crime_computer.png")
         click(512, 668)  # EMITIR ORDEN DE CAPTURA (CrimeComputerScene, sin cambios) -> vuelve a CityMap(villa_quieta)
         page.wait_for_timeout(400)
 
-        # CityMapScene(villa_quieta): items=[Quedarme(0),Ver el mapa(1),4 viajar(2-5: villa_flor,palo_alto,oeste_profundo,feria_usados)] -> palo_alto = 3
-        click(*action_menu_item(3))
+        # CityMapScene(villa_quieta): items=[Quedarme(0),4 viajar(1-4: villa_flor,palo_alto,oeste_profundo,feria_usados)] -> palo_alto = 2
+        click(*action_menu_item(2))
         page.wait_for_timeout(400)
-        # LocationScene(palo_alto): items=[Salerno(0),Salaberry(1),Explorar(2),Ver el mapa(3),5 viajar(4-8)] -> casco_antiguo = 8
-        click(*action_menu_item(8))
+        # LocationScene(palo_alto): items=[Salerno(0),Salaberry(1),Explorar(2),5 viajar(3-7)] -> casco_antiguo = 7
+        click(*action_menu_item(7))
         page.wait_for_timeout(500)
         page.screenshot(path="/tmp/caso3_12_casco_antiguo_unlocked.png")
 

@@ -12,6 +12,7 @@ import { ClueManager } from '../systems/ClueManager';
 import { audioManager } from '../audio/AudioManager';
 import { getAmbientForZone } from '../data/ambient';
 import { renderActionMenu, ActionMenuItem } from '../ui/ActionMenuPanel';
+import { renderIconToolbar } from '../ui/IconToolbar';
 import { renderLocationArtPanel } from '../ui/LocationArtPanel';
 import { renderDescriptionTextPanel } from '../ui/DescriptionTextPanel';
 
@@ -100,14 +101,6 @@ export class LocationScene extends Phaser.Scene {
         });
 
         items.push({ label: 'Explorar', onClick: () => this.explore() });
-        items.push({
-            label: 'Ver el mapa',
-            onClick: () =>
-                this.scene.start(SCENE_KEYS.TRAVEL_MAP, {
-                    returnSceneKey: SCENE_KEYS.LOCATION,
-                    onTravel: (zoneId: string) => this.travelTo(zoneId),
-                }),
-        });
 
         getConnections(gameState.currentZoneId).forEach((zoneId) => {
             const destino = getZone(zoneId);
@@ -115,13 +108,21 @@ export class LocationScene extends Phaser.Scene {
             items.push({ label: `Viajar a ${destino.nombre}`, onClick: () => this.travelTo(zoneId) });
         });
 
-        items.push(
-            { label: 'Pizarrón — ruta del caco', onClick: () => this.scene.start(SCENE_KEYS.SUSPECT_BOARD) },
-            { label: 'Expediente', onClick: () => this.scene.start(SCENE_KEYS.CASE_FILE) },
-            { label: 'Sistema de Inteligencia Criminal', onClick: () => this.scene.start(SCENE_KEYS.CRIME_COMPUTER) },
-        );
-
         renderActionMenu(this, items, 'QUÉ HACER');
+        renderIconToolbar(this, [
+            {
+                icon: 'mapa',
+                label: 'Mapa',
+                onClick: () =>
+                    this.scene.start(SCENE_KEYS.TRAVEL_MAP, {
+                        returnSceneKey: SCENE_KEYS.LOCATION,
+                        onTravel: (zoneId: string) => this.travelTo(zoneId),
+                    }),
+            },
+            { icon: 'pizarron', label: 'Pizarrón', onClick: () => this.scene.start(SCENE_KEYS.SUSPECT_BOARD) },
+            { icon: 'expediente', label: 'Expediente', onClick: () => this.scene.start(SCENE_KEYS.CASE_FILE) },
+            { icon: 'crimen', label: 'Crimen', onClick: () => this.scene.start(SCENE_KEYS.CRIME_COMPUTER) },
+        ]);
     }
 
     // Placeholder funcional de pasos al entrar a una locación (ver

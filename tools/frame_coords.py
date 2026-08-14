@@ -8,13 +8,21 @@ por sx/sy en cada test, no acá).
 
 FASE 20 — layout rediseñado a fondo: columna izquierda = arte arriba +
 texto de descripción/diálogo abajo (siempre en el mismo lugar, sea zona,
-locación o retrato de con quién hablás). Columna derecha = un ÚNICO menú
-vertical NUMERADO de acciones (viajar, hablar, explorar, pizarrón,
-expediente, inteligencia criminal, o las opciones de un diálogo) —
-reemplaza la lista de destinos + barra de íconos + panel de NPCs que antes
-vivían en lugares separados. `action_menu_item(i)` sirve tanto para el
-menú de CityMapScene/LocationScene como para las opciones de
-DialogueScene: es EL MISMO menú numerado en las tres escenas.
+locación o retrato de con quién hablás). Columna derecha = menú vertical
+de acciones contextuales (viajar, hablar, explorar, o las opciones de un
+diálogo) — `action_menu_item(i)` sirve tanto para el menú de
+CityMapScene/LocationScene como para las opciones de DialogueScene.
+
+FASE 24 — comparando contra capturas reales del juego de referencia: la
+lista de la derecha dejó de estar numerada ("1. 2. 3." → texto plano) y
+las acciones "de sistema" (mapa, pizarrón, expediente, inteligencia
+criminal) SALIERON de esa lista — ahora son una barra de 4 íconos al pie
+de la misma columna (`ui/IconToolbar.ts`), no más filas de texto. Usar
+`icon_toolbar_item(i)` para esas 4, NO `action_menu_item(i)` — si un
+script vieja intenta hacer click en el índice donde antes vivía
+"Expediente"/"Inteligencia Criminal", ahora cae en espacio vacío del panel
+(no tira error, pero tampoco navega a nada — un falso positivo silencioso,
+ya pasó una vez en este mismo ciclo).
 """
 
 FRAME_CONTENT_TOP = 48
@@ -59,6 +67,22 @@ def dialogue_option(index: int):
     x = FRAME_RIGHT_X + 16 + 20
     y = DIALOGUE_START_Y + index * DIALOGUE_ROW_HEIGHT
     return (x, y)
+
+
+# `IconToolbar` — 4 botones parejos al pie de la columna derecha (ver
+# ui/IconToolbar.ts: btnW = FRAME_RIGHT_WIDTH / 4, y = contentBottom - 44).
+ICON_TOOLBAR_ITEMS = ['mapa', 'pizarron', 'expediente', 'crimen']
+ICON_TOOLBAR_Y = FRAME_CONTENT_BOTTOM - 44  # 696
+
+
+def icon_toolbar_item(index_or_name):
+    """Centro del ítem N (0-indexed) o por nombre ('mapa'/'pizarron'/
+    'expediente'/'crimen') de la barra de íconos al pie de la columna
+    derecha en CityMapScene/LocationScene."""
+    index = ICON_TOOLBAR_ITEMS.index(index_or_name) if isinstance(index_or_name, str) else index_or_name
+    btn_w = FRAME_RIGHT_WIDTH / len(ICON_TOOLBAR_ITEMS)
+    x = FRAME_RIGHT_X + btn_w * index + btn_w / 2
+    return (x, ICON_TOOLBAR_Y)
 
 
 def dialogue_skip_zone():

@@ -7,6 +7,7 @@ import { audioManager } from '../audio/AudioManager';
 import { getZone } from '../data/zones';
 import { getConnections } from '../data/zoneConnections';
 import { renderActionMenu, ActionMenuItem } from '../ui/ActionMenuPanel';
+import { renderIconToolbar } from '../ui/IconToolbar';
 import { renderLocationArtPanel } from '../ui/LocationArtPanel';
 import { renderDescriptionTextPanel } from '../ui/DescriptionTextPanel';
 
@@ -34,29 +35,28 @@ export class CityMapScene extends Phaser.Scene {
         const descripcion = def ? `${def.titulo}\n\n${def.objetoRobado}` : 'Sin caso activo.';
         renderDescriptionTextPanel(this, descripcion, zone?.nombre ?? '—');
 
-        const items: ActionMenuItem[] = [
-            { label: 'Quedarme e investigar acá', onClick: () => this.scene.start(SCENE_KEYS.LOCATION) },
+        const items: ActionMenuItem[] = [{ label: 'Quedarme e investigar acá', onClick: () => this.scene.start(SCENE_KEYS.LOCATION) }];
+        getConnections(gameState.currentZoneId).forEach((zoneId) => {
+            const destino = getZone(zoneId);
+            if (!destino) return;
+            items.push({ label: `Viajar a ${destino.nombre}`, onClick: () => this.travelTo(zoneId) });
+        });
+
+        renderActionMenu(this, items, 'QUÉ HACER');
+        renderIconToolbar(this, [
             {
-                label: 'Ver el mapa',
+                icon: 'mapa',
+                label: 'Mapa',
                 onClick: () =>
                     this.scene.start(SCENE_KEYS.TRAVEL_MAP, {
                         returnSceneKey: SCENE_KEYS.CITY_MAP,
                         onTravel: (zoneId: string) => this.travelTo(zoneId),
                     }),
             },
-        ];
-        getConnections(gameState.currentZoneId).forEach((zoneId) => {
-            const destino = getZone(zoneId);
-            if (!destino) return;
-            items.push({ label: `Viajar a ${destino.nombre}`, onClick: () => this.travelTo(zoneId) });
-        });
-        items.push(
-            { label: 'Pizarrón — ruta del caco', onClick: () => this.scene.start(SCENE_KEYS.SUSPECT_BOARD) },
-            { label: 'Expediente', onClick: () => this.scene.start(SCENE_KEYS.CASE_FILE) },
-            { label: 'Sistema de Inteligencia Criminal', onClick: () => this.scene.start(SCENE_KEYS.CRIME_COMPUTER) },
-        );
-
-        renderActionMenu(this, items, 'QUÉ HACER');
+            { icon: 'pizarron', label: 'Pizarrón', onClick: () => this.scene.start(SCENE_KEYS.SUSPECT_BOARD) },
+            { icon: 'expediente', label: 'Expediente', onClick: () => this.scene.start(SCENE_KEYS.CASE_FILE) },
+            { icon: 'crimen', label: 'Crimen', onClick: () => this.scene.start(SCENE_KEYS.CRIME_COMPUTER) },
+        ]);
     }
 
     private travelTo(zoneId: string) {

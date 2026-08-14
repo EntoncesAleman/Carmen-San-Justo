@@ -724,6 +724,47 @@ un mapa con silueta y rutas punteadas, una placa de ubicación), servidos
 con datos 100% del juego propio. Verificado con capturas + los 4 scripts
 de e2e de punta a punta, cero errores de consola.
 
+## FASE 24 — Comparación lado a lado: la lista numerada no era el patrón correcto
+
+El usuario insistió una vez más ("no lo veo muy igual, tiene que ser
+igual") mandando su propia captura de la app junto a una captura de
+referencia, lado a lado. Eso permitió ver algo que las capturas sueltas de
+FASE 23 no habían dejado claro: en el juego de referencia, la lista de la
+derecha es TEXTO PLANO sin numerar, y las acciones de sistema (mapa,
+pizarrón, expediente, inteligencia criminal) NO son filas de esa lista —
+son una barra de 4 íconos al pie de la columna. Cambio real de estructura,
+no solo de color:
+
+- [x] **Lista de acciones sin numerar** (`ActionMenuPanel.ts`,
+      `DialogueScene.ts`): se sacó el prefijo "N. " de cada fila — no
+      afecta las coordenadas de click (son por posición Y, no por el
+      texto), así que es un cambio de bajo riesgo pese a tocar 2 archivos.
+- [x] **Barra de íconos** (`ui/IconToolbar.ts`, nuevo): 4 botones con
+      ícono vectorial (dibujado con Graphics, no assets) + etiqueta corta
+      al pie de la columna derecha — mapa, pizarrón, expediente,
+      inteligencia criminal. Salen de la lista numerada de
+      `CityMapScene`/`LocationScene` (que ahora solo tiene NPCs/Explorar/
+      Viajar) y pasan a esta barra.
+- [x] **Globo de diálogo con colita** (`ui/SpeechBubble.ts`, nuevo): el
+      panel de texto debajo del retrato (en `DialogueScene`, tanto la
+      pregunta como la respuesta) ahora es un globo de cómic de verdad
+      (rounded rect + colita apuntando hacia arriba, al retrato) en vez de
+      un rectángulo liso con borde — mismo patrón que el globo con colita
+      hacia el testigo en la referencia.
+
+**Bug real encontrado en el proceso**: los 4 scripts de e2e "pasaron" en
+un primer chequeo después de mover Pizarrón/Expediente/Inteligencia
+Criminal a la barra de íconos — pero un `grep` mostró que varios clicks
+seguían apuntando a `action_menu_item(N)` con el índice VIEJO, donde ya no
+había nada (el click caía en espacio vacío del panel: no tira error, pero
+tampoco navega). Un falso positivo silencioso — "sin errores de consola"
+no es lo mismo que "probó lo que dice probar". Se corrigieron los 4
+scripts (recalculando cada índice a mano contra `locations.ts`/
+`zoneConnections.ts`, igual que en FASE 21) y se agregó
+`icon_toolbar_item(...)` a `frame_coords.py`; reverificado con capturas
+que las pantallas de Expediente/Crime Computer realmente se abren, no solo
+que la consola queda limpia.
+
 ### Pendiente, en orden de impacto (no implementado todavía)
 
 - [ ] Animaciones/parpadeo ambiental en portraits y fondos (hoy 100%

@@ -11,6 +11,7 @@ import { getPortraitKey } from '../data/portraits';
 import { TypewriterText } from '../ui/TypewriterText';
 import { FRAME } from '../ui/frameLayout';
 import { CURSOR_POINTER } from '../ui/cursor';
+import { drawSpeechBubble } from '../ui/SpeechBubble';
 
 export interface DialogueSceneData {
     npcId: string;
@@ -103,7 +104,7 @@ export class DialogueScene extends Phaser.Scene {
 
         const node = this.tree.nodes[this.currentNodeId];
         const bubble = this.textBubbleBounds();
-        const bubbleBg = this.add.rectangle(bubble.x, bubble.y, bubble.width, bubble.height, COLORS.PANEL, 0.9).setOrigin(0, 0).setStrokeStyle(2, COLORS.ACCENT);
+        const bubbleBg = drawSpeechBubble(this, bubble.x, bubble.y, bubble.width, bubble.height, COLORS.ACCENT);
         this.contentContainer.add(bubbleBg);
 
         const npcLineText = this.add.text(bubble.x + 14, bubble.y + 12, '', {
@@ -118,8 +119,8 @@ export class DialogueScene extends Phaser.Scene {
         const options = DialogueEngine.getVisibleOptions(node, this.sceneData.npcId);
         const showOptions = () => {
             let y = FRAME.contentTop + 60;
-            options.forEach((opt, i) => {
-                const row = this.renderOptionRow(`${i + 1}. ${opt.label}`, y, () => this.chooseOption(opt));
+            options.forEach((opt) => {
+                const row = this.renderOptionRow(opt.label, y, () => this.chooseOption(opt));
                 this.contentContainer.add(row.container);
                 y += row.height + 10;
             });
@@ -190,7 +191,7 @@ export class DialogueScene extends Phaser.Scene {
         this.contentContainer.removeAll(true);
         const npc = getNpc(this.sceneData.npcId);
         const bubble = this.textBubbleBounds();
-        const bubbleBg = this.add.rectangle(bubble.x, bubble.y, bubble.width, bubble.height, COLORS.PANEL, 0.9).setOrigin(0, 0).setStrokeStyle(2, COLORS.SUCCESS);
+        const bubbleBg = drawSpeechBubble(this, bubble.x, bubble.y, bubble.width, bubble.height, COLORS.SUCCESS);
         this.contentContainer.add(bubbleBg);
 
         const text = this.add.text(bubble.x + 14, bubble.y + 12, '', {
@@ -203,7 +204,7 @@ export class DialogueScene extends Phaser.Scene {
         this.contentContainer.add(text);
 
         const showContinue = () => {
-            const row = this.renderOptionRow('1. Continuar', FRAME.contentTop + 60, () => {
+            const row = this.renderOptionRow('Continuar', FRAME.contentTop + 60, () => {
                 this.currentNodeId = opt.next;
                 this.renderNode();
             });

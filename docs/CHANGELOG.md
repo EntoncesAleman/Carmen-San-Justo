@@ -2,6 +2,27 @@
 
 Formato: fecha, qué se hizo, por qué. Más reciente arriba.
 
+## 2026-08-13 (continuación — FASE 24: lista sin numerar + barra de íconos + globo de diálogo)
+
+Usuario mandó captura propia + captura de referencia lado a lado — reveló
+que la lista de acciones numerada no era el patrón correcto: en la
+referencia es texto plano, y mapa/pizarrón/expediente/inteligencia
+criminal son una barra de íconos, no filas de la lista.
+
+- `ActionMenuPanel.ts`/`DialogueScene.ts`: sacado el prefijo numérico de
+  cada fila.
+- `ui/IconToolbar.ts` (nuevo): 4 botones con ícono vectorial + etiqueta al
+  pie de la columna derecha, reemplazan esas 4 filas en
+  `CityMapScene`/`LocationScene`.
+- `ui/SpeechBubble.ts` (nuevo): globo de diálogo con colita hacia el
+  retrato, reemplaza el rectángulo liso de `DialogueScene`.
+- **Bug real encontrado**: los 4 scripts de e2e daban "sin errores de
+  consola" después del cambio, pero varios clicks seguían apuntando al
+  índice viejo de Pizarrón/Expediente/Inteligencia Criminal — caían en
+  espacio vacío (no navegaban a nada) sin tirar ningún error. Corregidos
+  los 4 scripts + agregado `icon_toolbar_item(...)` a `frame_coords.py`,
+  reverificado con capturas que de verdad abren esas pantallas.
+
 ## 2026-08-13 (continuación — FASE 21, último ítem: MIDI real vía soundfont)
 
 - **Música con instrumentos reales** (`soundfont-player`, nueva dependencia

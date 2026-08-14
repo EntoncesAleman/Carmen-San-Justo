@@ -10,13 +10,14 @@ export interface ActionMenuItem {
     locked?: boolean;
 }
 
-// Menú vertical NUMERADO de acciones, columna derecha del frame — calca
-// el "1. Depart / 2. Show Connections / 3. Investigate / 4. Visit
-// Interpol" del formato clásico de persecución: un único menú de
-// acciones, siempre en el mismo lugar, en vez de una lista de destinos y
-// una barra de íconos separadas (ver frameLayout.ts). Cada escena arma su
-// propia lista de `items` (viajar, hablar con alguien, pizarrón...); este
-// componente solo sabe dibujar y numerar.
+// Menú vertical de acciones, columna derecha del frame — lista PLANA sin
+// numerar (pedido explícito, comparando contra capturas reales del juego
+// de referencia: ahí la lista de destinos/acciones es texto plano, sin
+// "1. 2. 3."; lo numerado era una lectura de una edición distinta del
+// mismo juego). Las acciones "de sistema" (mapa, pizarrón, expediente,
+// inteligencia criminal) viven aparte, en `IconToolbar.ts`, al pie de esta
+// misma columna — acá solo quedan las acciones contextuales de la escena
+// (con quién hablar, a dónde viajar, explorar).
 export function renderActionMenu(scene: Phaser.Scene, items: ActionMenuItem[], title?: string): void {
     scene.add
         .rectangle(FRAME.rightX, FRAME.contentTop, FRAME.rightWidth, FRAME.contentBottom - FRAME.contentTop, COLORS.PANEL, 0.9)
@@ -45,10 +46,10 @@ export function renderActionMenu(scene: Phaser.Scene, items: ActionMenuItem[], t
         return;
     }
 
-    items.forEach((item, i) => {
+    items.forEach((item) => {
         const baseColor = item.locked ? '#7a8091' : COLORS_CSS.TEXT;
         const label = scene.add
-            .text(FRAME.rightX + 16, y, `${i + 1}. ${item.label}`, {
+            .text(FRAME.rightX + 16, y, item.label, {
                 fontFamily: FONTS.MONO,
                 fontSize: '15px',
                 color: baseColor,
