@@ -2,6 +2,26 @@
 
 Formato: fecha, qué se hizo, por qué. Más reciente arriba.
 
+## 2026-08-14 (FASE 25: loop maestro de 32 fases — auditoría + 3 gaps reales)
+
+Usuario mandó un prompt de reconstrucción de 32 fases con instrucción
+explícita de auditar primero y no rehacer lo que ya funciona. Diagnóstico:
+la enorme mayoría del checklist ya estaba resuelta por FASE 20-24. Se
+cerraron los 3 gaps reales:
+
+- `main.ts`: `Phaser.Scale.FIT` + `CENTER_BOTH` — el canvas 1024×768 no
+  escalaba en pantallas chicas, se recortaba. Verificado sin deformación
+  en 466×350 y 375×281.
+- `ActionMenuPanel.ts`/`DialogueScene.ts`: atajos de teclado 1-9 por
+  posición (sin renumerar la lista visualmente — eso se sacó a propósito
+  en FASE 24), documentados en el panel de Preferencias.
+- `AudioManager.playSfx(id, detuneCents)`: variación leve de tono en los
+  3 pasos al entrar a una locación.
+
+Deliberadamente no tocado: esquema de atributos del sospechoso, roster de
+testigos/sospechosos, barra de menú superior — todo ya cubierto o
+cambiarlo era puro riesgo sin ganancia real.
+
 ## 2026-08-13 (continuación — FASE 24: lista sin numerar + barra de íconos + globo de diálogo)
 
 Usuario mandó captura propia + captura de referencia lado a lado — reveló

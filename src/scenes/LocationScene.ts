@@ -129,7 +129,11 @@ export class LocationScene extends Phaser.Scene {
     // docs/ART_DIRECTION.md → audio). 3 pasos espaciados, no un loop real.
     private playFootsteps() {
         for (let i = 0; i < 3; i++) {
-            this.time.delayedCall(i * 180, () => audioManager.playSfx('footstep'));
+            // Variación leve de tono por paso (+-70 cents) — el mismo
+            // sample tocado idéntico 3 veces seguidas se siente repetitivo
+            // (ver AudioManager.playSfx, detuneCents).
+            const detune = Math.round((Math.random() - 0.5) * 140);
+            this.time.delayedCall(i * 180, () => audioManager.playSfx('footstep', detune));
         }
     }
 

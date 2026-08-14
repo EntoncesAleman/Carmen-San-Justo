@@ -101,7 +101,7 @@ export class HUDScene extends Phaser.Scene {
 
         const textSpeedLabels: Record<string, string> = { lenta: 'Texto: lento', normal: 'Texto: normal', rapida: 'Texto: rápido' };
 
-        const bg = this.add.rectangle(this.scale.width - 200, 130, 260, 130, COLORS.PANEL, 0.98).setStrokeStyle(2, COLORS.ACCENT);
+        const bg = this.add.rectangle(this.scale.width - 200, 150, 260, 170, COLORS.PANEL, 0.98).setStrokeStyle(2, COLORS.ACCENT);
         const title = this.add
             .text(this.scale.width - 200, 80, 'Preferencias', { fontFamily: '"VT323", monospace', fontSize: '13px', color: COLORS_CSS.TEXT })
             .setOrigin(0.5);
@@ -128,7 +128,20 @@ export class HUDScene extends Phaser.Scene {
             { width: 200, height: 32, fontSize: '13px' },
         );
 
-        this.prefsMenuContainer = this.add.container(0, 0, [bg, title, muteBtn, speedBtn]);
+        // Controles de teclado — no obvios solo mirando la pantalla (los
+        // atajos numéricos del menú de acciones son invisibles a
+        // propósito, ver ActionMenuPanel.ts), así que quedan documentados
+        // acá, el lugar natural de "Opciones".
+        const controls = this.add
+            .text(
+                this.scale.width - 200,
+                190,
+                '1-9: elegir de la lista\nESC: volver / cerrar\nENTER: avanzar diálogo\n` : modo debug',
+                { fontFamily: '"VT323", monospace', fontSize: '12px', color: '#9aa0ad', align: 'center', lineSpacing: 4 },
+            )
+            .setOrigin(0.5, 0);
+
+        this.prefsMenuContainer = this.add.container(0, 0, [bg, title, muteBtn, speedBtn, controls]);
     }
 
     private toggleSaveMenu() {

@@ -94,8 +94,31 @@ export class DialogueScene extends Phaser.Scene {
         return { x: FRAME.leftX, y: FRAME.textTop, width: FRAME.leftWidth, height: FRAME.contentBottom - FRAME.textTop };
     }
 
+    private static readonly DIGIT_KEYS = ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE'];
+
+    // Atajo 1-9 por opción, mismo criterio que ActionMenuPanel.ts. Acá
+    // además hace falta LIMPIAR los listeners viejos ANTES de que empiece
+    // a tipear el nodo nuevo (no recién cuando terminan de aparecer las
+    // opciones nuevas) — si no, mientras el texto todavía se está
+    // escribiendo, tocar "1" dispara la opción del nodo ANTERIOR, que ya
+    // no está en pantalla.
+    private clearDigitShortcuts() {
+        DialogueScene.DIGIT_KEYS.forEach((k) => this.input.keyboard?.removeAllListeners(`keydown-${k}`));
+    }
+
+    private registerDigitShortcuts(handlers: (() => void)[]) {
+        this.clearDigitShortcuts();
+        handlers.slice(0, DialogueScene.DIGIT_KEYS.length).forEach((handler, i) => {
+            this.input.keyboard?.once(`keydown-${DialogueScene.DIGIT_KEYS[i]}`, () => {
+                audioManager.playSfx('ui_click');
+                handler();
+            });
+        });
+    }
+
     private renderNode() {
         this.contentContainer.removeAll(true);
+        this.clearDigitShortcuts();
 
         if (this.currentNodeId === 'end') {
             this.finishDialogue();
@@ -124,6 +147,7 @@ export class DialogueScene extends Phaser.Scene {
                 this.contentContainer.add(row.container);
                 y += row.height + 10;
             });
+            this.registerDigitShortcuts(options.map((opt) => () => this.chooseOption(opt)));
         };
 
         const typewriter = new TypewriterText(this, npcLineText, withDetectiveName(node.npcLine), 14);
@@ -189,6 +213,7 @@ export class DialogueScene extends Phaser.Scene {
 
     private showResponse(opt: DialogueOption) {
         this.contentContainer.removeAll(true);
+        this.clearDigitShortcuts();
         const npc = getNpc(this.sceneData.npcId);
         const bubble = this.textBubbleBounds();
         const bubbleBg = drawSpeechBubble(this, bubble.x, bubble.y, bubble.width, bubble.height, COLORS.SUCCESS);
@@ -204,11 +229,13 @@ export class DialogueScene extends Phaser.Scene {
         this.contentContainer.add(text);
 
         const showContinue = () => {
-            const row = this.renderOptionRow('Continuar', FRAME.contentTop + 60, () => {
+            const advance = () => {
                 this.currentNodeId = opt.next;
                 this.renderNode();
-            });
+            };
+            const row = this.renderOptionRow('Continuar', FRAME.contentTop + 60, advance);
             this.contentContainer.add(row.container);
+            this.registerDigitShortcuts([advance]);
         };
 
         const typewriter = new TypewriterText(this, text, withDetectiveName(`${npc?.apodo ?? ''}: "${opt.responseLine}"`), 14);

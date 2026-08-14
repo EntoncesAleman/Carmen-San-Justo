@@ -28,6 +28,18 @@ const config: Phaser.Types.Core.GameConfig = {
     height: GAME.HEIGHT,
     parent: 'game-container',
     backgroundColor: GAME.BACKGROUND_COLOR,
+    // Viewport lógico fijo (1024x768, ver GAME en Constants.ts) escalado
+    // proporcionalmente al contenedor real — sin esto, en una pantalla
+    // más chica que 1024x768 (celular, tablet, ventana angosta) el canvas
+    // se recortaba en vez de achicarse entero. FIT conserva la relación
+    // de aspecto (nunca deforma un panel independientemente de otro);
+    // CENTER_BOTH lo centra en el espacio sobrante.
+    scale: {
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        width: GAME.WIDTH,
+        height: GAME.HEIGHT,
+    },
     scene: [
         Boot,
         Preloader,

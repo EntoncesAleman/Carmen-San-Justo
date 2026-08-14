@@ -219,7 +219,11 @@ class AudioManager {
         this.currentAmbientId = null;
     }
 
-    playSfx(id: SfxId): void {
+    // `detuneCents` es opcional — sirve para que un mismo efecto (ej. un
+    // paso) no suene idéntico cada vez que se repite varias veces seguidas
+    // (ver LocationScene.playFootsteps): +-100 cents es un semitono, sutil
+    // pero perceptible como variación, no como desafinación.
+    playSfx(id: SfxId, detuneCents = 0): void {
         const ctx = this.ensureContext();
         if (!this.masterGain) return;
         const def = SFX[id];
@@ -227,6 +231,7 @@ class AudioManager {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = def.waveform;
+        osc.detune.setValueAtTime(detuneCents, ctx.currentTime);
         osc.frequency.setValueAtTime(def.freqStart, ctx.currentTime);
         osc.frequency.exponentialRampToValueAtTime(Math.max(def.freqEnd, 1), ctx.currentTime + def.durationMs / 1000);
         gain.gain.setValueAtTime(def.gain ?? DEFAULT_SFX_GAIN, ctx.currentTime);

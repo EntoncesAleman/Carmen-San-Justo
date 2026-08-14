@@ -765,6 +765,62 @@ scripts (recalculando cada índice a mano contra `locations.ts`/
 que las pantallas de Expediente/Crime Computer realmente se abren, no solo
 que la consola queda limpia.
 
+## FASE 25 — Loop maestro: auditoría contra checklist de 32 fases
+
+El usuario mandó un prompt de "loop maestro" de 32 fases pidiendo
+reconstruir la interfaz/flujo — con la instrucción explícita de auditar
+primero y "NO REHACER TODO INNECESARIAMENTE". Se hizo el diagnóstico
+(comparar el checklist de la FASE 32 de ese prompt contra el estado
+actual) y la enorme mayoría ya estaba resuelta por FASE 20-24 de este
+mismo proyecto (nombre del detective, pantalla dividida, globo de
+diálogo, barra de íconos, Sistema de Inteligencia Criminal, ficha de
+sospechoso, mapa con silueta, sin selección de misión, red AMBA real con
+transporte específico, tiempo/deadline, generador de casos consistente,
+dificultad por rango, orden de captura/persecución/captura, rangos,
+tipografía bitmap, marco CRT, cursor propio, MIDI, pasos/sonidos, arte
+propio). Se identificaron y cerraron los 3 gaps reales que quedaban:
+
+- [x] **Viewport lógico escalado proporcionalmente**: el canvas
+      1024×768 no tenía `scale` config — en una pantalla más chica se
+      recortaba en vez de achicarse entero. Ahora `Phaser.Scale.FIT` +
+      `CENTER_BOTH` (`main.ts`) escala manteniendo la relación de aspecto
+      exacta (verificado: 466×350 y 375×281 en viewports de prueba, ambos
+      1024/768 = 1.333 exacto, sin deformar ningún panel independiente).
+- [x] **Atajos de teclado 1-9**: `ActionMenuPanel.ts` (menú de
+      CityMapScene/LocationScene) y `DialogueScene.ts` (opciones de
+      diálogo/respuesta) ahora responden a las teclas 1-9 por posición,
+      documentado en el panel de Preferencias del HUD (el lugar natural
+      de "Opciones"). Deliberadamente NO se le pusieron números visibles
+      de nuevo a la lista (eso se sacó en FASE 24 comparando contra
+      capturas reales) — el atajo existe igual, solo que no numerado en
+      pantalla. En `DialogueScene` hizo falta un cuidado extra: limpiar
+      los listeners de teclado ANTES de que arranque a tipear el nodo
+      nuevo, no recién cuando terminan de aparecer las opciones —
+      si no, tocar "1" mientras el texto todavía se estaba escribiendo
+      disparaba la opción del nodo ANTERIOR.
+- [x] **Variación de tono en los pasos**: `AudioManager.playSfx()` ahora
+      acepta un `detuneCents` opcional; los 3 pasos al entrar a una
+      locación (`LocationScene.playFootsteps`) usan un detune aleatorio
+      leve (±70 cents) para no sonar como el mismo sample idéntico 3
+      veces seguidas.
+
+Deliberadamente NO tocado (cambiarlo sería puro riesgo de regresión sin
+ganancia real, contra la regla explícita del prompt de "no rehacer todo
+innecesariamente"): el esquema de atributos del sospechoso (cambiar
+CABELLO/OJOS/VEHÍCULO/PROFESIÓN/HOBBY/COMIDA a SEXO/PELO/SEÑAS habría
+significado tocar `CaseGenerator`, los 3 casos escritos a mano y varios
+tests para no ganar nada que el esquema actual no cubra ya
+narrativamente), el roster de testigos/sospechosos (ya hay 30 NPCs con
+apodos argentinos bizarros equivalentes en espíritu a los del prompt), y
+una barra de menú superior estilo "JUEGO/OPCIONES/ACME/DOSSIERS" (ya
+cubierta funcionalmente por Preferencias/Guardar + la barra de íconos —
+reskinearla sería puramente cosmético).
+
+Verificado con los 4 scripts de e2e de punta a punta (incluye una prueba
+específica del atajo numérico atravesando ReportScene → briefing →
+CityMapScene → LocationScene solo con teclado) y capturas en dos
+viewports chicos confirmando el escalado proporcional.
+
 ### Pendiente, en orden de impacto (no implementado todavía)
 
 - [ ] Animaciones/parpadeo ambiental en portraits y fondos (hoy 100%

@@ -13,3 +13,13 @@ body {
     justify-content: center;
     align-items: center;
 }
+
+/* Phaser.Scale.FIT necesita medir contra un contenedor con tamaño
+   definido para escalar el canvas 1024x768 manteniendo proporciones en
+   pantallas más chicas (celular/tablet) — sin esto, #game-container
+   queda del tamaño de su contenido (el canvas ya renderizado a full
+   size) y nunca se achica. */
+#game-container {
+    width: 100%;
+    height: 100%;
+}

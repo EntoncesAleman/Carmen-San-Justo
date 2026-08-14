@@ -46,7 +46,13 @@ export function renderActionMenu(scene: Phaser.Scene, items: ActionMenuItem[], t
         return;
     }
 
-    items.forEach((item) => {
+    // Atajo de teclado 1-9 por posición — sin numerar la lista de nuevo
+    // (eso quedó descartado en FASE 24, comparando contra capturas reales:
+    // ahí la lista es texto plano). El atajo existe igual, documentado en
+    // el panel de Preferencias, no como numeración visible fila por fila.
+    const DIGIT_KEYS = ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE'];
+
+    items.forEach((item, i) => {
         const baseColor = item.locked ? '#7a8091' : COLORS_CSS.TEXT;
         const label = scene.add
             .text(FRAME.rightX + 16, y, item.label, {
@@ -62,10 +68,12 @@ export function renderActionMenu(scene: Phaser.Scene, items: ActionMenuItem[], t
         // qué (ej. "falta la orden de captura"), no quedar muda.
         label.on('pointerover', () => label.setColor(item.locked ? baseColor : COLORS_CSS.ACCENT));
         label.on('pointerout', () => label.setColor(baseColor));
-        label.on('pointerdown', () => {
+        const activate = () => {
             audioManager.playSfx('ui_click');
             item.onClick();
-        });
+        };
+        label.on('pointerdown', activate);
+        if (i < DIGIT_KEYS.length) scene.input.keyboard?.once(`keydown-${DIGIT_KEYS[i]}`, activate);
 
         y += label.height + 12;
     });
